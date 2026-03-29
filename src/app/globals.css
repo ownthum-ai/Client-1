@@ -3,31 +3,206 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Font Family Definitions */
+  --font-primary: var(--font-form, 'Outfit', sans-serif);
+  --font-accent: var(--font-accent, 'Instrument Serif', serif);
+  --font-form: var(--font-form, 'Outfit', sans-serif);
+
+  /* V2 Typography Scale (Spec: Step 2779) */
+  --h1-fs: 28px;
+  --h1-fw: 700;
+  --h1-lh: 1.2;
+
+  --h2-fs: 20px;
+  --h2-fw: 600;
+  --h2-lh: 1.3;
+
+  --h3-fs: 16px;
+  --h3-fw: 600;
+  --h3-lh: 1.4;
+
+  --body-fs: 14px;
+  --body-fw: 400;
+  --body-lh: 1.6;
+
+  --body-sm-fs: 13px;
+  --body-sm-fw: 400;
+  --body-sm-lh: 1.5;
+
+  --small-fs: 12px;
+  --small-fw: 500;
+
+  --micro-fs: 10px;
+  --micro-fw: 700;
+
+  --stat-fs: 22px;
+  --stat-fw: 700;
+
+  /* Brand Palette */
+  --bg: #F8F7F3;
+  --sb: #111110;
+  --sb-w: 224px;
+  --gold: #C9963B;
+  --gold-lt: #F5E8CC;
+  --gold-dk: #8A6520;
+  --blue: #1A5FA8;
+  --blue-lt: #E3EEF9;
+  --green: #1A7A45;
+  --green-lt: #E2F4EC;
+  --red: #C42B2B;
+  --red-lt: #FDEAEA;
+  --amber: #B96C00;
+  --amber-lt: #FEF3E2;
+  --purple: #5B34C4;
+  --purple-lt: #EEE9FC;
+  --slate: #4A4A48;
+  --text: #111110;
+  --text2: #5C5C5A;
+  --text3: #9A9A97;
+  --card: #FFFFFF;
+  --border: #E5E4DF;
+  --border2: #D0CFCA;
+
+  /* Layout Constants */
+  --sb-w-collapsed: 68px;
+  --tb-h: 52px;
+  --content-p: 24px;
+  --max-content-w: 1440px;
+  --color-page-bg: var(--bg);
+  --section-gap: 24px;
+  --column-gap: 16px;
+  
+  --r: 10px;
+  --r-lg: 14px;
+  --sh: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+
+  /* V2 Form Protocol (Spec: Step 3422) */
+  --form-h: 48px;
+  --form-px: 16px;
+  --form-fs: 14px;
+  --form-r: 12px;
+  --form-border: #E5E4DF;
+  --form-border-focus: #C9963B;
+  --form-ring: #FDE8C8;
+  --form-error-bg: #FFF5F5;
+  --form-error-border: #C42B2B;
+  --form-label-fs: 11px;
+  --form-label-fw: 800;
+  --form-helper-fs: 10px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* Global Typography Protocol */
+* {
+  font-family: var(--font-primary) !important;
+  font-style: normal !important; /* Critical Rule: No italics */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.font-serif, h1.font-serif, h2.font-serif {
+  font-family: var(--font-accent) !important;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+h1, .h1 {
+  font-size: var(--h1-fs);
+  font-weight: var(--h1-fw);
+  line-height: var(--h1-lh);
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+h2, .h2 {
+  font-size: var(--h2-fs);
+  font-weight: var(--h2-fw);
+  line-height: var(--h2-lh);
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+h3, .h3 {
+  font-size: var(--h3-fs);
+  font-weight: var(--h3-fw);
+  line-height: var(--h3-lh);
+  color: var(--text2);
+}
+
+/* Buttons and Actions */
+button, .btn {
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+
+/* Data Tables Hierarchy */
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+th, .table-header {
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+td, .table-cell {
+  font-weight: 400 !important;
+  color: var(--text2);
+}
+
+/* Form Only Font Overrides */
+label, .form-label {
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+}
+
+input, select, textarea, .form-control {
+  font-weight: 400 !important;
+}
+
+.kpi-value {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* Custom Scrollbar System */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Dark Theme / Sidebar Scrollbar */
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
