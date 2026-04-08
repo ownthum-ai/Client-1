@@ -407,9 +407,9 @@ export default function PlanningLayout() {
          {/* Modals moved outside animated container */}
          {/* Booking/Sale Modal */}
          {isBookingModalOpen && selectedPlot && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300 text-left">
-               <div className="bg-white rounded-xl p-0 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                  <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+            <div className="modal-overlay animate-in fade-in duration-300">
+               <div className="modal-container max-w-md animate-in zoom-in-95 duration-300">
+                  <div className="modal-header">
                      <div>
                         <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
                            {bookingAction === 'Booked' ? 'Book Plot' : bookingAction === 'Sold' ? 'Authorize Sale' : bookingAction === 'Available' ? 'Cancel Booking' : 'Reserve Plot'}
@@ -419,7 +419,7 @@ export default function PlanningLayout() {
                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsBookingModalOpen(false)}>✕</Button>
                   </div>
 
-                  <div className="p-8 space-y-6 text-left">
+                  <div className="modal-body space-y-6">
                      {bookingAction !== 'Available' && (
                         <>
                            <div className="space-y-2">
@@ -486,9 +486,9 @@ export default function PlanningLayout() {
 
          {/* RERA Modal */}
          {isReraModalOpen && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300 text-left">
-               <div className="bg-white rounded-xl p-0 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                  <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+            <div className="modal-overlay animate-in fade-in duration-300">
+               <div className="modal-container max-w-md animate-in zoom-in-95 duration-300">
+                  <div className="modal-header">
                      <div>
                         <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
                            RERA Governance
@@ -498,7 +498,7 @@ export default function PlanningLayout() {
                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsReraModalOpen(false)}>✕</Button>
                   </div>
 
-                  <div className="p-10 space-y-8 text-center flex flex-col items-center">
+                  <div className="modal-body space-y-8 flex flex-col items-center">
                      <div className="w-16 h-16 bg-[var(--gold-lt)] rounded-2xl flex items-center justify-center border border-[var(--gold)]/20 shadow-md">
                         <RectangleGroupIcon className="w-8 h-8 text-[var(--gold)]" />
                      </div>
@@ -522,9 +522,9 @@ export default function PlanningLayout() {
 
          {/* Initialize Scheme Modal */}
          {isAddSchemeModalOpen && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300 text-left">
-               <div className="bg-white rounded-xl p-0 w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                  <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+            <div className="modal-overlay animate-in fade-in duration-300">
+               <div className="modal-container animate-in zoom-in-95 duration-300">
+                  <div className="modal-header">
                      <div>
                         <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
                            New Asset Scheme
@@ -534,7 +534,7 @@ export default function PlanningLayout() {
                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsAddSchemeModalOpen(false)}>✕</Button>
                   </div>
 
-                  <form className="p-8 space-y-8 text-left">
+                  <form className="modal-body space-y-8">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-6">
                            <div className="space-y-2">

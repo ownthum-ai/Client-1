@@ -39,7 +39,19 @@ export default function RunningMaterialPage() {
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
   const [inwardForm, setInwardForm] = useState({ materialName: '', qty: 0, vendor: '', invoice: '', rate: 0 });
   const [outwardForm, setOutwardForm] = useState({ materialName: '', qty: 0, project: '', supervisor: '' });
-  const [newMaterialForm, setNewMaterialForm] = useState({ name: '', unit: '', threshold: 0, capacity: 0, colorVar: '--blue' });
+  const [newMaterialForm, setNewMaterialForm] = useState({ name: '', customName: '', unit: '', threshold: 0, capacity: 0, colorVar: '--blue' });
+
+  const STANDARD_MATERIALS = [
+    { name: "Steel TMT Bars", unit: "kg", defaultThreshold: 5000, defaultCapacity: 25000 },
+    { name: "Cement (OPC/PPC)", unit: "bags", defaultThreshold: 600, defaultCapacity: 2000 },
+    { name: "River Sand", unit: "cft", defaultThreshold: 1000, defaultCapacity: 5000 },
+    { name: "Red Bricks", unit: "nos", defaultThreshold: 15000, defaultCapacity: 100000 },
+    { name: "Crushed Stone 20mm", unit: "cft", defaultThreshold: 1000, defaultCapacity: 5000 },
+    { name: "Ready Mix Concrete", unit: "cum", defaultThreshold: 100, defaultCapacity: 500 },
+    { name: "Vitrified Tiles", unit: "sqft", defaultThreshold: 500, defaultCapacity: 2000 },
+    { name: "Plumbing Pipes", unit: "meters", defaultThreshold: 200, defaultCapacity: 1000 },
+    { name: "Electrical Wiring", unit: "coils", defaultThreshold: 50, defaultCapacity: 300 }
+  ];
 
   // --- Calculations ---
   const totalInwardValue = useMemo(() =>
@@ -117,10 +129,18 @@ export default function RunningMaterialPage() {
 
   const handleAddMaterial = (e: React.FormEvent) => {
     e.preventDefault();
-    addMaterial(newMaterialForm);
+    const finalName = newMaterialForm.name === 'Custom/Other' ? newMaterialForm.customName : newMaterialForm.name;
+    const materialData = {
+      name: finalName,
+      unit: newMaterialForm.unit,
+      threshold: newMaterialForm.threshold,
+      capacity: newMaterialForm.capacity,
+      colorVar: newMaterialForm.colorVar,
+    };
+    addMaterial(materialData as any);
     setIsAddMaterialModalOpen(false);
-    setNewMaterialForm({ name: '', unit: '', threshold: 0, capacity: 0, colorVar: '--blue' });
-    showToast(`${newMaterialForm.name} registered as new node.`);
+    setNewMaterialForm({ name: '', customName: '', unit: '', threshold: 0, capacity: 0, colorVar: '--blue' });
+    showToast(`${finalName} registered as new node.`);
   };
 
   const handleExport = async () => {
@@ -601,9 +621,9 @@ export default function RunningMaterialPage() {
 
       {/* Register Inward Node (Outside animated container) */}
       {isInwardModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
                   <ArrowDownTrayIcon className="w-6 h-6" />
@@ -616,7 +636,7 @@ export default function RunningMaterialPage() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsInwardModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleInward} className="p-8 space-y-8 text-left">
+            <form onSubmit={handleInward} className="modal-body space-y-8">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Material Node</label>
                 <Select
@@ -705,9 +725,9 @@ export default function RunningMaterialPage() {
 
       {/* Record Outward Node (Outside animated container) */}
       {isOutwardModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
                   <ArrowUpTrayIcon className="w-6 h-6" />
@@ -720,7 +740,7 @@ export default function RunningMaterialPage() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsOutwardModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleOutward} className="p-8 space-y-8 text-left">
+            <form onSubmit={handleOutward} className="modal-body space-y-8">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Material Node</label>
                 <Select
@@ -816,9 +836,9 @@ export default function RunningMaterialPage() {
 
       {/* New Material Category Protocol (Outside animated container) */}
       {isAddMaterialModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
                   <PlusIcon className="w-6 h-6" />
@@ -831,17 +851,49 @@ export default function RunningMaterialPage() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsAddMaterialModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleAddMaterial} className="p-8 space-y-6 text-left">
+            <form onSubmit={handleAddMaterial} className="modal-body space-y-8">
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Material Moniker</label>
-                <Input
+                <Select
                   required
                   v2={true}
-                  type="text"
-                  placeholder="e.g. PREMIUM GLASS SHIELDS"
                   value={newMaterialForm.name}
-                  onChange={e => setNewMaterialForm({ ...newMaterialForm, name: e.target.value })}
-                />
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === 'Custom/Other') {
+                      setNewMaterialForm({ ...newMaterialForm, name: 'Custom/Other', unit: '', threshold: 0, capacity: 0 });
+                    } else {
+                      const selected = STANDARD_MATERIALS.find(m => m.name === val);
+                      if (selected) {
+                        setNewMaterialForm({ 
+                          ...newMaterialForm, 
+                          name: selected.name,
+                          unit: selected.unit,
+                          threshold: selected.defaultThreshold,
+                          capacity: selected.defaultCapacity
+                        });
+                      } else {
+                        setNewMaterialForm({ ...newMaterialForm, name: val });
+                      }
+                    }
+                  }}
+                >
+                  <option value="">SELECT MATERIAL CATEGORY</option>
+                  {STANDARD_MATERIALS.map(mat => (
+                    <option key={mat.name} value={mat.name}>{mat.name}</option>
+                  ))}
+                  <option value="Custom/Other">CUSTOM / OTHER</option>
+                </Select>
+                {newMaterialForm.name === 'Custom/Other' && (
+                  <Input
+                    required
+                    v2={true}
+                    className="mt-3 font-black uppercase tracking-widest"
+                    placeholder="ENTER CUSTOM MATERIAL NAME..."
+                    value={newMaterialForm.customName || ''}
+                    onChange={e => setNewMaterialForm({ ...newMaterialForm, customName: e.target.value })}
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-8">

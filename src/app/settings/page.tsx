@@ -1,11 +1,27 @@
 "use client";
 import React, { useState } from 'react';
+import { useStore } from '@/store/useStore';
+import { useRouter } from 'next/navigation';
+import { LockClosedIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 export default function Settings() {
   const [currentPin, setCurrentPin] = useState(['', '', '', '']);
   const [newPin, setNewPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
   const [saved, setSaved] = useState(false);
+  const { lockPin, resetSystem } = useStore();
+  const router = useRouter();
+
+  const handleCloseSystem = () => {
+    lockPin();
+    router.push('/');
+  };
+
+  const handleRestartSystem = () => {
+    if (confirm("Are you sure you want to restart the system? This will delete all data and start from zero.")) {
+      resetSystem();
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +86,7 @@ export default function Settings() {
         <div className="bg-white border border-[var(--border)] rounded-[var(--r-lg)] shadow-[var(--sh)] overflow-hidden">
           <div className="p-[18px_24px] border-b border-[var(--border)] bg-[#FAFAF8]">
             <h2 className="text-[14px] font-semibold text-[var(--text)]">Change Secret PIN</h2>
-            <p className="text-[12.5px] text-[var(--text3)] mt-1">Update the 4-digit PIN used to unlock sensitive cash records.</p>
+            <p className="text-[12.5px] text-[var(--text3)] mt-1">Update the 4-digit PIN used to unlock the entire system and private administration features.</p>
           </div>
           
           <div className="p-6">
@@ -108,6 +124,42 @@ export default function Settings() {
                 )}
               </div>
             </form>
+          </div>
+        </div>
+
+        {/* System Controls Section */}
+        <div className="bg-white border border-[var(--border)] rounded-[var(--r-lg)] shadow-[var(--sh)] overflow-hidden mt-5">
+          <div className="p-[18px_24px] border-b border-[var(--border)] bg-[#FAFAF8] flex items-center justify-between">
+            <div>
+              <h2 className="text-[14px] font-semibold text-[var(--text)] uppercase tracking-tight">System Controls</h2>
+              <p className="text-[12px] text-[var(--text3)] mt-1">Manage system access and data persistence.</p>
+            </div>
+          </div>
+          <div className="p-8 flex flex-col md:flex-row gap-5">
+            <div className="flex-1 p-5 rounded-2xl bg-[var(--bg)] border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all">
+              <h3 className="text-[11px] font-black text-[var(--text)] uppercase tracking-[2.5px] mb-2 opacity-70">Security Protocol</h3>
+              <p className="text-[10px] font-medium text-[var(--text3)] mb-5 leading-relaxed italic uppercase">Locks the private ledger and institutional stream. No data loss.</p>
+              <button 
+                type="button"
+                onClick={handleCloseSystem}
+                className="w-full px-[20px] py-[12px] rounded-xl border-2 border-[var(--border)] bg-white text-[var(--text)] font-bold text-[12px] uppercase tracking-widest transition-all hover:bg-[var(--gold)] hover:border-[var(--gold)] hover:text-white shadow-sm flex items-center justify-center gap-2"
+              >
+                <LockClosedIcon className="w-4 h-4" />
+                Close System
+              </button>
+            </div>
+            <div className="flex-1 p-5 rounded-2xl bg-red-50/10 border border-red-100 group hover:border-red-300 transition-all">
+              <h3 className="text-[11px] font-black text-red-900 uppercase tracking-[2.5px] mb-2 opacity-70">Factory Protocol</h3>
+              <p className="text-[10px] font-medium text-red-700/60 mb-5 leading-relaxed italic uppercase">Total state erasure. Returns system to zero identifier registry.</p>
+              <button 
+                type="button"
+                onClick={handleRestartSystem}
+                className="w-full px-[20px] py-[12px] rounded-xl border-none bg-red-600 text-white font-bold text-[12px] uppercase tracking-widest transition-all hover:bg-red-700 shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+              >
+                <ArrowPathIcon className="w-4 h-4" />
+                Restart System
+              </button>
+            </div>
           </div>
         </div>
 

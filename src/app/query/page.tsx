@@ -386,9 +386,9 @@ export default function NewQueries() {
 
          {/* Query Entry Modal (Add/Edit) */}
          {isAddModalOpen && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-               <div className="bg-white rounded-xl p-0 w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                  <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center">
+            <div className="modal-overlay animate-in fade-in duration-300">
+               <div className="modal-container animate-in zoom-in-95 duration-300">
+                  <div className="modal-header">
                      <div>
                         <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
                            {selectedQueryIdForEdit ? 'Re-Authorize Discovery Lead' : 'Initialize Discovery Protocol'}
@@ -417,7 +417,7 @@ export default function NewQueries() {
                      }
                      setIsAddModalOpen(false);
                      setSelectedQueryIdForEdit(null);
-                  }} className="p-8">
+                  }} className="modal-body">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-6">
                            <div>
@@ -492,9 +492,11 @@ export default function NewQueries() {
             </div>
          )}
 
-         {/* Filter Protocol Side Panel */}
-         <div className={`fixed top-0 right-0 h-screen w-[400px] bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.05)] z-[300] transform transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-l border-[var(--border)] flex flex-col ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center">
+         {/* Filter Protocol Centered Modal */}
+         {isFilterOpen && (
+            <div className="modal-overlay animate-in fade-in duration-300">
+               <div className="modal-container max-w-md animate-in zoom-in-95 duration-300">
+                  <div className="modal-header">
                <div>
                   <h2 className="text-[18px] font-black text-[var(--text)] uppercase tracking-[1px] font-serif">Filter Protocol</h2>
                   <p className="text-[10px] text-[var(--text3)] font-bold uppercase tracking-[2px] mt-1 opacity-60">Discovery Ledger Refinement</p>
@@ -502,7 +504,7 @@ export default function NewQueries() {
                <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsFilterOpen(false)}>✕</Button>
             </div>
 
-            <div className="p-8 space-y-8 flex-1 overflow-y-auto">
+                  <div className="modal-body space-y-8">
                <div className="space-y-4">
                   <h3 className="text-[10px] font-bold text-[var(--text)] uppercase tracking-[2px] flex items-center gap-2">
                      <MagnifyingGlassIcon className="w-3 h-3 text-[var(--gold)]" />
@@ -555,7 +557,7 @@ export default function NewQueries() {
                </div>
             </div>
 
-            <div className="p-8 border-t border-[var(--border)] bg-[var(--bg)] flex gap-3">
+                  <div className="modal-footer flex gap-3">
                <Button
                   variant="secondary"
                   className="flex-1 font-bold text-[11px] uppercase tracking-wider !py-4 rounded-lg border-[var(--border)]"
@@ -573,8 +575,10 @@ export default function NewQueries() {
                >
                   Apply Filters
                </Button>
+                  </div>
+               </div>
             </div>
-         </div>
+         )}
       </>
    );
 }

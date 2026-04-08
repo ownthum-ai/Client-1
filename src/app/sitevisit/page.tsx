@@ -374,9 +374,9 @@ export default function SiteVisit() {
 
       {/* Record Visit Entry Modal - Outside the animated container */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div>
                 <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
                   {selectedVisitIdForEdit ? 'Update Visitor Registry' : 'Visitor Authentication'}
@@ -392,7 +392,7 @@ export default function SiteVisit() {
               }}>✕</Button>
             </div>
 
-            <form onSubmit={selectedVisitIdForEdit ? handleUpdateSubmit : handleAddSubmit} className="p-8 space-y-6 text-left">
+            <form onSubmit={selectedVisitIdForEdit ? handleUpdateSubmit : handleAddSubmit} className="modal-body space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-6">
                   <div>
@@ -469,11 +469,11 @@ export default function SiteVisit() {
         </div>
       )}
 
-      {/* Detail Side Panel - Outside the animated container */}
+      {/* Detail Center Panel */}
       {selectedVisit ? (
-        <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300`}>
-          <div className="bg-white rounded-xl p-0 w-full max-w-2xl h-[90vh] shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden flex flex-col">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm">
                   <IdentificationIcon className="w-7 h-7" />
@@ -491,7 +491,7 @@ export default function SiteVisit() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setSelectedVisitId(null)}>✕</Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8 space-y-8 text-left">
+            <div className="modal-body space-y-8">
               {/* Discovery Blueprint Card */}
               <div className="p-8 bg-white rounded-xl border border-[var(--border)] shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--gold)]/5 rounded-bl-full blur-xl group-hover:bg-[var(--gold)]/10 transition-all duration-500"></div>
@@ -585,9 +585,9 @@ export default function SiteVisit() {
 
       {/* Filters Protocol Modal - Outside the animated container */}
       {isFilterOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-lg animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
                   <AdjustmentsHorizontalIcon className="w-6 h-6" />
@@ -600,7 +600,7 @@ export default function SiteVisit() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsFilterOpen(false)}>✕</Button>
             </div>
 
-            <div className="p-8 space-y-8 text-left">
+            <div className="modal-body space-y-8">
               <div className="space-y-4">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Subject Search</label>
                 <div className="relative">
@@ -639,7 +639,7 @@ export default function SiteVisit() {
               </div>
             </div>
 
-            <div className="p-8 border-t border-[var(--border)] bg-[var(--bg)]">
+            <div className="modal-footer">
               <Button
                 variant="secondary"
                 v2={true}

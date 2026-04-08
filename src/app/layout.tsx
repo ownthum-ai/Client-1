@@ -4,9 +4,9 @@ import { Instrument_Serif, Outfit } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 
-const instrument = Instrument_Serif({ 
-  weight: "400", 
-  style: ["normal"], 
+const instrument = Instrument_Serif({
+  weight: "400",
+  style: ["normal"],
   subsets: ["latin"],
   variable: '--font-accent',
   display: 'swap',

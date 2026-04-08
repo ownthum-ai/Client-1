@@ -70,8 +70,8 @@ export default function Topbar() {
       
       <div className="ml-auto flex items-center gap-6 relative">
         {/* Search Refined */}
-        <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-100 rounded-lg transition-all duration-300 group cursor-text">
-          <MagnifyingGlassIcon className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-900 transition-colors" />
+        <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-100 rounded-lg transition-all duration-250 ease-out group cursor-text hover:shadow-sm">
+          <MagnifyingGlassIcon className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-900 transition-colors duration-200" />
           <span className="text-[11px] font-bold text-gray-400 group-hover:text-gray-600 tracking-tight">Intelligence Search...</span>
         </div>
         
@@ -83,11 +83,11 @@ export default function Topbar() {
         {/* Executive Bell Interface */}
         <div 
           role="button"
-          className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 relative
-            ${showNotifications ? 'bg-gray-900 text-white shadow-xl shadow-gray-200 scale-110' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+          className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all duration-350 ease-out relative
+            ${showNotifications ? 'bg-gray-900 text-white shadow-xl shadow-gray-200 scale-110' : 'bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600 hover:shadow-md'}`}
           onClick={() => setShowNotifications(!showNotifications)}
         >
-          <BellIcon className={`w-5 h-5 transition-transform duration-500 ${showNotifications ? 'rotate-12' : 'group-hover:scale-110'}`} />
+          <BellIcon className={`w-5 h-5 transition-all duration-350 ease-out ${showNotifications ? 'rotate-12' : 'group-hover:scale-110'}`} />
           {unreadCount > 0 && (
             <div className={`absolute top-0 right-0 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[7px] font-black
               ${showNotifications ? 'bg-white text-gray-900 animate-none' : 'bg-red-500 text-white animate-pulse'}`}>
@@ -98,7 +98,7 @@ export default function Topbar() {
 
         {/* Intelligence Dropdown - Professional Refinement */}
         {showNotifications && (
-          <div className="absolute top-14 right-[-10px] w-[380px] bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.15)] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-6 duration-500">
+          <div className="absolute top-14 right-[-10px] w-[380px] bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.15)] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 zoom-in-95 duration-350 ease-out">
             {/* Header refined */}
             <div className="p-8 pb-4 flex items-center justify-between border-b border-gray-50">
               <div>
@@ -128,7 +128,7 @@ export default function Topbar() {
                 activityFeed.map((notif) => (
                   <div 
                     key={notif.id} 
-                    className={`m-2 p-5 rounded-2xl flex gap-4 items-start transition-all duration-300 hover:bg-gray-50 group
+                    className={`m-2 p-5 rounded-2xl flex gap-4 items-start transition-all duration-250 ease-out hover:bg-gray-50 hover:shadow-sm group
                        ${!notif.read ? 'bg-white shadow-sm ring-1 ring-gray-100' : 'opacity-60'}`}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs shrink-0 transition-transform group-hover:scale-110 shadow-sm border border-white

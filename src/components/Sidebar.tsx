@@ -3,6 +3,8 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/store/useStore';
+import { motion } from 'framer-motion';
+import { BorderBeam } from './lightswind/border-beam';
 import {
   Squares2X2Icon,
   MapIcon,
@@ -73,10 +75,26 @@ export default function Sidebar() {
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    show: { opacity: 1, x: 0 }
+  };
+
   return (
     <div className="w-[var(--sb-w-collapsed)] lg:w-[var(--sb-w)] bg-[#0A0A0A] flex flex-col h-screen shrink-0 overflow-y-auto custom-scrollbar-dark transition-[width] duration-200 overflow-x-hidden border-r border-white-[0.03] relative">
       {/* Background Glow Effect */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[var(--gold)]/10 to-transparent pointer-events-none opacity-20"></div>
+      
       {/* Sidebar Logo */}
       <div className="p-[20px_16px_14px] border-b border-white/[0.03] relative z-10">
         <Link href="/" className="flex items-center gap-[11px] group">
@@ -90,9 +108,14 @@ export default function Sidebar() {
         <div className="hidden lg:block text-[9px] text-white/30 uppercase tracking-[3.5px] mt-1.5 pl-[43px] font-bold opacity-60">Executive Intelligence</div>
       </div>
 
-      <div className="flex-1 py-[18px]">
+      <motion.div 
+        className="flex-1 py-[18px]"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
         {navItems.map((group, i) => (
-          <div key={i} className="mb-4">
+          <motion.div key={i} className="mb-4" variants={itemVariants}>
             <div className="hidden lg:block text-[9px] uppercase tracking-[3px] text-white/40 font-bold px-4 ml-0.5 mb-1.5">{group.section}</div>
             <div className="px-3 space-y-0.5">
               {group.items.map(item => {
@@ -100,26 +123,35 @@ export default function Sidebar() {
                 const Icon = item.icon;
                 return (
                   <Link href={item.path} key={item.id} onClick={() => setActiveModule(item.id)}
-                    className={`flex items-center gap-[12px] p-[10px_14px] rounded-[10px] cursor-pointer transition-colors duration-150 text-[13.5px] group relative
+                    className={`flex items-center gap-[12px] p-[10px_14px] rounded-[10px] cursor-pointer transition-all duration-250 ease-out text-[13.5px] group relative overflow-hidden
                         ${isActive
-                        ? 'bg-gradient-to-r from-[var(--gold)]/20 to-transparent text-white font-semibold shadow-[0_4px_15px_rgba(0,0,0,0.3)]'
-                        : 'text-white/40 hover:bg-white/[0.04] hover:text-white/80 font-medium'}`}>
+                        ? 'bg-gradient-to-r from-[var(--gold)]/20 to-transparent text-white font-semibold shadow-[0_4px_15px_rgba(0,0,0,0.3)] scale-[1.02]'
+                        : 'text-white/40 hover:bg-white/[0.04] hover:text-white/80 font-medium hover:translate-x-0.5'}`}>
 
                     {isActive && (
-                      <div className="absolute left-0 top-[20%] bottom-[20%] w-[3px] bg-[var(--gold)] rounded-full shadow-[2px_0_10px_var(--gold)]"></div>
+                      <>
+                        <div className="absolute left-0 top-[20%] bottom-[20%] w-[3px] bg-[var(--gold)] rounded-full shadow-[2px_0_10px_var(--gold)] z-20"></div>
+                        <BorderBeam 
+                          size={60} 
+                          duration={3} 
+                          colorFrom="var(--gold)" 
+                          colorTo="var(--gold-dk)" 
+                          className="opacity-40"
+                        />
+                      </>
                     )}
 
-                    <Icon className={`w-5 h-5 shrink-0 transition-all duration-200 group-hover:scale-110 
+                    <Icon className={`w-5 h-5 shrink-0 transition-all duration-250 ease-out group-hover:scale-110 relative z-10
                       ${isActive ? 'text-[var(--gold)] opacity-100 drop-shadow-[0_0_8px_var(--gold)]' : 'opacity-50 group-hover:opacity-100 group-hover:text-white'}`} />
 
-                    <span className={`hidden lg:block flex-1 leading-none transition-transform duration-200 whitespace-nowrap tracking-[0.3px]
+                    <span className={`hidden lg:block flex-1 leading-none transition-transform duration-200 whitespace-nowrap tracking-[0.3px] relative z-10
                       ${isActive ? 'translate-x-0.5' : 'group-hover:translate-x-0.5'}`}>
                       {item.label}
                     </span>
 
                     {(item.badge ?? 0) > 0 && (
-                      <span className={`hidden lg:flex items-center justify-center rounded-full px-2 py-0.5 text-[9px] font-black tracking-widest transition-all
-                        ${isActive ? 'bg-[var(--gold)] text-white shadow-[0_0_8px_var(--gold)]/40' : 'bg-[var(--red)] text-white shadow-lg shadow-red-500/20'}`}>
+                      <span className={`hidden lg:flex items-center justify-center rounded-full px-2 py-0.5 text-[9px] font-black tracking-widest transition-all duration-200 ease-out relative z-10
+                        ${isActive ? 'bg-[var(--gold)] text-white shadow-[0_0_8px_var(--gold)]/40' : 'bg-[var(--red)] text-white shadow-lg shadow-red-500/20 animate-pulse'}`}>
                         {item.badge}
                       </span>
                     )}
@@ -127,22 +159,23 @@ export default function Sidebar() {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <div className="mt-auto p-[14px_12px] border-t border-white/[0.03] bg-white/[0.01]">
         <Link href="/settings" className="block">
-          <div className="flex items-center gap-[12px] p-[10px_12px] rounded-xl bg-white/[0.03] cursor-pointer hover:bg-white/[0.06] transition-colors duration-200 group overflow-hidden border border-white/[0.05] shadow-sm">
+          <div className="flex items-center gap-[12px] p-[10px_12px] rounded-xl bg-white/[0.03] cursor-pointer hover:bg-white/[0.06] transition-all duration-250 ease-out group overflow-hidden border border-white/[0.05] shadow-sm hover:shadow-md hover:border-white/[0.08]">
             <div className="w-[34px] h-[34px] rounded-lg bg-gradient-to-br from-[var(--gold)] to-[var(--gold-dk)] flex items-center justify-center text-white text-[12px] font-black shrink-0 shadow-lg shadow-gold-500/10 group-hover:scale-105 transition-transform duration-200">OM</div>
             <div className="hidden lg:block flex-1">
               <div className="text-[14px] text-white/90 font-bold leading-none whitespace-nowrap tracking-[0.3px]">Owner</div>
               <div className="text-[9px] text-white/20 mt-[3px] whitespace-nowrap font-bold uppercase tracking-[2px] opacity-60">Admin Control</div>
             </div>
-            <Cog6ToothIcon className="hidden lg:block w-4 h-4 text-white/20 group-hover:text-[var(--gold)] group-hover:rotate-90 transition-transform duration-500 ease-out" />
+            <Cog6ToothIcon className="hidden lg:block w-4 h-4 text-white/20 group-hover:text-[var(--gold)] group-hover:rotate-90 transition-all duration-500 ease-out" />
           </div>
         </Link>
       </div>
     </div>
   );
 }
+

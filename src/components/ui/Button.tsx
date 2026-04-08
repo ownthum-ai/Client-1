@@ -16,15 +16,15 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = "inline-flex items-center justify-center gap-[6px] transition-all duration-200 whitespace-nowrap active:scale-[0.98] font-bold antialiased";
+  const baseStyles = "inline-flex items-center justify-center gap-[6px] transition-all duration-250 ease-out whitespace-nowrap font-bold antialiased active:scale-[0.97] hover:shadow-md";
 
   const variantStyles = {
-    primary: "bg-[#C9963B] text-white border-none hover:bg-[#B08332] shadow-sm",
-    secondary: "bg-white text-[#1A5FA8] border border-[#BFDBFE] hover:bg-[#F0F7FF]",
-    danger: "bg-white text-[#C42B2B] border border-[#FCA5A5] hover:bg-[#FFF5F5]",
-    success: "bg-[#E2F4EC] text-[#1A7A45] border border-[#BBF7D0] hover:bg-[#D4F0E2]",
-    ghost: "bg-[#F4F4F2] text-[#555] border border-[#D4D4D8] hover:bg-[#E8E8E6]",
-    pin: "bg-[#EEE9FC] text-[#5B34C4] border border-[#DDD6FE] hover:bg-[#E5DEFA]"
+    primary: "bg-[#C9963B] text-white border-none hover:bg-[#B8872F] hover:shadow-lg hover:shadow-gold-500/20 shadow-sm",
+    secondary: "bg-white text-[#1A5FA8] border border-[#BFDBFE] hover:bg-[#F0F7FF] hover:border-[#93C5FD] hover:shadow-md",
+    danger: "bg-white text-[#C42B2B] border border-[#FCA5A5] hover:bg-[#FFF5F5] hover:border-[#F87171] hover:shadow-md",
+    success: "bg-[#E2F4EC] text-[#1A7A45] border border-[#BBF7D0] hover:bg-[#D4F0E2] hover:border-[#86EFAC] hover:shadow-md",
+    ghost: "bg-[#F4F4F2] text-[#555] border border-[#D4D4D8] hover:bg-[#E8E8E6] hover:border-[#C4C4C8] hover:shadow-sm",
+    pin: "bg-[#EEE9FC] text-[#5B34C4] border border-[#DDD6FE] hover:bg-[#E5DEFA] hover:border-[#C4B5FD] hover:shadow-md"
   };
 
   const sizeStyles = {
@@ -35,8 +35,6 @@ export const Button: React.FC<ButtonProps> = ({
     icon: "w-[36px] h-[36px] p-0 rounded-[8px]"
   };
 
-  // v2 adds the accent font (Instrument Serif) if desired, 
-  // but for primary buttons Outfit (Primary) is now the default.
   const fontStyles = "font-sans";
 
   return (
@@ -44,7 +42,7 @@ export const Button: React.FC<ButtonProps> = ({
       className={`${baseStyles} ${fontStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       {...props}
     >
-      {icon && <span className="shrink-0">{icon}</span>}
+      {icon && <span className="shrink-0 transition-transform duration-200 group-hover:scale-110">{icon}</span>}
       {children}
     </button>
   );

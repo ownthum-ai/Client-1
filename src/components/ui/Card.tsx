@@ -12,12 +12,14 @@ interface CardProps {
 
 export const Card: React.FC<CardProps> = ({ children, className = '', title, subtitle, actions, onClick, variant = 'default' }) => {
   const premiumClasses = "rounded-[32px] p-10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] border-[var(--border)] bg-white";
-  const defaultClasses = "rounded-[var(--r-lg)] p-5 shadow-[var(--sh)] border-[var(--border)] bg-[var(--card)] hover:shadow-[var(--sh-md)]";
+  const defaultClasses = "rounded-[var(--r-lg)] p-5 shadow-[var(--sh)] border-[var(--border)] bg-[var(--card)]";
 
   return (
     <div
       onClick={onClick}
-      className={`${variant === 'premium' ? premiumClasses : defaultClasses} transition-all duration-300 mb-3.5 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`${variant === 'premium' ? premiumClasses : defaultClasses} transition-all duration-300 ease-out mb-3.5 hover:shadow-[var(--sh-md)] hover:-translate-y-0.5 ${
+        onClick ? 'cursor-pointer active:scale-[0.99] active:shadow-[var(--sh)]' : ''
+      } ${className}`}
     >
       {(title || subtitle || actions) && (
         <div className="flex items-start justify-between mb-4 gap-2">

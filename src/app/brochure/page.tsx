@@ -250,7 +250,7 @@ export default function BrochureManagement() {
                           <Badge variant="outline" className="text-[9px] font-black border-[var(--border)] text-[var(--text3)] px-1 py-0.5 shadow-sm">V{log.version}</Badge>
                         </td>
                         <td className="p-[15px_15px]">
-                           <span className="text-[12px] font-black text-[var(--text)] tabular-nums uppercase opacity-60 leading-none">{log.date}</span>
+                          <span className="text-[12px] font-black text-[var(--text)] tabular-nums uppercase opacity-60 leading-none">{log.date}</span>
                         </td>
                         <td className="p-[15px_30px] text-right">
                           <div className="flex items-center justify-end gap-2 text-[10px] font-black text-[var(--gold)] italic tracking-widest uppercase">
@@ -271,14 +271,14 @@ export default function BrochureManagement() {
       {/* Fixed elements outside the animated container */}
       {/* Upload Modal */}
       {isUploadModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-2xl animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                  <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
                     <DocumentArrowUpIcon className="w-6 h-6" />
                  </div>
-                 <div>
+                 <div className="text-left">
                     <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-1.5">Asset Onboarding</h2>
                     <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-60 leading-none">Initialize new digital presentation node</p>
                  </div>
@@ -286,64 +286,66 @@ export default function BrochureManagement() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsUploadModalOpen(false)}>✕</Button>
             </div>
 
-            <form className="p-8 grid grid-cols-2 gap-8 text-left" onSubmit={(e) => { e.preventDefault(); handleUpload(); }}>
-              <div className="col-span-2 space-y-3">
-                <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Identity Tag</label>
-                <Input required v2={true} value={newBrochure.name} onChange={(e) => setNewBrochure({ ...newBrochure, name: e.target.value })} placeholder="ENTER MANIFEST IDENTITY..." className="h-12 shadow-sm font-black uppercase tracking-widest italic" />
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Project Cluster</label>
-                <Select v2={true} value={newBrochure.project} onChange={(e) => setNewBrochure({ ...newBrochure, project: e.target.value })} className="h-12 shadow-sm font-black uppercase tracking-widest">
-                  {layouts.map(l => (
-                    <option key={l.id} value={l.name}>{l.name}</option>
-                  ))}
-                  {layouts.length === 0 && <option value="Default">DEFAULT NODE</option>}
-                </Select>
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Asset Spectrum</label>
-                <Select v2={true} value={newBrochure.category} onChange={(e) => setNewBrochure({ ...newBrochure, category: e.target.value })} className="h-12 shadow-sm font-black uppercase tracking-widest">
-                  <option>RESIDENTIAL</option>
-                  <option>COMMERCIAL</option>
-                  <option>LUXURY</option>
-                </Select>
-              </div>
-
-              <div className="col-span-2">
-                <div onClick={() => uploadFileInputRef.current?.click()} className="p-12 border-2 border-dashed border-[var(--border)] rounded-2xl text-center hover:bg-[var(--bg)]/50 cursor-pointer transition-all group bg-[var(--bg)]/10 shadow-inner relative overflow-hidden">
-                  <input type="file" hidden ref={uploadFileInputRef} onChange={(e) => setSelectedUploadFile(e.target.files?.[0] || null)} />
-                  {selectedUploadFile ? (
-                    <div className="text-[var(--gold)] font-black text-sm uppercase tracking-[2px] truncate px-4">{selectedUploadFile.name}</div>
-                  ) : (
-                    <div className="space-y-4">
-                      <ArrowUpTrayIcon className="w-8 h-8 mx-auto text-[var(--text3)] opacity-30 group-hover:text-[var(--gold)] transition-colors" />
-                      <div className="text-[10px] font-black text-[var(--text3)] uppercase tracking-[4px] opacity-40">Load Asset Payload (.PDF)</div>
-                    </div>
-                  )}
+            <div className="modal-body">
+              <form className="grid grid-cols-2 gap-8 text-left" onSubmit={(e) => { e.preventDefault(); handleUpload(); }}>
+                <div className="col-span-2 space-y-3">
+                  <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Identity Tag</label>
+                  <Input required v2={true} value={newBrochure.name} onChange={(e) => setNewBrochure({ ...newBrochure, name: e.target.value })} placeholder="ENTER MANIFEST IDENTITY..." className="h-12 shadow-sm font-black uppercase tracking-widest italic" />
                 </div>
-              </div>
 
-              <div className="col-span-2 pt-4 flex gap-4">
-                <Button type="button" variant="secondary" v2={true} className="flex-1 h-12 rounded-xl border-[var(--border)] font-black uppercase tracking-[2.5px] text-[10px] bg-white shadow-sm" onClick={() => setIsUploadModalOpen(false)}>Abort Protocol</Button>
-                <Button type="submit" v2={true} className="flex-[2] h-12 rounded-xl shadow-xl shadow-gold-500/20 font-black uppercase tracking-[3px] text-[10px]">Execute Boarding</Button>
-              </div>
-            </form>
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Project Cluster</label>
+                  <Select v2={true} value={newBrochure.project} onChange={(e) => setNewBrochure({ ...newBrochure, project: e.target.value })} className="h-12 shadow-sm font-black uppercase tracking-widest text-[#000]">
+                    {layouts.map(l => (
+                      <option key={l.id} value={l.name}>{l.name}</option>
+                    ))}
+                    {layouts.length === 0 && <option value="Default">DEFAULT NODE</option>}
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Asset Spectrum</label>
+                  <Select v2={true} value={newBrochure.category} onChange={(e) => setNewBrochure({ ...newBrochure, category: e.target.value })} className="h-12 shadow-sm font-black uppercase tracking-widest text-[#000]">
+                    <option>RESIDENTIAL</option>
+                    <option>COMMERCIAL</option>
+                    <option>LUXURY</option>
+                  </Select>
+                </div>
+
+                <div className="col-span-2">
+                  <div onClick={() => uploadFileInputRef.current?.click()} className="p-12 border-2 border-dashed border-[var(--border)] rounded-2xl text-center hover:bg-[var(--bg)]/50 cursor-pointer transition-all group bg-[var(--bg)]/10 shadow-inner relative overflow-hidden">
+                    <input type="file" hidden ref={uploadFileInputRef} onChange={(e) => setSelectedUploadFile(e.target.files?.[0] || null)} />
+                    {selectedUploadFile ? (
+                      <div className="text-[var(--gold)] font-black text-sm uppercase tracking-[2px] truncate px-4">{selectedUploadFile.name}</div>
+                    ) : (
+                      <div className="space-y-4">
+                        <ArrowUpTrayIcon className="w-8 h-8 mx-auto text-[var(--text3)] opacity-30 group-hover:text-[var(--gold)] transition-colors" />
+                        <div className="text-[10px] font-black text-[var(--text3)] uppercase tracking-[4px] opacity-40">Load Asset Payload (.PDF)</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="modal-footer px-0 border-none bg-transparent pt-4 col-span-2 flex gap-4">
+                  <Button type="button" variant="secondary" v2={true} className="flex-1 h-12 rounded-xl border-[var(--border)] font-black uppercase tracking-[2.5px] text-[10px] bg-white shadow-sm" onClick={() => setIsUploadModalOpen(false)}>Abort Protocol</Button>
+                  <Button type="submit" v2={true} className="flex-[2] h-12 rounded-xl shadow-xl shadow-gold-500/20 font-black uppercase tracking-[3px] text-[10px]">Execute Boarding</Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Share Modal */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-lg animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 border border-green-100 shadow-sm leading-none">
                     <ChatBubbleLeftRightIcon className="w-6 h-6" />
                  </div>
-                 <div>
+                 <div className="text-left">
                     <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-1.5">Asset Dispatch</h2>
                     <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-60 leading-none">Source: {selectedBrochure?.title}</p>
                  </div>
@@ -351,43 +353,45 @@ export default function BrochureManagement() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsShareModalOpen(false)}>✕</Button>
             </div>
 
-            <form className="p-8 space-y-8 text-left" onSubmit={(e) => { e.preventDefault(); handleShare(); }}>
-              <div className="space-y-4">
-                 <div className="space-y-3">
-                    <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Recipient Identity</label>
-                    <Input required v2={true} value={shareData.customerName} onChange={e => setShareData({ ...shareData, customerName: e.target.value })} type="text" placeholder="FULL LEGAL NAME..." className="h-12 shadow-sm font-black uppercase tracking-widest italic" />
-                 </div>
+            <div className="modal-body">
+              <form className="space-y-8 text-left" onSubmit={(e) => { e.preventDefault(); handleShare(); }}>
+                <div className="space-y-4">
+                   <div className="space-y-3">
+                      <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Recipient Identity</label>
+                      <Input required v2={true} value={shareData.customerName} onChange={e => setShareData({ ...shareData, customerName: e.target.value })} type="text" placeholder="FULL LEGAL NAME..." className="h-12 shadow-sm font-black uppercase tracking-widest italic" />
+                   </div>
 
-                 <div className="space-y-3">
-                    <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Node Protocol (Phone)</label>
-                    <Input required v2={true} value={shareData.phone} onChange={e => setShareData({ ...shareData, phone: e.target.value })} type="tel" placeholder="+91 XXXX XXXX" className="h-12 shadow-sm font-price" />
-                 </div>
-              </div>
+                   <div className="space-y-3">
+                      <label className="block text-[10px] font-black uppercase tracking-[2.5px] text-[var(--text3)] px-1">Node Protocol (Phone)</label>
+                      <Input required v2={true} value={shareData.phone} onChange={e => setShareData({ ...shareData, phone: e.target.value })} type="tel" placeholder="+91 XXXX XXXX" className="h-12 shadow-sm font-price" />
+                   </div>
+                </div>
 
-              <div className="flex items-center gap-4 p-5 bg-green-50/50 rounded-xl border border-dashed border-green-100 italic font-bold text-[10px] text-green-700/70 tracking-[1px] leading-relaxed uppercase">
-                 <CheckBadgeIcon className="w-5 h-5 opacity-40 shrink-0" />
-                 Transmission will be logged to history ledger upon successful dispatch authentication.
-              </div>
+                <div className="flex items-center gap-4 p-5 bg-green-50/50 rounded-xl border border-dashed border-green-100 italic font-bold text-[10px] text-green-700/70 tracking-[1px] leading-relaxed uppercase">
+                   <CheckBadgeIcon className="w-5 h-5 opacity-40 shrink-0" />
+                   Transmission will be logged to history ledger upon successful dispatch authentication.
+                </div>
 
-              <div className="pt-4 flex gap-4">
-                <Button type="button" variant="secondary" v2={true} className="flex-1 h-12 rounded-xl border-[var(--border)] font-black uppercase tracking-[2px] text-[10px] bg-white shadow-sm" onClick={() => setIsShareModalOpen(false)}>Abort</Button>
-                <Button type="submit" v2={true} className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white shadow-xl shadow-green-500/20 text-[10px] font-black uppercase tracking-[3px]">Execute PULSE</Button>
-              </div>
-            </form>
+                <div className="modal-footer px-0 border-none bg-transparent pt-4 flex gap-4">
+                  <Button type="button" variant="secondary" v2={true} className="flex-1 h-12 rounded-xl border-[var(--border)] font-black uppercase tracking-[2px] text-[10px] bg-white shadow-sm" onClick={() => setIsShareModalOpen(false)}>Abort</Button>
+                  <Button type="submit" v2={true} className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white shadow-xl shadow-green-500/20 text-[10px] font-black uppercase tracking-[3px]">Execute PULSE</Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Preview Modal */}
       {isPreviewModalOpen && selectedBrochure && (
-        <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-6xl h-[92vh] shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden flex flex-col text-left">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-6xl h-[92vh] animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
                   <DocumentIcon className="w-7 h-7" />
                 </div>
-                <div>
+                <div className="text-left">
                   <h3 className="text-[22px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-1.5">{selectedBrochure.title}</h3>
                   <p className="text-[10px] text-[var(--gold)] font-black uppercase tracking-[2.5px] opacity-80 leading-none underline decoration-dotted decoration-[var(--gold)]/30">Asset Spectrum Node V{selectedBrochure.version}</p>
                 </div>
@@ -397,20 +401,22 @@ export default function BrochureManagement() {
               </Button>
             </div>
 
-            <div className="flex-1 bg-gray-100/30 p-12 overflow-hidden">
-              <div className="w-full h-full rounded-2xl border border-[var(--border)] bg-white shadow-inner overflow-hidden relative">
-                {previewUrl ? (
-                  <iframe src={`${previewUrl}#toolbar=0`} className="w-full h-full border-none animate-in fade-in duration-1000" title="Brochure Preview" />
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-[var(--text3)] font-serif italic uppercase tracking-[4px] text-[13px] opacity-40 animate-pulse">
-                    <DocumentArrowUpIcon className="w-16 h-16 mb-4 opacity-10" />
-                    Initializing high-fidelity stream...
-                  </div>
-                )}
+            <div className="modal-body p-0 overflow-hidden flex flex-col h-full bg-gray-100/30">
+              <div className="flex-1 p-12 overflow-hidden">
+                <div className="w-full h-full rounded-2xl border border-[var(--border)] bg-white shadow-inner overflow-hidden relative">
+                  {previewUrl ? (
+                    <iframe src={`${previewUrl}#toolbar=0`} className="w-full h-full border-none animate-in fade-in duration-1000" title="Brochure Preview" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-[var(--text3)] font-serif italic uppercase tracking-[4px] text-[13px] opacity-40 animate-pulse">
+                      <DocumentArrowUpIcon className="w-16 h-16 mb-4 opacity-10" />
+                      Initializing high-fidelity stream...
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="p-8 border-t border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+            <div className="modal-footer">
               <div className="flex items-center gap-4">
                  <div className="flex -space-x-2">
                     {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-[var(--bg)] shadow-sm"></div>)}
@@ -429,11 +435,11 @@ export default function BrochureManagement() {
   );
 }
 
-// Icons
-function ChatBubbleLeftRightIcon({ className }: { className?: string }) {
+                        // Icons
+                        function ChatBubbleLeftRightIcon({className}: {className ?: string}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-    </svg>
-  );
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                        </svg>
+                        );
 }

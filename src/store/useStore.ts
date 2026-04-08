@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // --- Type Definitions ---
 export type LeadSource = 'Meta Ad' | 'Website' | 'Walk-in' | 'Broker' | 'Referral';
@@ -365,14 +366,10 @@ interface StoreState {
   unlockPin: (pin: string) => boolean;
   lockPin: () => void;
   setGlobalModal: (m: 'siteVisit' | 'query' | 'payment' | 'material' | null) => void;
+  unreadFollowUps: number;
   notifications: number;
   unreadQueries: number;
-  unreadFollowUps: number;
 
-  // Auth
-  isAuthenticated: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
 
   // Phase 2: Mock Database
   queries: Query[];
@@ -486,6 +483,7 @@ interface StoreState {
   markAllNotificationsRead: () => void;
   clearActivityFeed: () => void;
   sendWeekendPostNow: (postTitle: string, contactCount: number) => void;
+  resetSystem: () => void;
 }
 
 const initialQueries: Query[] = [];
@@ -512,27 +510,17 @@ const initialLayouts: Layout[] = [];
 const initialPlots: Plot[] = [];
 const initialConstructionPhases: ConstructionPhase[] = [];
 const initialConstructionBlocks: ConstructionBlock[] = [];
-const initialMaterialStock: MaterialStock[] = [
-  { id: 'm1', name: 'Steel TMT Bars', current: 12500, capacity: 25000, threshold: 5000, unit: 'kg', colorVar: '--blue', statusText: 'STABLE' },
-  { id: 'm2', name: 'Cement (OPC/PPC)', current: 420, capacity: 2000, threshold: 600, unit: 'bags', colorVar: '--amber', statusText: 'LOW' },
-  { id: 'm3', name: 'River Sand', current: 1800, capacity: 5000, threshold: 1000, unit: 'cft', colorVar: '--gold', statusText: 'STABLE' },
-  { id: 'm4', name: 'Red Bricks', current: 45000, capacity: 100000, threshold: 15000, unit: 'nos', colorVar: '--green', statusText: 'STABLE' },
-];
-const initialMaterialTxns: MaterialTransaction[] = [
-  { id: 'mt1', materialName: 'Steel TMT Bars', type: 'Inward', qty: 15000, unit: 'kg', date: '20 Mar 2026', vendorName: 'Tata Tiscon', invoiceNumber: 'INV/2026/001', ratePerUnit: 72, totalCost: 1080000 },
-  { id: 'mt2', materialName: 'Steel TMT Bars', type: 'Outward', qty: 2500, unit: 'kg', date: '24 Mar 2026', projectBlock: 'Tower A - Foundation', supervisorName: 'Rahul Sharma' },
-  { id: 'mt3', materialName: 'Cement (OPC/PPC)', type: 'Inward', qty: 500, unit: 'bags', date: '21 Mar 2026', vendorName: 'UltraTech', invoiceNumber: 'UT/9982', ratePerUnit: 440, totalCost: 220000 },
-  { id: 'mt4', materialName: 'Cement (OPC/PPC)', type: 'Outward', qty: 80, unit: 'bags', date: '25 Mar 2026', projectBlock: 'Tower A - Plinth', supervisorName: 'Rahul Sharma' },
-  { id: 'mt5', materialName: 'Red Bricks', type: 'Inward', qty: 50000, unit: 'nos', date: '22 Mar 2026', vendorName: 'Local Kiln 1', invoiceNumber: 'BK-552', ratePerUnit: 8, totalCost: 400000 },
-  { id: 'mt6', materialName: 'Red Bricks', type: 'Outward', qty: 5000, unit: 'nos', date: '26 Mar 2026', projectBlock: 'Boundary Wall', supervisorName: 'Amit V.' },
-];
+const initialMaterialStock: MaterialStock[] = [];
+const initialMaterialTxns: MaterialTransaction[] = [];
 const initialAssets: Asset[] = [];
 const initialUploadedCsvs: UploadedCsv[] = [];
 const initialConstructionCosts: ConstructionCost[] = [];
 const initialInspectionAlerts: InspectionAlert[] = [];
 const initialActivityFeed: ActivityFeedItem[] = [];
 
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>()(
+  persist(
+    (set) => ({
   activeModule: 'dashboard',
   setActiveModule: (m) => set((state) => ({
     activeModule: m,
@@ -553,20 +541,10 @@ export const useStore = create<StoreState>((set) => ({
   },
   lockPin: () => set({ isPinUnlocked: false }),
 
+  unreadFollowUps: 0,
   notifications: 0,
   unreadQueries: 0,
-  unreadFollowUps: 0,
 
-  // --- Auth ---
-  isAuthenticated: false,
-  login: (password) => {
-    if (password === '1234') {
-      set({ isAuthenticated: true });
-      return true;
-    }
-    return false;
-  },
-  logout: () => set({ isAuthenticated: false }),
 
   // --- Mock DB State ---
   queries: initialQueries,
@@ -656,16 +634,19 @@ export const useStore = create<StoreState>((set) => ({
     let updatedPayments = state.payments;
 
     if (status === 'Converted' && query) {
-      // Find plot matching the query interest (plot id like "A-01" or layout name)
-      const matchingPlot = state.plots.find(p =>
-        p.id.toLowerCase() === query.interest.toLowerCase() ||
+      // Robust Case-Insensitive Matching: Match query.interest (e.g. "A-01") against plot.id
+      const queryInterest = query.interest.trim().toLowerCase();
+      const matchingPlot = state.plots.find(p => 
+        p.id.toLowerCase() === queryInterest || 
+        p.id.toLowerCase() === `plot ${queryInterest}` ||
+        `plot ${p.id.toLowerCase()}` === queryInterest ||
         (p.customerName && p.customerName.toLowerCase() === query.name.toLowerCase())
       );
 
-      if (matchingPlot && matchingPlot.status !== 'Sold') {
+      if (matchingPlot && matchingPlot.status === 'Available') {
         const plotValue = (matchingPlot.size || 0) * (matchingPlot.rate || 0);
 
-        // Book the plot
+        // 1. Auto-Book the Plot
         updatedPlots = state.plots.map(p => {
           if (p.id === matchingPlot.id) {
             return {
@@ -679,7 +660,7 @@ export const useStore = create<StoreState>((set) => ({
           return p;
         });
 
-        // Create payment record
+        // 2. Auto-Create Payment Record (Pending)
         const bookingPayment: Payment = {
           id: `p${Date.now()}`,
           customerName: query.name,
@@ -694,9 +675,33 @@ export const useStore = create<StoreState>((set) => ({
           bookingStatus: 'Active'
         };
         updatedPayments = [bookingPayment, ...state.payments];
+
+        // 3. Log to Activity Feed (using setter pattern if direct push is not allowed)
+        // Note: activityFeed is part of the state, we should return it in the object
+        const activityItem: ActivityFeedItem = {
+          id: `act-${Date.now()}`,
+          message: `Auto-Booked Plot ${matchingPlot.id} for ${query.name} (Query Conversion)`,
+          type: 'booking',
+          priority: 'high',
+          read: false,
+          timestamp: new Date().toISOString()
+        };
+
+        return {
+          queries: state.queries.map(q => q.id === id ? { ...q, status } : q),
+          followUps: updatedFollowUps.map(f => {
+            if (f.phone === query.phone || f.customerName.toLowerCase() === query.name.toLowerCase()) {
+              return { ...f, status: 'Booked' as const };
+            }
+            return f;
+          }),
+          plots: updatedPlots,
+          payments: updatedPayments,
+          activityFeed: [activityItem, ...state.activityFeed]
+        };
       }
 
-      // Update matching follow-up status to 'Booked'
+      // Fallback: If no matching plot found, just update status
       updatedFollowUps = updatedFollowUps.map(f => {
         if (f.phone === query.phone || f.customerName.toLowerCase() === query.name.toLowerCase()) {
           return { ...f, status: 'Booked' as const };
@@ -2154,4 +2159,10 @@ export const useStore = create<StoreState>((set) => ({
       activityFeed: [feedItem, ...state.activityFeed]
     };
   }),
-}));
+  resetSystem: () => {
+    localStorage.removeItem('ownthume-storage');
+    window.location.reload();
+  },
+}),
+{ name: 'ownthume-storage' }
+));

@@ -88,8 +88,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <div
           onClick={() => !props.disabled && setIsOpen(!isOpen)}
           className={cn(
-            "flex items-center justify-between w-full appearance-none transition-all outline-none cursor-pointer form-control",
-            v2 ? "h-14 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 focus:border-[var(--gold)]/30 px-6 text-[13px] font-bold uppercase tracking-tight" :
+            "flex items-center justify-between w-full appearance-none transition-all duration-250 ease-out outline-none cursor-pointer form-control",
+            v2 ? "h-14 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm focus:border-[var(--gold)]/30 focus:shadow-[0_0_0_4px_rgba(201,150,59,0.08)] px-6 text-[13px] font-bold uppercase tracking-tight" :
                "h-[var(--form-h)] rounded-[var(--form-r)] border border-[var(--form-border)] bg-gray-50/50 px-[var(--form-px)] text-[var(--form-fs)] font-medium focus:border-[var(--form-border-focus)] focus:ring-4 focus:ring-[var(--form-ring)]",
             isOpen && v2 && "bg-white border-[var(--gold)]/50 shadow-[0_0_15px_rgba(0,0,0,0.05)]",
             error && "bg-[var(--form-error-bg)] border-[var(--form-error-border)]",
@@ -103,7 +103,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             {selectedLabel || "Select..."}
           </span>
           <ChevronDownIcon className={cn(
-            "w-4 h-4 transition-transform duration-200 text-[var(--text3)]",
+            "w-4 h-4 transition-all duration-250 ease-out text-[var(--text3)]",
             isOpen && "rotate-180 text-[var(--gold)]"
           )} />
         </div>
@@ -111,7 +111,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {/* Custom Dropdown Popover */}
         {isOpen && (
           <div className={cn(
-            "absolute left-0 right-0 z-[600] mt-2 overflow-hidden bg-white rounded-xl border border-[var(--border)] shadow-2xl animate-in fade-in zoom-in-95 duration-200",
+            "absolute left-0 right-0 z-[600] mt-2 overflow-hidden bg-white rounded-xl border border-[var(--border)] shadow-2xl animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-250",
             v2 ? "py-2" : "py-1"
           )}>
             <div className="max-h-[240px] overflow-y-auto custom-scrollbar">
@@ -123,13 +123,13 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                       key={index}
                       onClick={() => handleSelect(option)}
                       className={cn(
-                        "px-5 py-3 text-[14px] cursor-pointer transition-colors flex items-center justify-between group",
-                        isSelected ? "bg-[var(--gold-lt)] text-[var(--gold-dk)] font-medium" : "text-[var(--text2)] hover:bg-[var(--bg)] hover:text-[var(--gold)]"
+                        "px-5 py-3 text-[14px] cursor-pointer transition-all duration-200 ease-out flex items-center justify-between group",
+                        isSelected ? "bg-[var(--gold-lt)] text-[var(--gold-dk)] font-medium" : "text-[var(--text2)] hover:bg-[var(--bg)] hover:text-[var(--gold)] hover:pl-6"
                       )}
                     >
                       <span className="tracking-tight">{option.label}</span>
                       {isSelected && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold)] shadow-[0_0_8px_var(--gold)]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold)] shadow-[0_0_8px_var(--gold)] animate-in zoom-in duration-200"></div>
                       )}
                     </div>
                   );

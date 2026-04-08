@@ -351,9 +351,9 @@ export default function FollowUp() {
 
       {/* Interface Transmission Log - Outside animated container */}
       {isLogModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)] leading-none">
                   <SignalIcon className="w-6 h-6" />
@@ -366,7 +366,7 @@ export default function FollowUp() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsLogModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleLogSubmit} className="p-8 space-y-8 text-left">
+            <form onSubmit={handleLogSubmit} className="modal-body space-y-8">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Intervention Type</label>
@@ -422,9 +422,9 @@ export default function FollowUp() {
 
       {/* Profile Detail Modal - Outside animated container */}
       {selectedFollowUp && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-2xl h-[90vh] shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden flex flex-col">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
                   <IdentificationIcon className="w-7 h-7" />
@@ -442,7 +442,7 @@ export default function FollowUp() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setSelectedFollowUpId(null)}>✕</Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8 space-y-8 text-left">
+            <div className="modal-body space-y-8">
               {/* Action Blueprint */}
               <div className="grid grid-cols-2 gap-4">
                  <Button
@@ -558,7 +558,7 @@ export default function FollowUp() {
               </div>
             </div>
 
-            <div className="p-8 border-t border-[var(--border)] bg-[var(--bg)] flex flex-col gap-3">
+            <div className="modal-footer flex flex-col gap-3">
                <Button
                  v2={true}
                  className="w-full h-14 rounded-xl shadow-lg shadow-gold-500/10 text-[10px] font-bold uppercase tracking-[3px] gap-3"
@@ -581,9 +581,9 @@ export default function FollowUp() {
 
       {/* Lead Initialization Protocol Modal - Outside animated container */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)] leading-none">
                   <IdentificationIcon className="w-6 h-6" />
@@ -596,7 +596,7 @@ export default function FollowUp() {
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAddModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleAddSubmit} className="p-8 space-y-8 text-left">
+            <form onSubmit={handleAddSubmit} className="modal-body space-y-8">
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="space-y-3">

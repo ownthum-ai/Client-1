@@ -74,8 +74,6 @@ export default function PropertyHolderPage() {
     addLandPayment, 
     markInstallmentPaid,
     addPropertyHolderInstallment,
-    isPinUnlocked, 
-    setPinUnlocked,
     constructionPhases,
     uploadInstallmentReceipt
   } = useStore();
@@ -83,7 +81,6 @@ export default function PropertyHolderPage() {
   const [filterHolderId, setFilterHolderId] = useState<string | 'all'>('all');
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [isAddSchedModalOpen, setIsAddSchedModalOpen] = useState(false);
-  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadTarget, setUploadTarget] = useState<{hId: string, iId: string} | null>(null);
   const [pinInput, setPinInput] = useState('');
@@ -152,44 +149,6 @@ export default function PropertyHolderPage() {
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [activeHolders, lands]);
 
-  const institutionalPayments = allPayments.filter(p => p.mode !== 'Cash');
-  const privatePayments = allPayments.filter(p => p.mode === 'Cash');
-  const overdueCount = allInstallments.filter(i => i.status === 'Overdue').length;
-
-  // PIN Logic
-  const handlePinClick = (val: string | number) => {
-    if (val === 'X') {
-      setPinInput("");
-    } else if (val === 'OK') {
-      if (pinInput === '1234') {
-        setPinUnlocked(true);
-        setIsPinModalOpen(false);
-        setPinInput("");
-        showToast("Security Vault Decrypted");
-      } else {
-        setPinInput("");
-        alert("Invalid Authorization Key");
-      }
-    } else {
-      const newPin = pinInput + val;
-      if (newPin.length <= 4) {
-        setPinInput(newPin);
-        if (newPin.length === 4) {
-          setTimeout(() => {
-            if (newPin === '1234') {
-              setPinUnlocked(true);
-              setIsPinModalOpen(false);
-              setPinInput("");
-              showToast("Security Vault Decrypted");
-            } else {
-              setPinInput("");
-              alert("Invalid Authorization Key");
-            }
-          }, 100);
-        }
-      }
-    }
-  };
 
   const handleTxSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,25 +221,25 @@ export default function PropertyHolderPage() {
           />
           <KPICard
             label="INSTITUTIONAL SETTLED"
-            value={formatCurrency(stats.whitePaid)}
-            color="gold"
+            value={`+ ${formatCurrency(stats.whitePaid)}`}
+            color="green"
             trend={{ value: "Authorized", type: "up" }}
           />
           <KPICard
             label="PRIVATE SETTLED"
             color={isPinUnlocked ? "green" : "gold"}
             value={
-              <div className={`transition-all duration-700 font-price ${isPinUnlocked ? 'blur-0 opacity-100' : 'blur-md opacity-20'}`}>
-                {formatCurrency(stats.cashPaid)}
+              <div className={`transition-all duration-700 font-price ${isPinUnlocked ? 'blur-0 opacity-100 text-[var(--green)]' : 'blur-md opacity-20'}`}>
+                + {formatCurrency(stats.cashPaid)}
               </div>
             }
             trend={isPinUnlocked ? { value: "Decrypted", type: "up" } : "Locked Vault"}
           />
           <KPICard
             label="IN-TRANSIT BAL."
-            value={formatCurrency(stats.balance)}
+            value={`- ${formatCurrency(stats.balance)}`}
             color="red"
-            trend={{ value: "Net Due", type: "neutral" }}
+            trend={{ value: "Net Due", type: "down" }}
           />
         </div>
 
@@ -392,7 +351,7 @@ export default function PropertyHolderPage() {
                 <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] opacity-60">Locked registry (Black Money)</p>
               </div>
               {!isPinUnlocked && (
-                <Button size="sm" onClick={() => setIsPinModalOpen(true)} className="bg-[var(--sb)] text-white text-[9px] px-4">Unlock Vault</Button>
+                <Button size="sm" onClick={() => setIsGlobalPinModalOpen(true)} className="bg-[var(--sb)] text-white text-[9px] px-4">Unlock Vault</Button>
               )}
             </div>
             <div className="overflow-x-auto relative min-h-[200px]">
@@ -429,20 +388,17 @@ export default function PropertyHolderPage() {
 
       {/* Modals outside the animated container avoid the 'containing block' trap */}
       {isAddTxModalOpen && (
-        <div className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-[8px] flex items-center justify-center p-4">
-          <Card className="w-full max-w-xl !mb-0 shadow-[var(--sh-lg)] overflow-hidden rounded-[32px] border-none">
-            <div className="p-8 border-b border-[var(--border)]/50 relative">
-              <button 
-                onClick={() => setIsAddTxModalOpen(false)}
-                className="absolute top-8 right-8 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text3)] hover:text-[var(--text)] transition-colors"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-              <h2 className="text-[26px] font-serif text-[var(--text)] uppercase tracking-tight leading-none mb-2">Monetary Entry Registry</h2>
-              <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">RECORD DUAL-MODE LAND SETTLEMENT</p>
+        <div className="modal-overlay">
+          <div className="modal-container max-w-xl">
+            <div className="modal-header">
+              <div className="text-left">
+                <h2 className="text-[26px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-2">Monetary Entry Registry</h2>
+                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">RECORD DUAL-MODE LAND SETTLEMENT</p>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAddTxModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="p-8">
+            <div className="modal-body space-y-6">
               <form onSubmit={handleTxSubmit} className="space-y-6">
                 <div className="space-y-2 text-left">
                   <Label required>Property Holder</Label>
@@ -489,55 +445,30 @@ export default function PropertyHolderPage() {
                   </div>
                 </div>
 
-                <div className="pt-6 flex gap-4">
+                <div className="modal-footer px-0 border-none bg-transparent pt-6 flex gap-4">
                   <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsAddTxModalOpen(false)}>Discard Registry</Button>
                   <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Commit Registry</Button>
                 </div>
               </form>
             </div>
-          </Card>
-        </div>
-      )}
-
-      {isPinModalOpen && (
-        <div className="fixed inset-0 z-[600] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 min-h-screen">
-          <div className="bg-white rounded-[40px] p-10 w-full max-w-sm text-center shadow-2xl">
-            <h2 className="text-[20px] font-black uppercase mb-1">Vault Registry</h2>
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-8">Authorization required</p>
-            <div className="flex justify-center gap-3 mb-8">
-              {[0, 1, 2, 3].map(i => (
-                <div key={i} className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-bold transition-all ${pinInput.length > i ? 'bg-[var(--gold)] border-[var(--gold)] text-white shadow-lg' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
-                  {pinInput.length > i ? '•' : ''}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'X', '0', 'OK'].map((k, i) => (
-                <div key={i} onClick={() => handlePinClick(k)} className="flex items-center justify-center p-4 rounded-2xl border border-gray-100 bg-gray-50/50 cursor-pointer text-[18px] font-bold hover:bg-[var(--gold)] hover:text-white transition-all select-none">
-                  {k === 'X' ? 'Clear' : k === 'OK' ? 'Enter' : k}
-                </div>
-              ))}
-            </div>
-            <button onClick={() => { setIsPinModalOpen(false); setPinInput(""); }} className="mt-8 text-[11px] font-bold text-gray-400 uppercase tracking-widest hover:text-gray-900">Abort Protocol</button>
           </div>
         </div>
       )}
 
+      {/* Global PIN Modal Handles This Now */}
+
       {isAddSchedModalOpen && (
-        <div className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-[8px] flex items-center justify-center p-4">
-          <Card className="w-full max-w-xl !mb-0 shadow-[var(--sh-lg)] overflow-hidden rounded-[32px] border-none">
-            <div className="p-8 border-b border-[var(--border)]/50 relative">
-              <button 
-                onClick={() => setIsAddSchedModalOpen(false)}
-                className="absolute top-8 right-8 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text3)] hover:text-[var(--text)] transition-colors"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-              <h2 className="text-[26px] font-serif text-[var(--text)] uppercase tracking-tight leading-none mb-2">Schedule Protocol</h2>
-              <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">DEFINE NEW SETTLEMENT MILESTONE</p>
+        <div className="modal-overlay">
+          <div className="modal-container max-w-xl">
+            <div className="modal-header">
+              <div className="text-left">
+                <h2 className="text-[26px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-2">Schedule Protocol</h2>
+                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">DEFINE NEW SETTLEMENT MILESTONE</p>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAddSchedModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="p-8">
+            <div className="modal-body space-y-6">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const d = new FormData(e.currentTarget);
@@ -564,30 +495,27 @@ export default function PropertyHolderPage() {
                   <div className="space-y-2"><Label required>Due Date</Label><Input name="date" v2={true} required type="date" /></div>
                   <div className="space-y-2"><Label required>Condition Node</Label><Input name="cond" v2={true} required placeholder="On registration..." /></div>
                 </div>
-                <div className="pt-6 flex gap-4">
+                <div className="modal-footer px-0 border-none bg-transparent pt-6 flex gap-4">
                   <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsAddSchedModalOpen(false)}>Discard Schedule</Button>
                   <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Enforce Schedule</Button>
                 </div>
               </form>
             </div>
-          </Card>
+          </div>
         </div>
       )}
-      {isUploadModalOpen && (
-        <div className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-[8px] flex items-center justify-center p-4">
-          <Card className="w-full max-w-md !mb-0 shadow-[var(--sh-lg)] overflow-hidden rounded-[32px] border-none">
-            <div className="p-8 border-b border-[var(--border)]/50 relative">
-              <button 
-                onClick={() => setIsUploadModalOpen(false)}
-                className="absolute top-8 right-8 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text3)] hover:text-[var(--text)] transition-colors"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-              <h2 className="text-[26px] font-serif text-[var(--text)] uppercase tracking-tight leading-none mb-2">DocuSync Registry</h2>
-              <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">ATTACH PHYSICAL SETTLEMENT RECEIPT</p>
-            </div>
 
-            <div className="p-8">
+      {isUploadModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-container max-w-md">
+            <div className="modal-header">
+              <div className="text-left">
+                <h2 className="text-[26px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-2">DocuSync Registry</h2>
+                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70 italic">ATTACH PHYSICAL RECEIPT</p>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsUploadModalOpen(false)}>✕</Button>
+            </div>
+            <div className="modal-body space-y-8">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 if (uploadTarget) {
@@ -604,13 +532,13 @@ export default function PropertyHolderPage() {
                   <p className="text-[9px] font-medium text-gray-300 mt-1 uppercase">PDF, PNG or JPG supported</p>
                 </div>
 
-                <div className="pt-6 flex gap-4">
+                <div className="modal-footer px-0 border-none bg-transparent pt-6 flex gap-4">
                   <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsUploadModalOpen(false)}>Discard</Button>
                   <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Sync to Registry</Button>
                 </div>
               </form>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </>

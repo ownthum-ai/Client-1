@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    transition: background-color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-bounce {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .transition-slide {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-fade {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-scale {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
 :root {
   /* Font Family Definitions */
   --font-primary: var(--font-form, 'Outfit', sans-serif);
@@ -71,12 +103,12 @@
   --color-page-bg: var(--bg);
   --section-gap: 24px;
   --column-gap: 16px;
-  
+
   --r: 10px;
   --r-lg: 14px;
-  --sh: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
-  --sh-md: 0 4px 20px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
-  --sh-lg: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+  --sh: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sh-md: 0 4px 20px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
 
   /* V2 Form Protocol (Spec: Step 3422) */
   --form-h: 48px;
@@ -96,16 +128,20 @@
 /* Global Typography Protocol */
 * {
   font-family: var(--font-primary) !important;
-  font-style: normal !important; /* Critical Rule: No italics */
+  font-style: normal !important;
+  /* Critical Rule: No italics */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.font-serif, h1.font-serif, h2.font-serif {
+.font-serif,
+h1.font-serif,
+h2.font-serif {
   font-family: var(--font-accent) !important;
 }
 
-h1, .h1 {
+h1,
+.h1 {
   font-size: var(--h1-fs);
   font-weight: var(--h1-fw);
   line-height: var(--h1-lh);
@@ -113,7 +149,8 @@ h1, .h1 {
   letter-spacing: -0.02em;
 }
 
-h2, .h2 {
+h2,
+.h2 {
   font-size: var(--h2-fs);
   font-weight: var(--h2-fw);
   line-height: var(--h2-lh);
@@ -121,7 +158,8 @@ h2, .h2 {
   letter-spacing: -0.01em;
 }
 
-h3, .h3 {
+h3,
+.h3 {
   font-size: var(--h3-fs);
   font-weight: var(--h3-fw);
   line-height: var(--h3-lh);
@@ -129,7 +167,8 @@ h3, .h3 {
 }
 
 /* Buttons and Actions */
-button, .btn {
+button,
+.btn {
   font-weight: 700 !important;
   letter-spacing: -0.01em;
 }
@@ -139,7 +178,8 @@ table {
   font-variant-numeric: tabular-nums;
 }
 
-th, .table-header {
+th,
+.table-header {
   font-weight: 800 !important;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -147,20 +187,27 @@ th, .table-header {
   color: var(--text3);
 }
 
-td, .table-cell {
+td,
+.table-cell {
   font-weight: 400 !important;
   color: var(--text2);
 }
 
 /* Form Only Font Overrides */
-label, .form-label {
+label,
+.form-label {
+  font-family: var(--font-primary) !important;
   font-weight: 800 !important;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 10px;
 }
 
-input, select, textarea, .form-control {
+input,
+select,
+textarea,
+.form-control {
+  font-family: var(--font-primary) !important;
   font-weight: 400 !important;
 }
 
@@ -169,10 +216,15 @@ input, select, textarea, .form-control {
   letter-spacing: -0.03em;
 }
 
-/* Custom Scrollbar System */
+/* Premium Custom Scrollbar System */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -180,13 +232,13 @@ input, select, textarea, .form-control {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--gold);
   border-radius: 10px;
-  transition: background 0.2s ease;
+  border: 2px solid var(--bg); /* creates a floating pill effect */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--gold-dk);
 }
 
 /* Dark Theme / Sidebar Scrollbar */
@@ -202,7 +254,236 @@ input, select, textarea, .form-control {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Global Smooth Transition Classes */
+.smooth-fade-in {
+  animation: smoothFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.smooth-slide-up {
+  animation: smoothSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.smooth-slide-down {
+  animation: smoothSlideDown 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.smooth-scale-in {
+  animation: smoothScaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.smooth-stagger>* {
+  animation: smoothFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.smooth-stagger>*:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.smooth-stagger>*:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.smooth-stagger>*:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.smooth-stagger>*:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.smooth-stagger>*:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.smooth-stagger>*:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+.smooth-stagger>*:nth-child(7) {
+  animation-delay: 0.35s;
+}
+
+.smooth-stagger>*:nth-child(8) {
+  animation-delay: 0.4s;
+}
+
+@keyframes smoothFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smoothSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smoothSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smoothScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Smooth interactive element transitions */
+.interactive {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Smooth loading skeleton animation */
+.skeleton-pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Smooth page transition overlay */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.page-transition-exit {
+  opacity: 1;
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
+}
+
+/* Global Modal System Protocol */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 42rem;
+  /* 2xl */
+  max-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--sh-lg);
+  border: 1px solid var(--border);
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg);
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  -ms-overflow-style: none;
+  /* Hide scrollbar for IE/Edge */
+  scrollbar-width: none;
+  /* Hide scrollbar for Firefox */
+}
+
+.modal-body::-webkit-scrollbar {
+  display: none;
+  /* Hide scrollbar for Chrome/Safari */
+}
+
+.modal-footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+
+/* Body lock to prevent background scrolling during modal interactions */
+.body-lock {
+  overflow: hidden !important;
+  height: 100vh;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }

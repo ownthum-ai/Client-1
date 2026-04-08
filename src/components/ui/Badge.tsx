@@ -22,7 +22,7 @@ const variantMap: Record<BadgeVariant, string> = {
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', className = '' }) => {
   return (
-    <span className={`inline-flex items-center gap-1.5 p-[3px_9px] rounded-[5px] text-[11px] font-medium whitespace-nowrap before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:shrink-0 ${variantMap[variant]} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 p-[3px_9px] rounded-[5px] text-[11px] font-medium whitespace-nowrap transition-all duration-200 ease-out hover:scale-105 before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:shrink-0 ${variantMap[variant]} ${className}`}>
       {children}
     </span>
   );

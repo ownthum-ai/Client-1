@@ -435,11 +435,10 @@ export default function StructureLayoutPage() {
       </div>
 
       {/* Fixed elements outside the animated container */}
-      {/* Initialize Phase Modal */}
       {isPhaseModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[24px] p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-lg animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
                   <PlusIcon className="w-5 h-5" />
@@ -451,7 +450,7 @@ export default function StructureLayoutPage() {
               </div>
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsPhaseModalOpen(false)}>✕</Button>
             </div>
-            <form onSubmit={handleAddPhase} className="p-8 space-y-6 text-left">
+            <form onSubmit={handleAddPhase} className="modal-body space-y-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Phase Identity</label>
                 <Input required v2={true} value={newPhaseName} onChange={e => setNewPhaseName(e.target.value)} type="text" placeholder="E.G. PLINTH LEVEL / FOUNDATION" className="h-12" />
@@ -469,11 +468,10 @@ export default function StructureLayoutPage() {
         </div>
       )}
 
-      {/* Initialize Block Modal */}
       {isBlockModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[24px] p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-lg animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
                   <Squares2X2Icon className="w-5 h-5" />
@@ -485,7 +483,7 @@ export default function StructureLayoutPage() {
               </div>
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsBlockModalOpen(false)}>✕</Button>
             </div>
-            <form onSubmit={handleAddBlock} className="p-8 space-y-6 text-left">
+            <form onSubmit={handleAddBlock} className="modal-body space-y-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Block Designation</label>
                 <Input required v2={true} value={newBlockName} onChange={e => setNewBlockName(e.target.value)} type="text" placeholder="E.G. TOWER A / BLOCK B" className="h-12" />
@@ -505,9 +503,9 @@ export default function StructureLayoutPage() {
 
       {/* Add Construction Cost Modal */}
       {isCostModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-lg animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
                   <PlusIcon className="w-5 h-5" />
@@ -519,7 +517,7 @@ export default function StructureLayoutPage() {
               </div>
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsCostModalOpen(false)}>✕</Button>
             </div>
-            <form onSubmit={handleAddCost} className="p-8 space-y-6 text-left">
+            <form onSubmit={handleAddCost} className="modal-body space-y-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Target Milestone Node</label>
                 <select required value={costPhaseId} onChange={e => setCostPhaseId(e.target.value)} className="w-full h-12 px-5 rounded-xl border border-gray-100 bg-white hover:border-gray-200 outline-none font-black text-[11px] uppercase tracking-widest shadow-sm">
@@ -574,9 +572,9 @@ export default function StructureLayoutPage() {
 
       {/* Add Inspection Report Modal */}
       {isReportModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[24px] p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container max-w-lg animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 border border-blue-100 shadow-sm leading-none">
                   <ClipboardDocumentCheckIcon className="w-5 h-5" />
@@ -588,7 +586,7 @@ export default function StructureLayoutPage() {
               </div>
               <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsReportModalOpen(false)}>✕</Button>
             </div>
-            <form onSubmit={handleAddReport} className="p-8 space-y-6 text-left">
+            <form onSubmit={handleAddReport} className="modal-body space-y-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Observation Zone Node</label>
                 <select required value={reportPhaseId} onChange={e => setReportPhaseId(e.target.value)} className="w-full h-12 px-5 rounded-xl border border-gray-100 bg-white hover:border-gray-200 outline-none font-black text-[11px] uppercase tracking-widest shadow-sm">

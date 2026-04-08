@@ -20,6 +20,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('lightswind/plugin'),],
 };
 export default config;

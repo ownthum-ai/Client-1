@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo } from 'react';
-import { useStore, Payment } from '@/store/useStore';
+import { useStore, Payment, Plot } from '@/store/useStore';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -28,14 +28,28 @@ import { Label } from '@/components/ui/Label';
 import { ProfessionalReceipt } from '@/components/ProfessionalReceipt';
 
 export default function PaymentsPage() {
-  const { payments, propertyHolders, addPayment, layouts, isPinUnlocked, setPinUnlocked } = useStore();
+  const { 
+    payments, 
+    propertyHolders, 
+    addPayment, 
+    layouts, 
+    plots
+  } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  const [pinInput, setPinInput] = useState('');
   const [toast, setToast] = useState<{ message: string, type?: 'success' | 'warning' } | null>(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<Payment | null>(null);
+
+  // Lock body scroll when modals are open
+  React.useEffect(() => {
+    if (isAddModalOpen || selectedPaymentId || viewingReceipt) {
+      document.body.classList.add('body-lock');
+    } else {
+      document.body.classList.remove('body-lock');
+    }
+    return () => document.body.classList.remove('body-lock');
+  }, [isAddModalOpen, selectedPaymentId, viewingReceipt]);
 
   // New Payment Form State
   const [newCustomer, setNewCustomer] = useState('');
@@ -78,44 +92,18 @@ export default function PaymentsPage() {
     setNewMode('Bank Transfer');
   };
 
-  const handlePinClick = (val: string | number) => {
-    if (val === 'X') {
-      setPinInput("");
-    } else if (val === 'OK') {
-      if (pinInput === '1234') {
-        setPinUnlocked(true);
-        setIsPinModalOpen(false);
-        setPinInput("");
-        showToast("Security Vault Decrypted");
-      } else {
-        setPinInput("");
-        alert("Invalid Authorization Key");
-      }
-    } else {
-      const newPin = pinInput + val;
-      if (newPin.length <= 4) {
-        setPinInput(newPin);
-        if (newPin.length === 4) {
-          setTimeout(() => {
-            if (newPin === '1234') {
-              setPinUnlocked(true);
-              setIsPinModalOpen(false);
-              setPinInput("");
-              showToast("Security Vault Decrypted");
-            } else {
-              setPinInput("");
-              alert("Invalid Authorization Key");
-            }
-          }, 100);
-        }
-      }
-    }
-  };
-
   const selectedPayment = payments.find(p => p.id === selectedPaymentId);
   const totalWhite = payments.filter(p => p.mode !== 'Cash').reduce((acc, curr) => acc + curr.amount, 0);
   const totalBlack = payments.filter(p => p.mode === 'Cash').reduce((acc, curr) => acc + curr.amount, 0);
-  const totalOutstanding = 12500000; // Mock target
+  
+  // Calculate dynamic Total Outstanding
+  const totalExpectedRevenue = useMemo(() => {
+    return plots
+      .filter((p: Plot) => p.status === 'Booked' || p.status === 'Sold')
+      .reduce((acc: number, curr: Plot) => acc + ((curr.size || 0) * (curr.rate || 0)), 0);
+  }, [plots]);
+  const totalOutstanding = Math.max(0, totalExpectedRevenue - (totalWhite + totalBlack));
+
   const receiptsCount = payments.length;
 
   const formatCurrency = (val: number) => {
@@ -154,18 +142,8 @@ export default function PaymentsPage() {
           <div className="flex items-center gap-3">
             <Button
               v2={true}
-              variant={isPinUnlocked ? "secondary" : "secondary"}
               size="default"
-              onClick={isPinUnlocked ? () => setPinUnlocked(false) : () => setIsPinModalOpen(true)}
-              className="min-w-[140px]"
-            >
-              {isPinUnlocked ? <LockOpenIcon className="w-4 h-4 mr-2" /> : <LockClosedIcon className="w-4 h-4 mr-2" />}
-              {isPinUnlocked ? 'LOCK VAULT' : 'ACCESS VAULT'}
-            </Button>
-            <Button
-              v2={true}
-              size="default"
-              className="px-8"
+              className="px-8 shadow-lg shadow-black/10"
               onClick={() => setIsAddModalOpen(true)}
             >
               <PlusIcon className="w-4 h-4 mr-2" />
@@ -196,13 +174,13 @@ export default function PaymentsPage() {
           />
           <KPICard
             label="PRIVATE FLOW"
-            color={isPinUnlocked ? "green" : "gold"}
+            color="green"
             value={
-              <div className={`transition-all duration-700 font-price ${isPinUnlocked ? 'blur-0 opacity-100' : 'blur-md opacity-20'}`}>
+              <div className="font-price">
                 {formatCurrency(totalBlack)}
               </div>
             }
-            trend={isPinUnlocked ? { value: "Decrypted", type: "up" } : "Locked Entity"}
+            trend={{ value: "Authorized Ledger", type: "up" }}
           />
         </div>
 
@@ -302,52 +280,25 @@ export default function PaymentsPage() {
         </Card>
 
         {/* Private Security Ledger (Black Money) */}
-        <Card className={`p-0 overflow-hidden border-[var(--sb)]/20 shadow-[0_15px_40px_rgba(17,17,16,0.08)] transition-all duration-700 ${!isPinUnlocked ? 'opacity-60 grayscale-[0.5]' : 'opacity-100 grayscale-0'}`}>
-          <div className={`p-6 border-b border-[var(--border)] bg-gradient-to-r ${!isPinUnlocked ? 'from-[var(--sb)]/5' : 'from-[var(--green)]/5'} to-transparent transition-all duration-700`}>
+        <Card className="p-0 overflow-hidden border-[var(--sb)]/20 shadow-[0_15px_40px_rgba(17,17,16,0.08)]">
+          <div className="p-6 border-b border-[var(--border)] bg-gradient-to-r from-[var(--green)]/5 to-transparent">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 bg-white rounded-xl border flex items-center justify-center transition-all duration-700 shadow-sm
-                          ${!isPinUnlocked ? 'border-[var(--sb)] text-[var(--sb)]' : 'border-[var(--green)] text-[var(--green)]'}`}>
-                  {isPinUnlocked ? <LockOpenIcon className="w-6 h-6" /> : <LockClosedIcon className="w-6 h-6" />}
+                <div className="w-10 h-10 bg-white rounded-xl border border-[var(--green)] text-[var(--green)] flex items-center justify-center shadow-sm">
+                  <LockOpenIcon className="w-6 h-6" />
                 </div>
                 <div>
                   <h2 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[2px]">Private Security Ledger</h2>
-                  <p className={`text-[10px] font-bold uppercase tracking-[1px] mt-0.5 transition-all duration-700
-                            ${!isPinUnlocked ? 'text-[var(--text3)] opacity-60' : 'text-[var(--green)]'}`}>
-                    {isPinUnlocked ? 'Secure Cash Flow Registry De-blanked' : 'Locked Private Flow Records (Black Money)'}
+                  <p className="text-[10px] font-bold text-[var(--green)] uppercase tracking-[1px] mt-0.5">
+                    Secure Cash Flow Registry Authorized
                   </p>
                 </div>
               </div>
-              {!isPinUnlocked && (
-                <Button
-                  v2={true}
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setIsPinModalOpen(true)}
-                  className="bg-[var(--sb)] text-white hover:bg-[var(--sb)]/90 border-transparent h-10 px-6"
-                >
-                  Unlock Private Ledger
-                </Button>
-              )}
             </div>
           </div>
 
           <div className="overflow-x-auto relative min-h-[300px]">
-            {!isPinUnlocked && (
-              <div className="absolute inset-0 z-10 backdrop-blur-[12px] bg-white/40 flex flex-col items-center justify-center p-12 text-center select-none"
-                onClick={() => setIsPinModalOpen(true)}>
-                <div className="w-16 h-16 bg-white rounded-[24px] shadow-2xl flex items-center justify-center text-[var(--sb)] mb-6 border border-gray-100 group-hover:scale-110 transition-transform">
-                  <LockClosedIcon className="w-8 h-8" />
-                </div>
-                <h3 className="text-[16px] font-black text-[var(--text)] uppercase tracking-[4px] mb-2">Vault Locked</h3>
-                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2px] max-w-xs leading-loose">Internal monetary registry is currently encrypted. Authorization node required to decrypt visual data.</p>
-                <div className="mt-8 px-8 py-3 bg-[var(--sb)] text-white text-[10px] font-black uppercase tracking-[3px] rounded-2xl shadow-xl shadow-slate-900/10 cursor-pointer hover:bg-black transition-all">
-                  Enter Protocol PIN
-                </div>
-              </div>
-            )}
-
-            <table className={`w-full text-left border-collapse transition-all duration-1000 ${!isPinUnlocked ? 'blur-2xl opacity-10 select-none' : 'blur-0 opacity-100'}`}>
+            <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
                   <th className="p-[15px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Client Registry</th>
@@ -386,7 +337,7 @@ export default function PaymentsPage() {
                       <span className="text-[14px] font-bold text-[var(--text)] font-price tracking-tight">{formatCurrency(p.amount)}</span>
                     </td>
                     <td className="p-[15px_24px] text-center">
-                      <span className="text-[9px] font-black text-[var(--sb)] uppercase tracking-wider bg-[var(--bg)] px-3 py-1.5 rounded-lg border border-[var(--border)] group-hover:border-[var(--sb)] transition-all">Protected</span>
+                      <span className="text-[9px] font-black text-[var(--green)] uppercase tracking-wider bg-[var(--green-lt)]/30 px-3 py-1.5 rounded-lg border border-[var(--green)]/10 transition-all">Verified</span>
                     </td>
                   </tr>
                 ))}
@@ -407,56 +358,19 @@ export default function PaymentsPage() {
       </div>
 
       {/* Modals outside the animated container avoid the 'containing block' trap */}
-      {isPinModalOpen && (
-        <div className="fixed inset-0 z-[600] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-[40px] p-10 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 border border-gray-100 text-center">
-            <h2 className="text-[20px] font-black text-gray-900 tracking-tight leading-tight uppercase mb-1">Vault Registry</h2>
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-8">Authorization required for private ledger</p>
-
-            <div className="flex justify-center gap-3 mb-8">
-              {[0, 1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-bold transition-all duration-300
-                    ${pinInput.length > i ? 'bg-[var(--gold)] border-[var(--gold)] text-white shadow-[0_10px_20px_rgba(200,151,58,0.2)]' : 'bg-gray-50 border-gray-100 text-gray-300'}`}
-                >
-                  {pinInput.length > i ? '•' : ''}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'X', '0', 'OK'].map((k, i) => (
-                <div
-                  key={i}
-                  onClick={() => handlePinClick(k)}
-                  className={`flex items-center justify-center p-4 rounded-2xl border border-gray-100 bg-gray-50/50 cursor-pointer text-[18px] font-bold transition-all hover:bg-[var(--gold)] hover:text-white hover:border-[var(--gold)] active:scale-90 select-none
-                    ${k === 'X' || k === 'OK' ? 'text-[12px] text-[var(--gold)] bg-white' : 'text-gray-900 bg-white'}`}
-                >
-                  {k === 'X' ? 'Clear' : k === 'OK' ? 'Enter' : k}
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => { setIsPinModalOpen(false); setPinInput(""); }}
-              className="mt-8 text-[11px] font-bold text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors"
-            >
-              Abort Protocol
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Global PIN Modal Handles This Now */}
 
       {viewingReceipt && (
-        <div className="fixed inset-0 z-[400] bg-[rgba(17,17,16,0.5)] backdrop-blur-[6px] flex items-center justify-center p-4">
-          <Card
-            className="w-full max-w-2xl !mb-0 shadow-[var(--sh-lg)] overflow-hidden print:shadow-none print:border-none"
-            title="Official Transaction Receipt"
-            subtitle={`Node Identifier: #${viewingReceipt.receiptNumber || 'N/A'}`}
-            actions={<Button variant="secondary" size="inline" onClick={() => setViewingReceipt(null)}>✕</Button>}
-          >
-            <div className="p-8 space-y-8 bg-white relative">
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
+              <div>
+                <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Official Transaction Receipt</h2>
+                <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">Node Identifier: #{viewingReceipt.receiptNumber || 'N/A'}</p>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setViewingReceipt(null)}>✕</Button>
+            </div>
+            <div className="modal-body overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] rotate-[-15deg] pointer-events-none select-none">
                 <h1 className="text-[120px] font-bold text-[var(--text)]">OFFICIAL</h1>
               </div>
@@ -495,34 +409,31 @@ export default function PaymentsPage() {
               </div>
             </div>
 
-            <div className="p-6 bg-[var(--bg)] border-t border-[var(--border)] flex items-center justify-between gap-3 print:hidden">
+            <div className="modal-footer flex items-center justify-between gap-3 print:hidden">
               <div className="flex gap-2">
                 <Button variant="primary" size="sm" onClick={() => window.print()}>Print Receipt</Button>
                 <Button variant="secondary" size="sm" onClick={() => alert('Secure cloud backup initiated.')}>Archive PDF</Button>
               </div>
               <Button variant="secondary" size="sm" onClick={() => setViewingReceipt(null)}>Dismiss</Button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-[400] bg-[rgba(17,17,16,0.5)] backdrop-blur-[8px] flex items-center justify-center p-4">
-          <Card className="w-full max-w-xl !mb-0 shadow-[var(--sh-lg)] overflow-hidden rounded-[32px] border-none">
-            <div className="p-8 border-b border-[var(--border)]/50 relative">
-              <button 
-                onClick={() => setIsAddModalOpen(false)}
-                className="absolute top-8 right-8 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text3)] hover:text-[var(--text)] transition-colors"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-              <h2 className="text-[26px] font-serif text-[var(--text)] uppercase tracking-tight leading-none mb-2">Monetary Entry Registry</h2>
-              <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">RECORD DUAL-MODE CUSTOMER INSTALLMENT</p>
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
+              <div>
+                <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Monetary Entry Registry</h2>
+                <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">RECORD DUAL-MODE CUSTOMER INSTALLMENT</p>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsAddModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="p-8">
+            <div className="modal-body">
               <form onSubmit={handleAddSubmit} className="space-y-6">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label required>Customer Identification</Label>
                   <Input
                     required placeholder="SEARCH ENTITY NAME"
@@ -531,8 +442,8 @@ export default function PaymentsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
                     <Label required>Plot Identifier</Label>
                     <Input
                       required placeholder="e.g. A-12"
@@ -540,7 +451,7 @@ export default function PaymentsPage() {
                       value={newPlot} onChange={e => setNewPlot(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label required>Installment Node</Label>
                     <Input
                       required placeholder="e.g. 2nd of 5"
@@ -550,8 +461,8 @@ export default function PaymentsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
                     <Label required>Value (₹)</Label>
                     <Input
                       required type="number" placeholder="00,00,000"
@@ -559,7 +470,7 @@ export default function PaymentsPage() {
                       value={newAmount} onChange={e => setNewAmount(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label required>Transaction Mode</Label>
                     <Select
                       v2={true}
@@ -585,34 +496,33 @@ export default function PaymentsPage() {
                   </div>
                 )}
 
-                <div className="pt-6 flex gap-4">
+                <div className="modal-footer flex gap-4 pt-6 px-0 border-none bg-transparent">
                   <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsAddModalOpen(false)}>Discard Registry</Button>
                   <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Commit Registry</Button>
                 </div>
               </form>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
-      {/* History Detail Panel */}
-      <div className={`fixed top-0 right-0 h-screen w-[480px] bg-white shadow-[var(--sh-lg)] z-[250] transform transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-l border-[var(--border)] flex flex-col ${selectedPaymentId ? 'translate-x-0' : 'translate-x-full'}`}>
-        {selectedPayment ? (
-          <div className="flex-1 flex flex-col p-8 overflow-y-auto">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[var(--sb)] rounded-xl flex items-center justify-center text-white shadow-lg">
-                  <UserIcon className="w-5 h-5" />
+      {/* History Detail Panel - Converted to Centered Modal */}
+      {selectedPayment && (
+        <div className="modal-overlay animate-in fade-in duration-300">
+          <div className="modal-container animate-in zoom-in-95 duration-300">
+            <div className="modal-header">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
+                  <UserIcon className="w-6 h-6" />
                 </div>
-                <div>
-                  <h2 className="text-[14px] font-bold text-[var(--text)] uppercase tracking-[1px]">{selectedPayment.customerName}</h2>
-                  <p className="text-[10.5px] text-[var(--text3)] font-medium uppercase tracking-[1px] mt-0.5">Plot Registry Node: {selectedPayment.plotId}</p>
+                <div className="text-left">
+                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-1.5">{selectedPayment.customerName}</h2>
+                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-60 leading-none">Plot Registry Node: {selectedPayment.plotId}</p>
                 </div>
               </div>
-              <Button variant="secondary" size="inline" onClick={() => setSelectedPaymentId(null)}>✕ Close</Button>
+              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setSelectedPaymentId(null)}>✕</Button>
             </div>
-
-            <div className="space-y-10">
+            <div className="modal-body space-y-10">
               {/* Financial Progression */}
               <div className="space-y-4 p-6 bg-[var(--bg)] rounded-2xl border border-[var(--border)]">
                 <div className="flex justify-between text-[11px] font-bold text-[var(--text)] uppercase tracking-[1px]">
@@ -650,15 +560,14 @@ export default function PaymentsPage() {
                         <div className={`absolute -left-[23px] top-1.5 w-4 h-4 rounded-full border-2 border-white shadow-sm flex items-center justify-center
                                 ${item.mode === 'Cash' ? 'bg-[var(--sb)]' : 'bg-[var(--gold)]'}`}>
                         </div>
-                        <div className={`p-5 rounded-2xl border transition-all group-hover:shadow-[var(--sh-md)]
-                              ${item.mode === 'Cash' && !isPinUnlocked ? 'blur-sm bg-[var(--bg)] border-transparent opacity-60' : 'bg-white border-[var(--border)]'}`}>
+                        <div className="p-5 rounded-2xl border transition-all group-hover:shadow-[var(--sh-md)] bg-white border-[var(--border)]">
                           <div className="flex justify-between items-start mb-3">
                             <span className="text-[11px] font-bold text-[var(--text)] uppercase tracking-[0.5px]">{item.date}</span>
                             <span className="text-[13px] font-bold text-[var(--text)] font-price">{formatCurrency(item.amount)}</span>
                           </div>
                           <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-[1px] text-[var(--text3)] opacity-60">
                             <span className="flex items-center gap-1.5">
-                              {item.mode === 'Cash' ? '🔒 PRIVATE SOURCE' : '🏦 LEDGER SYNC'}
+                              {item.mode === 'Cash' ? '🔒 REGISTERED PRIVATE' : '🏦 LEDGER SYNC'}
                             </span>
                             {item.receiptNumber && <span className="text-[var(--gold)] underline">{item.receiptNumber}</span>}
                           </div>
@@ -668,8 +577,7 @@ export default function PaymentsPage() {
                 </div>
               </div>
             </div>
-
-            <div className="mt-auto pt-8 border-t border-[var(--border)] flex gap-3">
+            <div className="modal-footer flex gap-3">
               <Button
                 variant="primary" size="default" className="flex-1 !py-4 shadow-xl"
                 onClick={() => { alert('Sharing payment summary via WhatsApp Secure API...'); }}
@@ -684,14 +592,8 @@ export default function PaymentsPage() {
               </Button>
             </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-30 grayscale">
-            <BanknotesIcon className="w-24 h-24 mb-6 text-[var(--text)]" />
-            <h3 className="text-[15px] font-bold text-[var(--text)] uppercase tracking-[3px]">Financial Audit</h3>
-            <p className="text-[12px] text-[var(--text3)] mt-3 leading-relaxed font-medium">Select a transaction entry to visualize installment trajectory and progression metrics.</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
