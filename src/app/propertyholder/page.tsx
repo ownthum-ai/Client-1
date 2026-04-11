@@ -67,15 +67,16 @@ const HolderFilter = ({
 );
 
 export default function PropertyHolderPage() {
-  const { 
-    propertyHolders, 
-    lands, 
-    layouts, 
-    addLandPayment, 
+  const {
+    propertyHolders,
+    lands,
+    layouts,
+    addLandPayment,
     markInstallmentPaid,
     addPropertyHolderInstallment,
     constructionPhases,
-    uploadInstallmentReceipt
+    uploadInstallmentReceipt,
+    isPinUnlocked
   } = useStore();
 
   const [filterHolderId, setFilterHolderId] = useState<string | 'all'>('all');
@@ -84,6 +85,7 @@ export default function PropertyHolderPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadTarget, setUploadTarget] = useState<{hId: string, iId: string} | null>(null);
   const [pinInput, setPinInput] = useState('');
+  const [isGlobalPinModalOpen, setIsGlobalPinModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string, type?: 'success' | 'warning' } | null>(null);
   const [printingData, setPrintingData] = useState<{ holder: any; installment: any } | null>(null);
 
@@ -148,6 +150,9 @@ export default function PropertyHolderPage() {
     });
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [activeHolders, lands]);
+
+  const institutionalPayments = useMemo(() => allPayments.filter(p => p.mode !== 'Cash'), [allPayments]);
+  const privatePayments = useMemo(() => allPayments.filter(p => p.mode === 'Cash'), [allPayments]);
 
 
   const handleTxSubmit = (e: React.FormEvent) => {
