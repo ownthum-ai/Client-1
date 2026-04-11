@@ -1,4 +1,7 @@
+'use client'
+
 import React from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { HomeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
@@ -19,14 +22,15 @@ export default function NotFound() {
         Specified coordinates do not map to any active environment. Check the registry or return to primary node.
       </p>
 
-      <Button 
-        variant="primary" 
-        onClick={() => {}} // Next link handled by wrapper or component if needed
-        className="h-16 px-10 !rounded-[32px] tracking-[5px] font-bold shadow-gold-500/20"
-        icon={<HomeIcon className="w-5 h-5" />}
-      >
-        <a href="/">Back to Command Center</a>
-      </Button>
+      <Link href="/">
+        <Button
+          variant="primary"
+          className="h-16 px-10 !rounded-[32px] tracking-[5px] font-bold shadow-gold-500/20"
+          icon={<HomeIcon className="w-5 h-5" />}
+        >
+          Back to Command Center
+        </Button>
+      </Link>
       
       <div className="mt-20 flex gap-10 opacity-20">
         <div className="text-[9px] font-bold uppercase tracking-[5px]">X-Coordinate: null</div>
