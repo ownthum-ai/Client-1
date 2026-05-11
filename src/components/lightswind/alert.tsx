@@ -1,3 +1,4 @@
+﻿"use client";
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
@@ -142,3 +143,4 @@ const AlertDescription = React.forwardRef<
 AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertTitle, AlertDescription };
+

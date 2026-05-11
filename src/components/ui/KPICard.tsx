@@ -1,8 +1,6 @@
 "use client";
 import React from 'react';
 import { ChevronUpIcon, ChevronDownIcon, MinusIcon } from '@heroicons/react/24/outline';
-import { CountUp } from '@/components/lightswind/count-up';
-import { BorderBeam } from '@/components/lightswind/border-beam';
 import { cn } from '@/lib/utils';
 
 export interface KPICardProps {
@@ -16,6 +14,8 @@ export interface KPICardProps {
   color?: string | 'gold' | 'green' | 'red' | 'blue' | 'amber' | 'purple';
   icon?: React.ElementType;
   variant?: 'default' | 'premium';
+  onClick?: () => void;
+  isCurrency?: boolean;
 }
 
 export const KPICard = ({
@@ -25,7 +25,9 @@ export const KPICard = ({
   trend,
   color = 'gold',
   icon: Icon,
-  variant = 'default'
+  variant = 'default',
+  onClick,
+  isCurrency = false
 }: KPICardProps) => {
   const colorMap: Record<string, string> = {
     gold: 'before:bg-[var(--gold)]',
@@ -37,81 +39,61 @@ export const KPICard = ({
   };
 
   const trendMap = {
-    up: 'bg-[var(--green-lt)] text-[var(--green)]',
-    down: 'bg-[var(--red-lt)] text-[var(--red)]',
-    neutral: 'bg-[var(--amber-lt)] text-[var(--amber)]',
+    up: 'bg-green-50 text-green-600 border-green-100',
+    down: 'bg-red-50 text-red-600 border-red-100',
+    neutral: 'bg-amber-50 text-amber-600 border-amber-100',
   };
 
   const getTargetColor = () => {
     if (typeof color === 'string' && colorMap[color]) return colorMap[color];
-    return 'before:bg-white/20';
+    return 'before:bg-gray-200';
   };
 
-  // Helper to parse numeric part for CountUp
-  const parseValue = (val: any) => {
-    if (typeof val === 'number') return { num: val, prefix: '', suffix: '' };
-    if (typeof val !== 'string') return null;
-    
-    const numMatch = val.match(/([\d,]+(\.\d+)?)/);
-    if (!numMatch) return { num: 0, prefix: '', suffix: val };
-    const cleanNum = numMatch[0].replace(/,/g, '');
-    const num = parseFloat(cleanNum);
-    const prefix = val.substring(0, numMatch.index);
-    const suffix = val.substring((numMatch.index ?? 0) + numMatch[0].length);
-    return { num, prefix, suffix };
+  const formatValue = (val: any) => {
+    if (typeof val === 'number') {
+      if (isCurrency) {
+        return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR',
+          maximumFractionDigits: 0
+        }).format(val);
+      }
+      return val.toLocaleString('en-IN');
+    }
+    return val;
   };
-
-  const parsed = parseValue(value);
 
   return (
-    <div className={cn(
-      "bg-[var(--card)] border border-[var(--border)] rounded-[var(--r-lg)] p-[18px_20px] shadow-[var(--sh)] transition-all duration-300 ease-out cursor-default relative overflow-hidden group",
-      "hover:shadow-[var(--sh-md)] hover:-translate-y-0.5",
-      "before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[3.5px] before:rounded-[var(--r-lg)_var(--r-lg)_0_0]",
+    <div 
+      onClick={onClick}
+      className={cn(
+      "bg-white border border-[var(--border)] rounded-[var(--r-lg)] p-[18px_20px] shadow-sm relative overflow-hidden text-left",
+      onClick ? "cursor-pointer hover:bg-gray-50 transition-all duration-200 active:scale-[0.98]" : "cursor-default",
+      "before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[3.5px]",
       getTargetColor()
     )}>
-      <BorderBeam 
-        size={100} 
-        duration={4} 
-        colorFrom="var(--gold-lt)" 
-        colorTo="transparent" 
-        className="opacity-0 group-hover:opacity-30 transition-opacity duration-500"
-      />
       
-      <div className="flex justify-between items-start mb-[10px] relative z-10">
-        <div className="text-[10px] text-[var(--text2)] uppercase tracking-[2px] font-bold leading-none">{label}</div>
-        {Icon && <Icon className="w-4 h-4 text-[var(--text3)] opacity-40 transition-all duration-300 group-hover:opacity-70 group-hover:scale-110" />}
+      <div className="flex justify-between items-start mb-2 relative z-10 text-left">
+        <div className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">{label}</div>
+        {Icon && <Icon className="w-4 h-4 text-gray-300" />}
       </div>
       
-      <div className="text-[26px] font-bold font-sans kpi-value text-[var(--text)] leading-none tracking-[-0.03em] flex items-baseline gap-0.5 relative z-10">
-        {parsed ? (
-          <>
-            {parsed.prefix && <span className="text-[0.6em] opacity-60 font-medium">{parsed.prefix}</span>}
-            <CountUp 
-              value={parsed.num} 
-              duration={2} 
-              decimals={parsed.num % 1 !== 0 ? 2 : 0}
-            />
-            {parsed.suffix && <span className="text-[0.5em] opacity-60 font-medium ml-0.5">{parsed.suffix}</span>}
-          </>
-        ) : (
-          value
-        )}
+      <div className="text-[24px] font-bold text-[var(--text)] leading-none tracking-tight flex items-baseline gap-1 relative z-10 font-price">
+        {formatValue(value)}
       </div>
 
-      {subtext && <div className="text-[12px] text-[var(--text3)] mt-2 font-medium relative z-10">{subtext}</div>}
+      {subtext && <div className="text-[11px] text-[var(--text3)] mt-2 font-bold relative z-10 uppercase tracking-wider">{subtext}</div>}
 
-      
       {trend && (
         <div className={cn(
-          "inline-flex items-center gap-[4px] mt-[10px] text-[12px] font-medium p-[2px_8px] rounded-[5px] transition-all duration-200 relative z-10",
-          typeof trend === 'string' ? 'bg-[var(--bg)] text-[var(--text3)]' : trendMap[trend.type]
+          "inline-flex items-center gap-1 mt-3 text-[10px] font-bold px-2 py-1 rounded-md border relative z-10 uppercase tracking-wider",
+          typeof trend === 'string' ? 'bg-gray-50 text-gray-500 border-gray-100' : trendMap[trend.type]
         )}>
           {typeof trend !== 'string' && (
             <>
-              {trend.type === 'up' && <ChevronUpIcon className="w-3 h-3" />}
+              {trend.type === 'up' && <ChevronUpIcon className="w-2.5 h-2.5" />}
               {trend.type === 'down' && <ChevronDownIcon className="w-2.5 h-2.5" />}
-              {trend.type === 'neutral' && <MinusIcon className="w-3 h-3" />}
+              {trend.type === 'neutral' && <MinusIcon className="w-2.5 h-2.5" />}
             </>
           )}
           {typeof trend === 'string' ? trend : trend.value}
@@ -120,4 +102,3 @@ export const KPICard = ({
     </div>
   );
 };
-

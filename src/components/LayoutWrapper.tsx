@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
-import Topbar from './Topbar';
 import { useStore } from '@/store/useStore';
 import LoginPage from '@/app/login/page';
 import { PinGate } from './PinGate';
@@ -23,7 +22,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayChildren, setDisplayChildren] = useState(children);
 
-  // Global Scrollbar & Modal Viewport Lock Protocol
+  // Global Scrollbar & Modal Viewport Lock Method
   useEffect(() => {
     const observer = new MutationObserver(() => {
       const hasModal = !!document.querySelector('.modal-overlay');
@@ -63,7 +62,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     return () => clearTimeout(timer);
   }, [pathname, children]);
 
-  // Global Loading & Auth Guard Protocol
+  // Global Loading & Auth Guard Method
   if (!mounted) return <AppShellSkeleton />; // Premium Initial Hydration State
 
   // System Locked Gate (Pin Password Page)
@@ -83,7 +82,6 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     <div className="flex w-full h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar />
         <main className="flex-1 overflow-y-auto bg-[var(--color-page-bg)]">
           <div 
             className={`max-w-[var(--max-content-w)] mx-auto p-[var(--content-p)] transition-opacity duration-150 ease-out ${

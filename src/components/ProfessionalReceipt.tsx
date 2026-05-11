@@ -40,12 +40,12 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
               <div className="w-12 h-12 bg-[var(--gold)] flex items-center justify-center text-white text-2xl font-black rounded-sm">O</div>
               <h1 className="text-5xl font-black tracking-tighter uppercase font-serif">OWNTHUM</h1>
             </div>
-            <p className="text-[12px] font-bold text-[var(--gold-dk)] uppercase tracking-[6px] ml-1">Executive Asset Management Protocol</p>
+            <p className="text-[12px] font-bold text-[var(--gold-dk)] uppercase tracking-[6px] ml-1">Ownthum Account Record</p>
           </div>
           <div className="text-right space-y-2">
             <h2 className="text-2xl font-black uppercase tracking-[3px] font-serif text-[var(--gold-dk)]">Professional Receipt</h2>
             <div className="border-2 border-[var(--gold)] text-[var(--gold-dk)] px-4 py-1.5 text-[10px] font-bold uppercase tracking-[2px] inline-block">
-              Settlement Node: v2.04
+              Payment Record: v2.04
             </div>
           </div>
         </div>
@@ -54,17 +54,17 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
         <div className="grid grid-cols-[1fr_300px] gap-16">
           <div className="space-y-10">
             <div>
-              <p className="text-[10px] font-bold text-black/40 uppercase tracking-[3px] mb-4">I. Recipient Allocation</p>
+              <p className="text-[10px] font-bold text-black/40 uppercase tracking-[3px] mb-4">I. Payment Details</p>
               <h3 className="text-3xl font-black uppercase font-serif tracking-tight leading-none mb-3">{holder.name}</h3>
               <p className="text-[13px] font-medium text-black/60 leading-relaxed max-w-md">
-                Formal identification of the landowner entity associated with the asset registry node 
+                Details of the land owner linked with this payment record 
                 designated as <strong>#{holder.id.slice(0, 10).toUpperCase()}</strong>.
               </p>
             </div>
 
             <div className="p-10 bg-gray-50 border border-gray-100 rounded-sm italic text-[14px] leading-relaxed text-gray-600 border-l-4 border-black">
               &quot;This certificate serves as irrevocable proof of the financial deployment authorized for the land parcel 
-              referenced in the master registry. The transfer of value has been audited and confirmed 
+              shown in the main list. This payment has been checked and confirmed 
               by the Ownthum Transaction Engine.&quot;
             </div>
           </div>
@@ -82,7 +82,7 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
                   <span className="text-md font-bold">{installment.paidDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase opacity-30">Total Portfolio</label>
+                  <label className="block text-[9px] font-bold uppercase opacity-30">Total Value</label>
                   <span className="text-md font-bold text-[var(--gold-dk)]">{formatCurrency(holder.totalAmount)}</span>
                 </div>
                 <div>
@@ -101,7 +101,7 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
             <table className="w-full text-left">
               <thead>
                 <tr className="text-[11px] font-black uppercase tracking-[2px] border-b border-gray-100">
-                  <th className="py-6 pr-6">Operational Milestone & Milestone Condition</th>
+                  <th className="py-6 pr-6">Payment Step and Rule</th>
                   <th className="py-6 text-right w-48">Settled Amount (INR)</th>
                 </tr>
               </thead>
@@ -109,7 +109,7 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
                 <tr>
                   <td className="py-8 pr-6">
                     <p className="text-xl font-black uppercase tracking-tight mb-2">{installment.installmentName}</p>
-                    <p className="text-[13px] text-gray-500 font-medium">Condition: {installment.condition}</p>
+                    <p className="text-[13px] text-gray-500 font-medium">Rule: {installment.condition}</p>
                   </td>
                   <td className="py-8 text-right align-top">
                     <p className="text-3xl font-black font-price">{formatCurrency(installment.amount)}</p>
@@ -126,7 +126,7 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
           </div>
         </div>
 
-        {/* Audit Disclaimer */}
+        {/* Note */}
         <div className="flex gap-10 items-start pt-10">
           <div className="w-20 h-20 bg-gray-100 flex items-center justify-center grayscale scale-75 opacity-20">
             {/* Mock QR/Security Stamp */}
@@ -138,10 +138,10 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
           </div>
           <div className="flex-1">
             <p className="text-[10px] font-medium text-gray-400 leading-relaxed uppercase tracking-wider">
-              This is a computer-generated document authorized by the Ownthum Executive Board. 
-              Manual signatures are not required for validation within the internal audit framework. 
+              This document was made by the Ownthum system. 
+              Manual signatures are not required for validation within the internal check framework. 
               Forgery or unauthorized modification of this receipt is subject to legal intervention 
-              under the digital asset registry protocol.
+              in the digital record.
             </p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export const ProfessionalReceipt = ({ holder, installment }: ProfessionalReceipt
         {/* Footer Signature */}
         <div className="pt-20 border-t border-gray-100 flex justify-between items-end italic">
           <div className="space-y-4 not-italic">
-            <p className="text-[10px] font-bold uppercase tracking-[3px]">System Authorization</p>
+            <p className="text-[10px] font-bold uppercase tracking-[3px]">System Check</p>
             <div className="h-10 w-40 border-b border-black flex items-end pb-1">
                <span className="text-xs text-gray-400 font-serif">Electronic Signature Processed</span>
             </div>

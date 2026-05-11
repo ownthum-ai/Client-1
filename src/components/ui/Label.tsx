@@ -12,13 +12,13 @@ const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
       <label
         ref={ref}
         className={cn(
-          "text-[var(--form-label-fs)] font-[var(--form-label-fw)] text-[var(--text)] mb-[6px] block flex items-center gap-1",
+          "text-[13px] font-bold text-gray-900 mb-2 block flex items-center gap-1 uppercase tracking-wider",
           className
         )}
         {...props}
       >
         {children}
-        {required && <span className="text-[var(--form-error-border)]">*</span>}
+        {required && <span className="text-red-600">*</span>}
       </label>
     );
   }

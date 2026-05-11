@@ -1,29 +1,20 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef } from 'react';
+import Papa from 'papaparse';
 import { useStore, WeekendPost, TransmissionLog, UploadedCsv, ActivityFeedItem } from '@/store/useStore';
 import {
-    PlusIcon,
-    CalendarDaysIcon,
-    MegaphoneIcon,
-    ChatBubbleLeftRightIcon,
-    CheckBadgeIcon,
-    XMarkIcon,
-    ArrowUpTrayIcon,
-    ChartBarIcon,
-    InboxStackIcon,
-    ClockIcon,
-    AdjustmentsVerticalIcon,
-    ShieldCheckIcon,
-    CommandLineIcon,
-    UserGroupIcon,
-    SparklesIcon,
-    ArrowPathIcon,
-    PaperAirplaneIcon,
-    ArrowDownTrayIcon,
-    ClipboardDocumentListIcon,
-    ArrowUpRightIcon,
-    EyeIcon,
-    TrashIcon
+   PlusIcon,
+   MegaphoneIcon,
+   CheckBadgeIcon,
+   XMarkIcon,
+   ClockIcon,
+   AdjustmentsVerticalIcon,
+   CommandLineIcon,
+   SparklesIcon,
+   PaperAirplaneIcon,
+   ClipboardDocumentListIcon,
+   ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
@@ -34,138 +25,116 @@ import { Select } from '@/components/ui/Select';
 import { KPICard } from '@/components/ui/KPICard';
 
 export default function Weekend() {
-    const { 
-        weekendPosts, 
-        transmissionLogs, 
-        deployWeekendPost, 
-        deleteWeekendPost, 
-        weekendRules, 
-        updateWeekendRule, 
-        sendWeekendPostToCsvContacts,
-        sendWeekendPostNow,
-        uploadedCsvs,
-        addUploadedCsv,
-        deleteUploadedCsv,
-        brochures,
-        followUps,
-        activityFeed
-    } = useStore();
+   const {
+      weekendPosts,
+      transmissionLogs,
+      deployWeekendPost,
+      deleteWeekendPost,
+      sendWeekendPostNow,
+      brochures,
+      followUps,
+      weekendRules,
+      uploadedCsvs,
+      activityFeed,
+      addUploadedCsv,
+      deleteUploadedCsv
+   } = useStore();
 
-   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
+   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
    const [editingPost, setEditingPost] = useState<WeekendPost | null>(null);
-   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-   const [isRulesOpen, setIsRulesOpen] = useState(false);
    const [confirmSendPost, setConfirmSendPost] = useState<WeekendPost | null>(null);
+   const [previewCsv, setPreviewCsv] = useState<UploadedCsv | null>(null);
+   const [activeCampaign, setActiveCampaign] = useState<WeekendPost | null>(null);
    const [sendToast, setSendToast] = useState<string | null>(null);
 
-    // New Post State
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [newPostTitle, setNewPostTitle] = useState('');
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
+   const fileInputRef = useRef<HTMLInputElement>(null);
+   const csvInputRef = useRef<HTMLInputElement>(null);
+   const [newPostTitle, setNewPostTitle] = useState('');
+   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+   const [isUploading, setIsUploading] = useState(false);
 
-    // CSV Upload State
-    const [isCsvUploadModalOpen, setIsCsvUploadModalOpen] = useState(false);
-    const [csvFile, setCsvFile] = useState<File | null>(null);
-    const [tempCsvData, setTempCsvData] = useState<any[]>([]);
-    const [isCsvUploading, setIsCsvUploading] = useState(false);
+   const downloadCsvTemplate = () => {
+      const headers = ['CustomerID', 'FirstName', 'MiddleName', 'LastName', 'Phone', 'Email', 'Source', 'Notes'];
+      const sampleData = ['CID-1001', 'John', 'M.', 'Doe', '919876543210', 'john@example.com', 'Walk-in', 'Interested in plot'];
+      const csvContent = [headers, sampleData].map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "advanced_customer_template.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+   };
 
-    // UI State for Registry
-    const [expandedCsvId, setExpandedCsvId] = useState<string | null>(null);
+   const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    // Pending Rules State (for Apply functionality)
-    const [pendingRules, setPendingRules] = useState<Record<string, boolean>>({});
+      Papa.parse(file, {
+         header: true,
+         skipEmptyLines: true,
+         complete: (results) => {
+            const normalizedData = results.data.map((row: any) => {
+               const phoneKey = Object.keys(row).find(k => k.toLowerCase().includes('phone') || k.toLowerCase().includes('contact') || k.toLowerCase().includes('number'));
+               const fNameKey = Object.keys(row).find(k => k.toLowerCase().includes('first'));
+               const mNameKey = Object.keys(row).find(k => k.toLowerCase().includes('middle'));
+               const lNameKey = Object.keys(row).find(k => k.toLowerCase().includes('last'));
+               const idKey = Object.keys(row).find(k => k.toLowerCase().includes('id'));
+               const emailKey = Object.keys(row).find(k => k.toLowerCase().includes('email') || k.toLowerCase().includes('mail'));
+               
+               let phone = row[phoneKey || 'Phone'] || '';
+               phone = phone.toString().replace(/\D/g, '');
+               if (phone.length === 10) phone = '91' + phone;
 
-   React.useEffect(() => {
-      if (isRulesOpen) {
-         const initial: Record<string, boolean> = {};
-         weekendRules.forEach(r => initial[r.id] = r.enabled);
-         setPendingRules(initial);
+               const fName = row[fNameKey || 'FirstName'] || '';
+               const mName = row[mNameKey || 'MiddleName'] || '';
+               const lName = row[lNameKey || 'LastName'] || '';
+               const fullName = [fName, mName, lName].filter(Boolean).join(' ') || row['Name'] || row['Customer'] || 'Unknown Visitor';
+
+               return {
+                  ...row,
+                  CustomerID: row[idKey || 'CustomerID'] || `TEMP-${Math.floor(Math.random()*10000)}`,
+                  Name: fullName,
+                  FirstName: fName,
+                  MiddleName: mName,
+                  LastName: lName,
+                  Phone: phone,
+                  Email: row[emailKey || 'Email'] || 'N/A',
+                  Normalized: true
+               };
+            }).filter((row: any) => row.Phone.length >= 10);
+
+            if (normalizedData.length > 0) {
+               addUploadedCsv({
+                  name: file.name,
+                  data: normalizedData
+               });
+               alert(`Successfully extracted ${normalizedData.length} profiles.`);
+            } else {
+               alert("No valid records found. Please use the Template.");
+            }
+         },
+         error: (error) => {
+            console.error('CSV Parsing Error:', error);
+            alert('Error parsing CSV file.');
+         }
+      });
+
+      if (csvInputRef.current) csvInputRef.current.value = '';
+   };
+
+   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+         setSelectedFile(file);
+         setIsUploading(true);
+         setTimeout(() => setIsUploading(false), 800);
       }
-   }, [isRulesOpen, weekendRules]);
+   };
 
-    const handleApplyRules = () => {
-       Object.entries(pendingRules).forEach(([id, enabled]) => {
-          const current = weekendRules.find(r => r.id === id);
-          if (current && current.enabled !== enabled) {
-             updateWeekendRule(id, enabled);
-          }
-       });
-       setIsRulesOpen(false);
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-       const file = e.target.files?.[0];
-       if (file) {
-          setSelectedFile(file);
-          setIsUploading(true);
-          setTimeout(() => setIsUploading(false), 800);
-       }
-    };
-
-    const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-       const file = e.target.files?.[0];
-       if (file) {
-          setCsvFile(file);
-          setIsCsvUploading(true);
-          
-          // Parse CSV file
-          const reader = new FileReader();
-          reader.onload = (event) => {
-             const text = event.target?.result as string;
-             const rows = text.split('\n').map(row => row.split(','));
-             
-             // Assume first row contains headers
-             if (rows.length > 1) {
-                const headers = rows[0].map((header: string) => header.trim());
-                const data = rows.slice(1).map((row: string[]) => {
-                   const obj: any = {};
-                   row.forEach((cell, index) => {
-                      if (headers[index]) {
-                         obj[headers[index]] = cell ? cell.trim() : '';
-                      }
-                   });
-                   return obj;
-                });
-                setTempCsvData(data);
-             } else {
-                setTempCsvData([]);
-             }
-             setIsCsvUploading(false);
-          };
-          reader.readAsText(file);
-       }
-    };
-
-    const handleAddCsvToRegistry = () => {
-       if (csvFile && tempCsvData.length > 0) {
-          addUploadedCsv({
-             name: csvFile.name,
-             data: tempCsvData
-          });
-          setIsCsvUploadModalOpen(false);
-          setCsvFile(null);
-          setTempCsvData([]);
-       }
-    };
-
-    const handleSendToCsv = (csv: UploadedCsv) => {
-       if (!newPostTitle) {
-          alert("Please enter a Campaign Title first.");
-          return;
-       }
-       
-       const contacts = csv.data.map(row => {
-          return Object.values(row)[0] || '';
-       }).filter(contact => contact !== '');
-       
-       if (contacts.length > 0) {
-         sendWeekendPostToCsvContacts(newPostTitle, contacts);
-         alert(`Sent "${newPostTitle}" to ${contacts.length} contacts from ${csv.name}`);
-       }
-    };
-
-   const handleDeploy = () => {
+   const handleSave = () => {
       if (!newPostTitle) return;
 
       if (editingPost) {
@@ -178,7 +147,7 @@ export default function Weekend() {
          status: 'Scheduled',
          image: selectedFile ? URL.createObjectURL(selectedFile) : (editingPost?.image || 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=800')
       });
-      setIsDeployModalOpen(false);
+      setIsSaveModalOpen(false);
       setEditingPost(null);
       setNewPostTitle('');
       setSelectedFile(null);
@@ -187,911 +156,677 @@ export default function Weekend() {
    const openEditModal = (post: WeekendPost) => {
       setEditingPost(post);
       setNewPostTitle(post.title);
-      setIsDeployModalOpen(true);
+      setIsSaveModalOpen(true);
    };
 
    const kpis = [
-      { label: 'Total Audience', value: transmissionLogs.length > 0 ? Array.from(new Set(transmissionLogs.map(l => l.postTitle))).length.toString() : '0', color: 'gold', trend: { value: 'Nodes', type: 'neutral' as const } },
-      { label: 'Campaign Reach', value: transmissionLogs.reduce((acc, curr) => acc + curr.delivered, 0).toLocaleString(), color: 'green', trend: { value: 'Delivered', type: 'up' as const } },
-      { label: 'Engagement Yield', value: transmissionLogs.length > 0 ? (transmissionLogs.reduce((acc, curr) => acc + curr.read, 0) / transmissionLogs.reduce((acc, curr) => acc + curr.delivered, 0) * 100).toFixed(1) + '%' : '0%', color: 'blue', trend: { value: 'Read Rate', type: 'neutral' as const } },
-      { label: 'Avg Read Rate', value: transmissionLogs.length > 0 ? (transmissionLogs.reduce((acc, curr) => acc + curr.read, 0) / transmissionLogs.reduce((acc, curr) => acc + (curr.delivered || 1), 0) * 100).toFixed(1) + '%' : '0%', color: 'red', trend: { value: 'Intent Pulse', type: 'up' as const } },
+      { label: 'Total contacts', value: transmissionLogs.length > 0 ? Array.from(new Set(transmissionLogs.map(l => l.postTitle))).length.toString() : '0', color: 'gold', trend: { value: 'Nodes', type: 'neutral' as const } },
+      { label: 'Reach', value: transmissionLogs.reduce((acc, curr) => acc + curr.delivered, 0).toLocaleString(), color: 'green', trend: { value: 'Delivered', type: 'up' as const } },
+      { label: 'Read rate', value: transmissionLogs.length > 0 ? (transmissionLogs.reduce((acc, curr) => acc + curr.read, 0) / transmissionLogs.reduce((acc, curr) => acc + curr.delivered, 0) * 100).toFixed(1) + '%' : '0%', color: 'blue', trend: { value: 'Read Rate', type: 'neutral' as const } },
+      { label: 'Engagement', value: transmissionLogs.length > 0 ? (transmissionLogs.reduce((acc, curr) => acc + curr.read, 0) / transmissionLogs.reduce((acc, curr) => acc + (curr.delivered || 1), 0) * 100).toFixed(1) + '%' : '0%', color: 'red', trend: { value: 'Intent Pulse', type: 'up' as const } },
    ];
+
+   const [mounted, setMounted] = React.useState(false); React.useEffect(() => { setMounted(true); }, []); if (!mounted) return null;
 
    return (
       <>
-         <div className="space-y-[var(--section-gap)] animate-in fade-in duration-150 pb-20 text-left">
-         {/* V2 Header */}
-         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="text-left">
-               <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2 uppercase">Weekend Transmission</h1>
-               <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 uppercase tracking-wider">
-                     <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5 animate-pulse"></span>
-                     LIVE OPERATIONAL STREAM
-                  </span>
-                  <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums uppercase tracking-tight opacity-50">Auto-scheduled Saturday/Sunday WhatsApp dispatch registry</span>
+         <div className="space-y-[var(--section-gap)] pb-20 text-left">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+               <div className="text-left">
+                  <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2">Weekend Messages</h1>
+                  <p className="text-[14px] text-gray-400 font-bold uppercase tracking-[2px] opacity-70">Send brochures to old customers every weekend</p>
+               </div>
+               <div className="flex items-center gap-3 w-full md:w-auto">
+                  <Button
+                     variant="secondary"
+                     onClick={() => csvInputRef.current?.click()}
+                     className="flex-1 md:flex-none px-6 rounded-lg shadow-sm h-[56px] border-2 border-gray-200 hover:border-gray-300 bg-white text-gray-700 font-bold"
+                  >
+                     <ArrowUpTrayIcon className="w-5 h-5 mr-2 text-gray-400" />
+                     Upload CSV
+                  </Button>
+                  <input
+                     type="file"
+                     ref={csvInputRef}
+                     onChange={handleCsvFileChange}
+                     accept=".csv"
+                     className="hidden"
+                  />
+                  <Button
+                     v2={true}
+                     size="default"
+                     onClick={() => setIsSaveModalOpen(true)}
+                     className="flex-1 md:flex-none px-8 rounded-lg shadow-sm h-[56px]"
+                  >
+                     <PlusIcon className="w-4 h-4 mr-2" />
+                     Create post
+                  </Button>
                </div>
             </div>
-             <div className="flex items-center gap-3 w-full md:w-auto">
-                <Button
-                   v2={true}
-                   size="default"
-                   onClick={() => setIsDeployModalOpen(true)}
-                   className="flex-1 md:flex-none px-8"
-                >
-                   <PlusIcon className="w-4 h-4 mr-2" />
-                   Deploy Post
-                </Button>
-                 <Button
-                    v2={true}
-                    size="default"
-                    onClick={() => setIsCsvUploadModalOpen(true)}
-                    className="flex-1 md:flex-none px-8"
-                 >
-                    <ArrowUpTrayIcon className="w-4 h-4 mr-2" />
-                    Upload CSV
-                 </Button>
-             </div>
-         </div>
 
-         {/* KPI Matrix */}
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 pt-4">
-            {kpis.map((k, i) => (
-               <KPICard
-                  key={i}
-                  label={k.label}
-                  value={k.value.toString()}
-                  color={k.color}
-                  trend={k.trend}
-               />
-            ))}
-         </div>
+            {/* Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+               <KPICard label="Total Shared" value={transmissionLogs.length} trend={{ value: "Sent", type: "neutral" }} />
+               <KPICard label="Upcoming" value={weekendPosts.length} trend={{ value: "Ready", type: "neutral" }} />
+               <KPICard label="Customers" value={followUps.length} trend={{ value: "Total", type: "neutral" }} />
+               <KPICard label="Rules Active" value={weekendRules.filter(r => r.enabled).length} trend={{ value: "Automatic", type: "neutral" }} />
+            </div>
 
-         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 items-start">
-            {/* Main Content Area */}
-            <div className="space-y-[var(--section-gap)]">
-               
-               {/* Scheduled Posts Ledger */}
-               <Card className="bg-white border-[var(--border)] shadow-sm overflow-hidden text-left">
-                  <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg)]/30">
-                     <h2 className="text-[16px] font-bold text-[var(--text)] font-serif">Scheduled Portfolio</h2>
-                     <Button
-                        variant="ghost"
-                        size="icon"
-                        icon={<AdjustmentsVerticalIcon className="w-5 h-5" />}
-                        onClick={() => setIsRulesOpen(true)}
-                        className="text-[var(--text3)] hover:text-[var(--gold)] border-none bg-transparent hover:bg-[var(--bg)]"
-                     />
-                  </div>
-                  <div className="overflow-x-auto">
-                     <table className="w-full text-left border-collapse">
-                        <thead>
-                           <tr className="bg-[#F8F7F4] border-b border-[var(--border)]">
-                              <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Asset</th>
-                              <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Type</th>
-                              <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Trigger Pulse</th>
-                              <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px] text-right">Actions</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[var(--border)]">
-                           {weekendPosts.map((post) => (
-                              <tr key={post.id} className="hover:bg-[#F8F7F4] transition-all group">
-                                 <td className="p-[12px_24px]">
-                                    <div className="flex items-center gap-4">
-                                       <div className="w-9 h-9 rounded-lg bg-[var(--bg)] border border-[var(--border)] overflow-hidden">
-                                          <img src={post.image} alt={post.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                       </div>
-                                        <div>
-                                           <div className="text-[13px] font-bold text-[var(--text)] font-serif uppercase tracking-tight leading-none group-hover:text-[var(--gold)] transition-colors mb-2">{post.title}</div>
-                                           <div className="flex items-center gap-2">
-                                              <div className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[1px] opacity-40 leading-none">V2.4 Node</div>
-                                              {post.attachedBrochureId && (() => {
-                                                 const attachedBrochure = brochures.find(b => b.id === post.attachedBrochureId);
-                                                 return attachedBrochure ? (
-                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-[var(--gold-lt)] text-[var(--gold)] border border-[var(--gold)]/20 uppercase tracking-wider">
-                                                       BROCHURE V{attachedBrochure.version}
-                                                    </span>
-                                                 ) : null;
-                                              })()}
-                                           </div>
-                                        </div>
-                                    </div>
-                                 </td>
-                                 <td className="p-[12px_15px]">
-                                    <Badge variant="outline" className="text-[10px] font-bold border-[var(--border)] text-[var(--text3)]">{post.type.toUpperCase()}</Badge>
-                                 </td>
-                                 <td className="p-[12px_15px]">
-                                    <div className="flex flex-col">
-                                       <span className="text-[12px] font-bold text-[var(--text2)] leading-none">SAT 09:00 AM</span>
-                                       <span className="text-[10px] text-[var(--text3)] font-bold uppercase tracking-[1px] mt-1.5 opacity-40 leading-none">Broadcast</span>
-                                    </div>
-                                 </td>
-                                  <td className="p-[12px_24px] text-right">
-                                     <div className="flex items-center justify-end gap-2">
-                                        <Badge variant="info" className="uppercase tracking-widest text-[9px] font-bold mr-2">{post.status}</Badge>
-                                        <Button
-                                           v2={true}
-                                           size="sm"
-                                           onClick={() => setConfirmSendPost(post)}
-                                           className="text-[9px] font-bold uppercase tracking-[1px] px-4 h-8 rounded-lg"
-                                        >
-                                           <PaperAirplaneIcon className="w-3.5 h-3.5 mr-1.5" />
-                                           Send Now
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          icon={<AdjustmentsVerticalIcon className="w-4 h-4" />}
-                                          onClick={() => openEditModal(post)}
-                                          className="text-[var(--text2)] hover:text-[var(--gold)] border-none bg-transparent hover:bg-[var(--bg)]"
-                                       />
-                                       <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          icon={<XMarkIcon className="w-4 h-4" />}
-                                          onClick={() => deleteWeekendPost(post.id)}
-                                          className="text-[var(--text2)] hover:text-[var(--red)] border-none bg-transparent hover:bg-[var(--bg)]"
-                                       />
-                                    </div>
-                                 </td>
-                              </tr>
-                           ))}
-                        </tbody>
-                     </table>
-                  </div>
-               </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 items-start">
+               {/* Main Content Area */}
+               <div className="space-y-[var(--section-gap)]">
 
-               {/* CSV Registry Ledger */}
-               <Card className="bg-white border-[var(--border)] shadow-sm overflow-hidden text-left">
-                  <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)]/30 flex justify-between items-center">
-                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[var(--gold-lt)] rounded-lg flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                           <UserGroupIcon className="w-4 h-4" />
-                        </div>
-                        <h2 className="text-[16px] font-bold text-[var(--text)] font-serif">CSV Registry</h2>
-                     </div>
-                     <p className="text-[10px] text-[var(--text3)] font-bold uppercase tracking-[2px] opacity-40">{uploadedCsvs.length} LISTS LOADED</p>
-                  </div>
-                  <div className="overflow-x-auto">
-                     <table className="w-full text-left border-collapse">
-                        <thead>
-                           <tr className="bg-[#F8F7F4] border-b border-[var(--border)]">
-                              <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Contact Source</th>
-                              <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Audit Date</th>
-                              <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Records</th>
-                              <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px] text-right">Actions</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[var(--border)]">
-                           {uploadedCsvs.length > 0 ? uploadedCsvs.map((csv) => (
-                              <React.Fragment key={csv.id}>
-                                 <tr className="hover:bg-[#F8F7F4] transition-all group">
-                                    <td className="p-[12px_24px]">
-                                       <div className="flex items-center gap-3">
-                                          <div className="w-8 h-8 rounded-lg bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[var(--text3)] group-hover:text-[var(--gold)] transition-colors">
-                                             <ClipboardDocumentListIcon className="w-4 h-4" />
-                                          </div>
-                                          <div>
-                                             <div className="text-[13px] font-bold text-[var(--text)] font-serif tracking-tight uppercase leading-none mb-1.5">{csv.name}</div>
-                                             <div className="text-[9px] text-[var(--text3)] font-black uppercase tracking-[1px] opacity-40 leading-none">External Dataset</div>
-                                          </div>
-                                       </div>
-                                    </td>
-                                    <td className="p-[12px_15px]">
-                                       <span className="text-[12px] font-bold text-[var(--text2)] leading-none">{csv.date}</span>
-                                    </td>
-                                    <td className="p-[12px_15px]">
-                                       <Badge variant="outline" className="text-[10px] font-bold border-none bg-blue-50 text-blue-600 px-2 py-0.5">{csv.data.length} NODES</Badge>
-                                    </td>
-                                    <td className="p-[12px_24px] text-right">
-                                       <div className="flex items-center justify-end gap-2">
-                                          <Button
-                                             variant="ghost"
-                                             size="icon"
-                                             icon={<EyeIcon className={expandedCsvId === csv.id ? "w-4 h-4 text-[var(--gold)]" : "w-4 h-4 text-[var(--text3)]"} />}
-                                             onClick={() => setExpandedCsvId(expandedCsvId === csv.id ? null : csv.id)}
-                                             className="hover:bg-[var(--gold-lt)] border-none"
-                                             title="View Data Nodes"
-                                          />
-                                          <Button
-                                             variant="ghost"
-                                             size="icon"
-                                             icon={<PaperAirplaneIcon className="w-4 h-4 text-[var(--green)]" />}
-                                             onClick={() => handleSendToCsv(csv)}
-                                             className="hover:bg-green-50 border-none"
-                                             title="Dispatch to Spectrum"
-                                          />
-                                          <Button
-                                             variant="ghost"
-                                             size="icon"
-                                             icon={<TrashIcon className="w-4 h-4 text-[var(--red)]" />}
-                                             onClick={() => deleteUploadedCsv(csv.id)}
-                                             className="hover:bg-red-50 border-none"
-                                             title="Remove Dataset"
-                                          />
-                                       </div>
-                                    </td>
-                                 </tr>
-                                 {/* Expanded Data Table */}
-                                 {expandedCsvId === csv.id && (
-                                    <tr>
-                                       <td colSpan={4} className="p-0 bg-[var(--bg)]/30 border-b border-[var(--border)]">
-                                          <div className="p-6 animate-in slide-in-from-top-2 duration-300">
-                                             <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden shadow-sm">
-                                                <div className="max-h-[300px] overflow-auto custom-scrollbar">
-                                                   <table className="w-full text-left border-collapse">
-                                                      <thead className="sticky top-0 z-10">
-                                                         <tr className="bg-[#F8F7F4] border-b border-[var(--border)]">
-                                                            {csv.data.length > 0 && Object.keys(csv.data[0]).map((key, i) => (
-                                                               <th key={i} className="p-[10px_16px] text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px]">{key.toUpperCase()}</th>
-                                                            ))}
-                                                         </tr>
-                                                      </thead>
-                                                      <tbody className="divide-y divide-[var(--border)]">
-                                                         {csv.data.map((row, rowIndex) => (
-                                                            <tr key={rowIndex} className="hover:bg-[#F8F7F4] transition-all">
-                                                               {Object.values(row).map((val: any, colIndex) => (
-                                                                  <td key={colIndex} className="p-[10px_16px] text-[12px] text-[var(--text)] font-serif tracking-tight">{String(val)}</td>
-                                                               ))}
-                                                            </tr>
-                                                         ))}
-                                                      </tbody>
-                                                   </table>
-                                                </div>
-                                             </div>
-                                          </div>
-                                       </td>
-                                    </tr>
-                                 )}
-                              </React.Fragment>
-                           )) : (
-                              <tr>
-                                 <td colSpan={4} className="p-20 text-center opacity-40">
-                                    <CommandLineIcon className="w-12 h-12 mx-auto mb-4" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">Registry is empty. Link a dataset to begin dispatch.</p>
-                                 </td>
-                              </tr>
-                           )}
-                        </tbody>
-                     </table>
-                  </div>
-               </Card>
-
-               {/* Dormant Lead Spectrum (Auto-Filtered > 3 Weeks) */}
-               {(() => {
-                  const dormantLeads = followUps.filter(f => {
-                     if (!f.createdAt) return false;
-                     const created = new Date(f.createdAt);
-                     const now = new Date();
-                     const diffTime = Math.abs(now.getTime() - created.getTime());
-                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                     return diffDays > 21;
-                  });
-
-                  if (dormantLeads.length === 0) return null;
-
-                  return (
-                     <Card className="bg-white border-[var(--border)] shadow-sm overflow-hidden text-left border-l-4 border-l-[var(--amber)]">
-                        <div className="p-6 border-b border-[var(--border)] bg-[var(--amber-lt)]/10 flex justify-between items-center">
+                  {/* Uploaded CSV Data */}
+                  {uploadedCsvs.length > 0 && (
+                     <Card className="bg-white border-2 shadow-lg overflow-hidden text-left rounded-2xl">
+                        <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-gray-50/30">
                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-[var(--amber-lt)] rounded-lg flex items-center justify-center border border-[var(--amber)]/20 shadow-sm text-[var(--amber-dk)]">
-                                 <ClockIcon className="w-4 h-4" />
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center border border-blue-200 shadow-sm text-blue-600">
+                                 <CommandLineIcon className="w-4 h-4" />
                               </div>
                               <div>
-                                 <h2 className="text-[16px] font-bold text-[var(--text)] font-serif uppercase tracking-tight">Dormant Lead Spectrum</h2>
-                                 <p className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[1px] opacity-60 mt-0.5">Automated re-engagement catchment (Age: 21 Days+)</p>
+                                 <h2 className="text-[16px] font-bold text-[var(--text)]">Imported datasets</h2>
+                                 <p className="text-[9px] text-[var(--text3)] font-bold mt-0.5 opacity-60">Raw CSV lead sources</p>
                               </div>
                            </div>
-                           <Badge variant="warning" className="text-[9px] font-black tracking-widest px-2 py-0.5">{dormantLeads.length} DORMANT NODES</Badge>
+                           <Badge variant="info" className="text-[9px] font-bold tracking-widest px-2 py-0.5 shadow-sm uppercase">{uploadedCsvs.length} Files</Badge>
                         </div>
                         <div className="overflow-x-auto">
                            <table className="w-full text-left border-collapse">
                               <thead>
-                                 <tr className="bg-[#F8F7F4] border-b border-[var(--border)]">
-                                    <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Identity Node</th>
-                                    <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Last Contact</th>
-                                    <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Lead Age</th>
-                                    <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px] text-right">Dispatch</th>
+                                 <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
+                                    <th className="p-[12px_32px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">File Name</th>
+                                    <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Date</th>
+                                    <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Records</th>
+                                    <th className="p-[12px_32px] text-right text-[10px] font-bold text-gray-500 tracking-widest uppercase">Actions</th>
                                  </tr>
                               </thead>
-                              <tbody className="divide-y divide-[var(--border)]">
-                                 {dormantLeads.map((lead) => {
-                                    const created = new Date(lead.createdAt);
-                                    const age = Math.ceil(Math.abs(new Date().getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-                                    
-                                    return (
-                                       <tr key={lead.id} className="hover:bg-[#F8F7F4] transition-all group">
-                                          <td className="p-[12px_24px]">
-                                             <div className="flex items-center gap-3">
-                                                <div className="w-7 h-7 rounded-full bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[10px] font-bold text-[var(--text3)]">
-                                                   {lead.customerName.charAt(0)}
-                                                </div>
-                                                <div>
-                                                   <div className="text-[13px] font-bold text-[var(--text)] font-serif uppercase leading-none mb-1 group-hover:text-[var(--gold)] transition-colors">{lead.customerName}</div>
-                                                   <div className="text-[9px] text-[var(--text3)] font-black uppercase tracking-[0.5px] opacity-40">{lead.phone}</div>
-                                                </div>
+                              <tbody className="divide-y-2 divide-[var(--border)]">
+                                 {uploadedCsvs.map((csv) => (
+                                    <tr
+                                       key={csv.id}
+                                       className="hover:bg-gray-50 cursor-pointer transition-colors group/row"
+                                       onClick={() => setPreviewCsv(csv)}
+                                    >
+                                       <td className="p-[10px_32px]">
+                                          <div className="flex items-center gap-3">
+                                             <div className="w-8 h-8 rounded-lg bg-gray-100 border-2 border-[var(--border)] flex items-center justify-center text-gray-400">
+                                                <ClipboardDocumentListIcon className="w-4 h-4" />
                                              </div>
-                                          </td>
-                                          <td className="p-[12px_15px]">
-                                             <span className="text-[12px] font-bold text-[var(--text2)] leading-none uppercase">{lead.lastContact}</span>
-                                          </td>
-                                          <td className="p-[12px_15px]">
-                                             <Badge variant="outline" className="text-[9px] font-black bg-[var(--bg)] border-[var(--border)] px-1.5 py-0">{age} D. OLD</Badge>
-                                          </td>
-                                          <td className="p-[12px_24px] text-right">
+                                             <div className="flex flex-col text-left">
+                                                <span className="text-[13px] font-bold text-gray-900 leading-none">{csv.name}</span>
+                                                <span className="text-[9px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider opacity-80 leading-none">External Import</span>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td className="p-[10px_20px]">
+                                          <span className="text-[12px] font-bold text-gray-900 leading-none tabular-nums">{csv.date}</span>
+                                       </td>
+                                       <td className="p-[10px_20px]">
+                                          <Badge variant="outline" className="text-[9px] font-bold border-[var(--border)] text-gray-500 shadow-sm uppercase px-2 py-0.5">{csv.data.length} records</Badge>
+                                       </td>
+                                       <td className="p-[10px_32px] text-right">
+                                          <div className="flex items-center justify-end gap-2">
                                              <Button
-                                                v2={true}
-                                                size="sm"
-                                                onClick={() => {
-                                                   if (!newPostTitle) { alert("Select a Campaign Manifesto first."); return; }
-                                                   sendWeekendPostNow(newPostTitle, 1);
-                                                   alert(`Dispatched "${newPostTitle}" to ${lead.customerName}`);
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={(e) => {
+                                                   e.stopPropagation();
+                                                   deleteUploadedCsv(csv.id);
                                                 }}
-                                                className="text-[9px] font-black uppercase tracking-[1.5px] h-7 px-3 rounded-md bg-[var(--gold)]/10 text-[var(--gold)] hover:bg-[var(--gold)] hover:text-white border border-[var(--gold)]/20 shadow-none"
+                                                className="text-gray-400 hover:text-red-500 hover:bg-red-50"
                                              >
-                                                <PaperAirplaneIcon className="w-3 h-3 mr-1.5" />
-                                                PULSE
+                                                <XMarkIcon className="w-4 h-4" />
                                              </Button>
-                                          </td>
-                                       </tr>
-                                    );
-                                 })}
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 ))}
                               </tbody>
                            </table>
                         </div>
-                        <div className="p-4 bg-[var(--bg)]/50 border-t border-[var(--border)]">
-                           <Button
-                              v2={true}
-                              className="w-full text-[10px] font-black uppercase tracking-[3px] h-10 rounded-lg shadow-sm"
-                              onClick={() => {
-                                 if (!newPostTitle) { alert("Select a Campaign Manifesto for global broadcast."); return; }
-                                 sendWeekendPostNow(newPostTitle, dormantLeads.length);
-                                 alert(`Sent "${newPostTitle}" to all ${dormantLeads.length} dormant nodes.`);
-                              }}
-                           >
-                              <PaperAirplaneIcon className="w-4 h-4 mr-2" />
-                              Global Broadcast to Spectrum
-                           </Button>
-                        </div>
                      </Card>
-                  );
-               })()}
+                  )}
 
-               {/* Spectrum Intelligence */}
-               <Card className="bg-white border-none p-10 shadow-[0_20px_50px_rgba(201,150,59,0.1)] text-left relative overflow-hidden group hover:shadow-[0_25px_60px_rgba(201,150,59,0.15)] transition-all duration-700 rounded-xl">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--gold)]/5 rounded-bl-full blur-2xl group-hover:bg-[var(--gold)]/10 transition-all duration-500"></div>
-                  <div className="absolute bottom-0 left-0 w-1 h-2/3 bg-gradient-to-t from-[var(--gold)]/40 to-transparent"></div>
-                  
-                  <div className="relative z-10">
-                     <div className="flex items-center gap-5 mb-8">
-                        <div className="w-14 h-14 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 text-[var(--gold)] shadow-sm">
-                           <SparklesIcon className="w-7 h-7 animate-pulse" />
+                  {/* Scheduled Posts */}
+                  <Card className="bg-white border-2 shadow-lg overflow-hidden text-left rounded-2xl">
+                     <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-gray-50/30">
+                        <h2 className="text-[16px] font-bold text-[var(--text)]">Scheduled posts</h2>
+                     </div>
+                     <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                           <thead>
+                              <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
+                                 <th className="p-[12px_32px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Post</th>
+                                 <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Type</th>
+                                 <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Schedule</th>
+                                 <th className="p-[12px_32px] text-right text-[10px] font-bold text-gray-500 tracking-widest uppercase">Actions</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y-2 divide-[var(--border)]">
+                              {weekendPosts.map((post) => (
+                                 <tr
+                                    key={post.id}
+                                    className={`cursor-pointer transition-colors duration-200 ${activeCampaign?.id === post.id
+                                       ? 'bg-blue-50 border-l-8 border-l-blue-600'
+                                       : 'hover:bg-gray-50'}`}
+                                    onClick={() => setActiveCampaign(activeCampaign?.id === post.id ? null : post)}
+                                 >
+                                    <td className="p-[10px_32px]">
+                                       <div className="flex items-center gap-4">
+                                          <div className="w-10 h-10 rounded-lg bg-gray-100 border-2 border-[var(--border)] overflow-hidden">
+                                             <img src={post.image} alt={post.title} className="w-full h-full object-cover opacity-80" />
+                                          </div>
+                                          <div className="flex flex-col text-left">
+                                             <div className="flex items-center gap-3">
+                                                <span className={`text-[13px] font-bold tracking-tight leading-none ${activeCampaign?.id === post.id ? 'text-blue-700' : 'text-gray-900'}`}>{post.title}</span>
+                                                {activeCampaign?.id === post.id && (
+                                                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black bg-blue-100 text-blue-700 tracking-[1px] uppercase">
+                                                      Selected
+                                                   </span>
+                                                )}
+                                             </div>
+                                             <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-[10px] text-gray-400 font-bold opacity-80 leading-none uppercase tracking-wider">v2.4</span>
+                                                {post.attachedBrochureId && (() => {
+                                                   const attachedBrochure = brochures.find(b => b.id === post.attachedBrochureId);
+                                                   return attachedBrochure ? (
+                                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-[var(--gold-lt)] text-[var(--gold)] border border-[var(--gold)]/20 tracking-wider">
+                                                         Brochure v{attachedBrochure.version}
+                                                      </span>
+                                                   ) : null;
+                                                })()}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td className="p-[10px_20px]">
+                                       <Badge variant="outline" className="text-[10px] font-bold border-[var(--border)] text-gray-500 shadow-sm uppercase">{post.type}</Badge>
+                                    </td>
+                                    <td className="p-[10px_20px]">
+                                       <div className="flex flex-col text-left">
+                                          <span className="text-[12px] font-bold text-gray-900 leading-none">Sat 09:00 AM</span>
+                                          <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider opacity-80 leading-none">Send</span>
+                                       </div>
+                                    </td>
+                                    <td className="p-[10px_32px] text-right">
+                                       <div className="flex items-center justify-end gap-2">
+                                          <Badge variant="info" className="tracking-widest text-[10px] font-bold mr-2 uppercase shadow-sm">{post.status}</Badge>
+                                          <Button
+                                             v2={true}
+                                             size="sm"
+                                             onClick={() => setConfirmSendPost(post)}
+                                             className="text-[9px] font-bold px-4 h-8 rounded-lg shadow-sm"
+                                          >
+                                             <PaperAirplaneIcon className="w-3.5 h-3.5 mr-1.5" />
+                                             Send now
+                                          </Button>
+                                          <Button
+                                             variant="ghost"
+                                             size="icon"
+                                             onClick={() => openEditModal(post)}
+                                             className="text-[var(--text2)] hover:text-[var(--gold)] border-none bg-transparent"
+                                          >
+                                             <AdjustmentsVerticalIcon className="w-4 h-4" />
+                                          </Button>
+                                          <Button
+                                             variant="ghost"
+                                             size="icon"
+                                             onClick={() => deleteWeekendPost(post.id)}
+                                             className="text-[var(--text2)] hover:text-[var(--red)] border-none bg-transparent"
+                                          >
+                                             <XMarkIcon className="w-4 h-4" />
+                                          </Button>
+                                       </div>
+                                    </td>
+                                 </tr>
+                              ))}
+                           </tbody>
+                        </table>
+                     </div>
+                  </Card>
+
+
+                  {/* Inactive Leads */}
+                  {(() => {
+                     const dormantLeads = followUps.filter(f => {
+                        if (!f.createdAt) return false;
+                        const created = new Date(f.createdAt);
+                        const now = new Date();
+                        const diffTime = Math.abs(now.getTime() - created.getTime());
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays > 21;
+                     });
+
+                     if (dormantLeads.length === 0) return null;
+
+                     return (
+                        <Card className="bg-white border-2 shadow-lg overflow-hidden text-left border-500">
+                           <div className="p-6 border-b border-[var(--border)] bg-amber-50/30 flex justify-between items-center">
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center border border-amber-200 shadow-sm text-amber-600">
+                                    <ClockIcon className="w-4 h-4" />
+                                 </div>
+                                 <div className="text-left">
+                                    <h2 className="text-[16px] font-bold text-[var(--text)]">Inactive leads</h2>
+                                    <p className="text-[9px] text-[var(--text3)] font-bold mt-0.5 opacity-60">Over 21 days old</p>
+                                 </div>
+                              </div>
+                              <Badge variant="warning" className="text-[9px] font-bold tracking-widest px-2 py-0.5 shadow-sm">{dormantLeads.length} leads</Badge>
+                           </div>
+                           <div className="overflow-x-auto">
+                              <table className="w-full text-left border-collapse">
+                                 <thead>
+                                    <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
+                                       <th className="p-[12px_32px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Lead</th>
+                                       <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Last contact</th>
+                                       <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Lead age</th>
+                                       <th className="p-[12px_32px] text-right text-[10px] font-bold text-gray-500 tracking-widest uppercase">Action</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody className="divide-y-2 divide-[var(--border)]">
+                                    {dormantLeads.map((lead) => {
+                                       const created = new Date(lead.createdAt);
+                                       const age = Math.ceil(Math.abs(new Date().getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+
+                                       return (
+                                          <tr key={lead.id} className="hover:bg-gray-50">
+                                             <td className="p-[10px_32px]">
+                                                <div className="flex items-center gap-3 text-left">
+                                                   <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-[var(--border)] flex items-center justify-center text-[10px] font-bold text-gray-400 shadow-sm">
+                                                      {lead.customerName.charAt(0)}
+                                                   </div>
+                                                   <div className="flex flex-col text-left">
+                                                      <span className="text-[13px] font-bold text-gray-900 leading-none">{lead.customerName}</span>
+                                                      <span className="text-[10px] text-gray-400 font-bold mt-1.5 uppercase tracking-wider opacity-80 tabular-nums">{lead.phone}</span>
+                                                   </div>
+                                                </div>
+                                             </td>
+                                             <td className="p-[10px_20px]">
+                                                <span className="text-[12px] font-bold text-gray-900 leading-none">{lead.lastContact}</span>
+                                             </td>
+                                             <td className="p-[10px_20px]">
+                                                <Badge variant="outline" className="text-[9px] font-bold bg-gray-100 border-[var(--border)] px-2 py-0.5 shadow-sm uppercase">{age} days</Badge>
+                                             </td>
+                                             <td className="p-[10px_32px] text-right">
+                                                <Button
+                                                   v2={true}
+                                                   size="sm"
+                                                   onClick={() => {
+                                                      if (!activeCampaign) { alert("Select a campaign from 'Scheduled posts' first."); return; }
+                                                      sendWeekendPostNow(activeCampaign.title, 1);
+                                                      alert(`Sent to ${lead.customerName}`);
+                                                   }}
+                                                   className="text-[9px] font-bold px-3 h-7 rounded-md bg-amber-50 text-amber-600 border border-amber-100 shadow-sm"
+                                                >
+                                                   <PaperAirplaneIcon className="w-3 h-3 mr-1.5" />
+                                                   Send
+                                                </Button>
+                                             </td>
+                                          </tr>
+                                       );
+                                    })}
+                                 </tbody>
+                              </table>
+                           </div>
+                           <div className="p-4 bg-gray-50/50 border-t border-[var(--border)]">
+                              <Button
+                                 v2={true}
+                                 className="w-full text-[10px] font-bold tracking-[3px] h-10 rounded-lg shadow-sm"
+                                 onClick={() => {
+                                    if (!activeCampaign) { alert("Select a campaign from 'Scheduled posts' first."); return; }
+                                    sendWeekendPostNow(activeCampaign.title, dormantLeads.length);
+                                    alert(`Sent to all ${dormantLeads.length} leads.`);
+                                 }}
+                              >
+                                 <PaperAirplaneIcon className="w-4 h-4 mr-2" />
+                                 Send to all
+                              </Button>
+                           </div>
+                        </Card>
+                     );
+                  })()}
+               </div>
+
+               {/* Sidebar */}
+               <div className="space-y-[var(--section-gap)]">
+                  {/* Recent Work Feed */}
+                  <Card className="bg-white border-[var(--border)] p-8 shadow-sm text-left rounded-2xl">
+                     <div className="flex items-center gap-4 mb-6">
+                        <div className="w-10 h-10 bg-[var(--green-lt)] rounded-xl flex items-center justify-center border border-[var(--green)]/20 shadow-sm text-[var(--green)]">
+                           <ClipboardDocumentListIcon className="w-5 h-5" />
                         </div>
-                        <div>
-                           <h3 className="text-[22px] font-serif text-[var(--text)] leading-none mb-2 tracking-tight italic">Spectrum Intelligence</h3>
-                           <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse"></span>
-                              <p className="text-[10px] font-black uppercase tracking-[4px] text-[var(--gold)]">AI Protocol Integrated</p>
+                        <div className="text-left">
+                           <h3 className="text-[15px] font-bold text-[var(--text)] leading-none mb-1">Feed</h3>
+                           <p className="text-[9px] font-bold tracking-widest text-[var(--text3)] uppercase">Live updates</p>
+                        </div>
+                     </div>
+                     <div className="space-y-3">
+                        {activityFeed.length > 0 ? activityFeed.slice(0, 8).map((item) => (
+                           <div key={item.id} className="p-3 bg-gray-50 rounded-lg border border-[var(--border)] flex items-start gap-3 shadow-sm">
+                              <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${item.type === 'weekend_post' ? 'bg-[var(--gold)]' :
+                                 item.type === 'booking' ? 'bg-[var(--green)]' :
+                                    item.type === 'payment' ? 'bg-blue-500' :
+                                       'bg-[var(--text3)]'
+                                 }`}></div>
+                              <div className="text-left">
+                                 <p className="text-[11px] font-bold text-[var(--text)] leading-snug">{item.message}</p>
+                                 <p className="text-[9px] font-bold text-[var(--text3)] mt-1 opacity-50">{item.timestamp}</p>
+                              </div>
+                           </div>
+                        )) : (
+                           <div className="text-center py-8 opacity-30">
+                              <ClipboardDocumentListIcon className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-[9px] font-bold uppercase tracking-widest">No activity</p>
+                           </div>
+                        )}
+                     </div>
+                  </Card>
+               </div>
+            </div>
+         </div>
+
+         {/* Modals */}
+         {isSaveModalOpen && (
+            <div className="modal-overlay">
+               <div className="modal-container shadow-2xl rounded-[32px] max-w-xl">
+                  <div className="modal-header p-5">
+                     <div className="flex items-center gap-4 text-left">
+                        <div className="modal-header-icon text-amber-600 w-10 h-10">
+                           <SparklesIcon className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                           <h2 className="text-[18px] font-bold text-gray-900 tracking-tight leading-none mb-1 uppercase">
+                              {editingPost ? 'Update post' : 'Add post'}
+                           </h2>
+                           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[1px] opacity-60 leading-none">Weekend dispatch setup</p>
+                        </div>
+                     </div>
+                     <Button variant="secondary" size="icon" className="rounded-lg border-2 h-10 w-10 shadow-sm" onClick={() => { setIsSaveModalOpen(false); setEditingPost(null); setNewPostTitle(''); }}>✕</Button>
+                  </div>
+
+                  <form className="modal-body space-y-6 text-left p-6" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+                     <div className="space-y-3">
+                        <Label required className="text-[11px] uppercase tracking-wider">Visual asset</Label>
+                        <div
+                           onClick={() => fileInputRef.current?.click()}
+                           className="h-40 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center hover:bg-gray-100 cursor-pointer shadow-inner overflow-hidden relative transition-all group"
+                        >
+                           <input type="file" hidden ref={fileInputRef} onChange={handleFileUpload} accept="image/*,video/*" />
+                           {selectedFile || (editingPost && editingPost.image) ? (
+                              <div className="w-full h-full relative">
+                                 <img
+                                    src={selectedFile ? URL.createObjectURL(selectedFile) : editingPost?.image}
+                                    className="w-full h-full object-cover"
+                                    alt="Preview"
+                                 />
+                                 <div className="absolute inset-0 bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[2px]">
+                                    <span className="text-white text-[9px] font-bold uppercase tracking-[2px] border-2 border-white/50 px-4 py-2 rounded-xl">Change media</span>
+                                 </div>
+                              </div>
+                           ) : (
+                              <div className="text-center space-y-3">
+                                 <ArrowUpTrayIcon className="w-8 h-8 mx-auto text-gray-300 group-hover:text-amber-500 transition-colors" />
+                                 <div className="space-y-1">
+                                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-[2px]">Drop creative content</div>
+                                    <div className="text-[9px] font-bold text-gray-300 uppercase tracking-widest opacity-60">MP4, JPG, OR PNG</div>
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+                     </div>
+
+                     <div className="space-y-6">
+                        <div className="space-y-3">
+                           <Label required className="text-[11px] uppercase tracking-wider">Post title</Label>
+                           <Input
+                              v2={true}
+                              value={newPostTitle}
+                              onChange={e => setNewPostTitle(e.target.value)}
+                              placeholder="e.g. Weekend Exclusive Showcase"
+                              required
+                              className="h-[48px] shadow-sm rounded-xl font-bold text-[13px] uppercase px-4"
+                           />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <Label required className="text-[11px] uppercase tracking-wider">Type</Label>
+                              <Select v2={true} className="h-[48px] shadow-sm rounded-xl font-bold text-[13px] uppercase">
+                                 <option>Static creative</option>
+                                 <option>Reel / Cinematic</option>
+                                 <option>Carousel stack</option>
+                              </Select>
+                           </div>
+                           <div className="space-y-3">
+                              <Label required className="text-[11px] uppercase tracking-wider">Dispatch epoch</Label>
+                              <Input type="time" defaultValue="09:00" v2={true} className="h-[48px] shadow-sm rounded-xl font-bold text-[13px] tabular-nums" />
                            </div>
                         </div>
                      </div>
-                     
-                     <div className="p-6 bg-[var(--bg)]/50 rounded-xl border border-[var(--gold)]/10 mb-8 backdrop-blur-sm relative">
-                        <div className="absolute top-0 left-0 w-8 h-8 opacity-10">
-                           <ChatBubbleLeftRightIcon className="w-full h-full text-[var(--gold)]" />
+
+                     <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-2xl border-2 border-amber-100 shadow-sm">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-amber-500 shadow-sm">
+                           <CheckBadgeIcon className="w-4 h-4" />
                         </div>
-                        <p className="text-[15px] text-[var(--text2)] leading-relaxed font-medium italic pl-4">
-                           {transmissionLogs.length > 0 
-                             ? `"Based on recent transmissions, the protocol is stabilizing. Historical yield indicates optimal frequency peaks."`
-                             : `"Spectrum Intelligence waiting for initial transmission logs to begin engagement modeling."`}
+                        <p className="text-[11px] text-amber-800 font-bold leading-tight uppercase tracking-wide opacity-80">
+                           Post will be queued for weekend dispatch.
                         </p>
                      </div>
 
-                     <Button 
-                        v2={true}
-                        className="w-full h-16 rounded-lg font-black text-[11px] uppercase tracking-[4px] shadow-lg shadow-gold-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                        onClick={() => setIsRulesOpen(true)}
-                     >
-                        Sync Logic Node <ArrowUpRightIcon className="w-4 h-4 ml-2" />
-                     </Button>
-                  </div>
-               </Card>
+                     <div className="pt-2 flex gap-4">
+                        <Button
+                           type="submit"
+                           disabled={!newPostTitle || isUploading}
+                           className="flex-[2] h-[52px] rounded-xl shadow-lg font-bold tracking-[1px] text-[11px] uppercase transition-all duration-300"
+                        >
+                           {editingPost ? 'Save changes' : 'Save post'}
+                        </Button>
+                        <Button
+                           variant="secondary"
+                           onClick={() => { setIsSaveModalOpen(false); setEditingPost(null); setNewPostTitle(''); }}
+                           className="flex-1 h-[52px] rounded-xl border-2 font-bold tracking-[1px] text-[11px] bg-white shadow-md uppercase hover:bg-gray-50 transition-all duration-300"
+                        >
+                           Cancel
+                        </Button>
+                     </div>
+                  </form>
+               </div>
             </div>
+         )}
 
-            {/* Sidebar: Transmission Journal */}
-            <div className="space-y-[var(--section-gap)]">
-               <Card className="bg-white border-[var(--border)] p-8 shadow-sm text-left">
-                  <div className="flex items-center gap-4 mb-8">
-                     <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                        <PaperAirplaneIcon className="w-5 h-5" />
-                     </div>
-                     <div>
-                        <h3 className="text-[18px] font-serif text-[var(--text)] leading-none mb-1">Transmission Journal</h3>
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--text3)]">Recent Dispatches</p>
+
+         {/* Send Confirmation Modal */}
+         {confirmSendPost && (
+            <div className="modal-overlay">
+               <div className="modal-container shadow-2xl rounded-[32px] max-w-xl">
+                  <div className="modal-header p-5">
+                     <div className="flex items-center gap-4 text-left w-full">
+                        <div className="modal-header-icon text-green-600 border-green-100 bg-green-50 shadow-green-500/5 w-10 h-10">
+                           <PaperAirplaneIcon className="w-5 h-5" />
+                        </div>
+                        <div className="text-left flex-1">
+                           <h2 className="text-[18px] font-bold text-gray-900 tracking-tight leading-none mb-1 uppercase">
+                              Approve & Send
+                           </h2>
+                           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[1px] opacity-60 leading-none">Immediate mass transmission</p>
+                        </div>
+                        <Button variant="secondary" size="icon" className="rounded-lg border-2 h-10 w-10 shadow-sm" onClick={() => setConfirmSendPost(null)}>✕</Button>
                      </div>
                   </div>
-                  <div className="space-y-4">
-                     {transmissionLogs.slice(0, 5).map((log) => (
-                        <div key={log.id} className="p-4 bg-[var(--bg)] rounded-xl border border-[var(--border)]">
-                           <div className="flex justify-between items-start mb-2">
-                              <span className="text-[14px] font-bold text-[var(--text)] font-serif uppercase leading-none">{log.postTitle}</span>
-                              <Badge variant="outline" className="text-[8px] font-bold border-none bg-green-50 text-green-600">SENT</Badge>
-                           </div>
-                           <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--border)] text-[10px] font-bold text-[var(--text3)] uppercase tracking-wider">
-                              <span>{log.read} READS</span>
-                              <span className="flex items-center gap-1.5 text-[var(--gold)]">
-                                 <CommandLineIcon className="w-3.5 h-3.5" />
-                                 {log.channel}
-                              </span>
+
+                  <div className="modal-body space-y-6 text-left p-6">
+                     <div className="p-6 bg-gray-900 rounded-2xl text-white shadow-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                           <MegaphoneIcon className="w-20 h-20" />
+                        </div>
+                        <div className="relative z-10 space-y-2">
+                           <p className="text-[9px] font-bold text-white/40 tracking-[2px] uppercase">Active campaign</p>
+                           <p className="text-[18px] font-bold tracking-tight text-amber-500 uppercase leading-tight">{confirmSendPost.title}</p>
+                           <div className="pt-2 flex items-center gap-2">
+                              <Badge variant="success" className="bg-green-500/20 text-green-400 border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest">verified</Badge>
+                              <Badge variant="info" className="bg-blue-500/20 text-blue-400 border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest">ready</Badge>
                            </div>
                         </div>
-                     ))}
-                     <Button 
-                        v2={true}
-                        variant="secondary" 
-                        size="sm" 
-                        className="w-full mt-2 border-[var(--border)] text-[var(--text2)] text-[11px] font-bold uppercase tracking-wider rounded-lg"
-                        onClick={() => setIsHistoryOpen(true)}
-                     >
-                        Full Protocol Ledger
-                     </Button>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="p-6 bg-gray-50 rounded-2xl border-2 border-gray-100 shadow-sm text-center group hover:bg-white hover:border-amber-200 transition-all duration-300">
+                           <p className="text-[9px] font-bold text-gray-400 tracking-[2px] mb-2 opacity-70 uppercase group-hover:text-amber-600 transition-colors">Target</p>
+                           <p className="text-2xl font-bold text-gray-900 tracking-tighter tabular-nums">{followUps.filter(f => f.status !== 'Lost').length}</p>
+                           <p className="text-[9px] font-bold text-gray-400 tracking-[1px] mt-2 uppercase opacity-60">Leads</p>
+                        </div>
+                        <div className="p-6 bg-gray-50 rounded-2xl border-2 border-gray-100 shadow-sm text-center group hover:bg-white hover:border-green-200 transition-all duration-300">
+                           <p className="text-[9px] font-bold text-gray-400 tracking-[2px] mb-2 opacity-70 uppercase group-hover:text-green-600 transition-colors">Channel</p>
+                           <p className="text-2xl font-bold text-green-600 tracking-tighter uppercase">WA-BIZ</p>
+                           <p className="text-[9px] font-bold text-green-700/60 tracking-[1px] mt-2 uppercase opacity-60">API Axis</p>
+                        </div>
+                     </div>
+
+                     {weekendRules.find(r => r.id === 'r4')?.enabled ? (
+                        <div className="flex items-center gap-4 p-4 bg-green-50 rounded-2xl border-2 border-dashed border-green-100 text-[11px] text-green-800 font-bold leading-relaxed uppercase tracking-wide shadow-inner">
+                           <CheckBadgeIcon className="w-8 h-8 text-green-600 shrink-0" />
+                           Logging active. Messages recorded in CRM.
+                        </div>
+                     ) : (
+                        <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-2xl border-2 border-dashed border-amber-100 text-[11px] text-amber-800 font-bold leading-relaxed uppercase tracking-wide shadow-inner">
+                           <XMarkIcon className="w-8 h-8 text-amber-600 shrink-0" />
+                           Logging inactive. No CRM records created.
+                        </div>
+                     )}
+
+                     <div className="pt-2 flex gap-4">
+                        <Button
+                           v2={true}
+                           className="flex-[2] h-[52px] rounded-xl shadow-lg font-bold tracking-[1px] text-[11px] uppercase gap-2 bg-gray-900 text-white hover:bg-black transition-all duration-300"
+                           onClick={() => {
+                              const contactCount = followUps.filter(f => f.status !== 'Lost').length;
+                              sendWeekendPostNow(confirmSendPost.title, contactCount);
+                              setConfirmSendPost(null);
+                              setSendToast(`Sent to ${contactCount} contacts`);
+                              setTimeout(() => setSendToast(null), 4000);
+                           }}
+                        >
+                           <PaperAirplaneIcon className="w-4 h-4 text-amber-500" /> Approve & Fire
+                        </Button>
+                        <Button
+                           variant="secondary"
+                           className="flex-1 h-[52px] rounded-xl border-2 font-bold tracking-[1px] text-[11px] bg-white shadow-md uppercase hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all duration-300"
+                           onClick={() => setConfirmSendPost(null)}
+                        >
+                           Abort
+                        </Button>
+                     </div>
                   </div>
-               </Card>
-
-                {/* Activity Feed */}
-                <Card className="bg-white border-[var(--border)] p-8 shadow-sm text-left">
-                   <div className="flex items-center gap-4 mb-6">
-                      <div className="w-10 h-10 bg-[var(--green-lt)] rounded-xl flex items-center justify-center border border-[var(--green)]/20 shadow-sm text-[var(--green)]">
-                         <ClipboardDocumentListIcon className="w-5 h-5" />
-                      </div>
-                      <div>
-                         <h3 className="text-[16px] font-serif text-[var(--text)] leading-none mb-1">Activity Feed</h3>
-                         <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text3)]">Live Operations</p>
-                      </div>
-                   </div>
-                   <div className="space-y-3">
-                      {activityFeed.length > 0 ? activityFeed.slice(0, 8).map((item) => (
-                         <div key={item.id} className="p-3 bg-[var(--bg)] rounded-lg border border-[var(--border)] flex items-start gap-3">
-                            <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                               item.type === 'weekend_post' ? 'bg-[var(--gold)]' :
-                               item.type === 'booking' ? 'bg-[var(--green)]' :
-                               item.type === 'payment' ? 'bg-blue-500' :
-                               'bg-[var(--text3)]'
-                            }`}></div>
-                            <div>
-                               <p className="text-[11px] font-bold text-[var(--text)] leading-snug">{item.message}</p>
-                               <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-wider mt-1 opacity-50">{item.timestamp}</p>
-                            </div>
-                         </div>
-                      )) : (
-                         <div className="text-center py-8 opacity-30">
-                            <ClipboardDocumentListIcon className="w-8 h-8 mx-auto mb-2" />
-                            <p className="text-[9px] font-bold uppercase tracking-widest">No activity yet</p>
-                         </div>
-                      )}
-                   </div>
-                </Card>
-
-                {/* Campaign Yield */}
-                <Card className="bg-white border-none p-10 shadow-[0_20px_50px_rgba(26,95,168,0.08)] text-left relative overflow-hidden group hover:shadow-[0_25px_60px_rgba(26,95,168,0.12)] transition-all duration-700 rounded-xl">
-                   <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-50/30 rounded-full blur-3xl transition-all duration-1000 group-hover:bg-blue-100/40"></div>
-                   <div className="absolute top-0 right-0 w-1.5 h-full bg-gradient-to-b from-[#1A5FA8]/30 to-transparent"></div>
-                   
-                   <div className="relative z-10">
-                      <div className="w-14 h-14 bg-blue-50/50 rounded-xl flex items-center justify-center border border-blue-100 shadow-sm mb-8">
-                         <MegaphoneIcon className="w-7 h-7 text-[#1A5FA8]" />
-                      </div>
-                      <h3 className="text-[24px] font-serif text-[var(--text)] mb-3 tracking-tighter">Campaign Yield</h3>
-                       <p className="text-[15px] text-[var(--text2)] mb-10 leading-relaxed font-medium">
-                          {transmissionLogs.length > 0 
-                             ? `Engagement remains stable. Analysis suggests rescheduling nodes for higher intent pulses during Saturday mornings.`
-                             : `No campaign yield data detected. Deploy your first weekend post to activate analytics engine.`}
-                       </p>
-                       <Button 
-                          v2={true}
-                          variant="secondary"
-                          className="w-full text-[#1A5FA8] font-black uppercase tracking-[4px] text-[11px] h-16 border-blue-100 rounded-lg hover:bg-[#1A5FA8] hover:text-white hover:border-[#1A5FA8] transition-all duration-500 shadow-sm flex items-center justify-center gap-2"
-                          onClick={() => {
-                             alert("Optimization protocol initiated. Spectrum frequency adjusting...");
-                          }}
-                       >
-                          Optimize Schedule <ArrowUpRightIcon className="w-4 h-4" />
-                       </Button>
-                   </div>
-                </Card>
+               </div>
             </div>
-         </div>
-         </div>
+         )}
 
-         {/* Fixed elements outside the animated container to avoid the 'contained' trap */}
-          {isDeployModalOpen && (
-             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                   <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm">
-                            <SparklesIcon className="w-6 h-6 text-[var(--gold)]" />
-                         </div>
-                         <div>
-                            <h2 className="text-[17px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
-                               Content Dispatch
-                            </h2>
-                            <p className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[2px] mt-1 opacity-60">Weekend Transmission Protocol</p>
-                         </div>
-                      </div>
-                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] w-8 h-8" onClick={() => { setIsDeployModalOpen(false); setEditingPost(null); setNewPostTitle(''); }}>✕</Button>
-                   </div>
-
-                   <form className="p-6 space-y-4 text-left" onSubmit={(e) => { e.preventDefault(); handleDeploy(); }}>
-                      <div
-                         onClick={() => fileInputRef.current?.click()}
-                         className="h-32 bg-[var(--bg)]/30 border-2 border-dashed border-[var(--border)] rounded-2xl flex flex-col items-center justify-center hover:bg-[var(--bg)] cursor-pointer transition-all overflow-hidden relative group"
-                      >
-                         <input type="file" hidden ref={fileInputRef} onChange={handleFileUpload} accept="image/*,video/*" />
-                         {selectedFile || (editingPost && editingPost.image) ? (
-                            <div className="w-full h-full relative">
-                               <img
-                                  src={selectedFile ? URL.createObjectURL(selectedFile) : editingPost?.image}
-                                  className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
-                                  alt="Asset Preview"
-                               />
-                               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <PlusIcon className="w-10 h-10 text-white drop-shadow-lg" />
-                                  <div className="text-[11px] font-bold text-white uppercase tracking-[2px] mt-2">Replace Asset</div>
-                               </div>
-                            </div>
-                         ) : (
-                            <div className="text-center">
-                               <ArrowUpTrayIcon className="w-8 h-8 mx-auto text-[var(--text3)] opacity-40 mb-3 group-hover:text-[var(--gold)] transition-colors" />
-                               <div className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2px] opacity-60">Select Asset Payload</div>
-                            </div>
-                         )}
-                      </div>
-
-                      <div className="space-y-4">
-                         <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-[2px] text-[var(--text3)] mb-2">Campaign Title</label>
-                            <Input
-                               v2={true}
-                               value={newPostTitle}
-                               onChange={e => setNewPostTitle(e.target.value)}
-                               placeholder="ENTER MANIFEST IDENTITY..."
-                               required
-                            />
-                         </div>
-
-                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                               <label className="block text-[10px] font-bold uppercase tracking-[2px] text-[var(--text3)] mb-2">Format Matrix</label>
-                               <Select v2={true}>
-                                  <option>STATIC IMAGE</option>
-                                  <option>REEL (VIDEO)</option>
-                                  <option>CAROUSEL</option>
-                               </Select>
-                            </div>
-                            <div>
-                               <label className="block text-[10px] font-bold uppercase tracking-[2px] text-[var(--text3)] mb-2">Trigger Pulse</label>
-                               <Input type="time" defaultValue="09:00" v2={true} />
-                            </div>
-                         </div>
-                      </div>
-
-                      <div className="pt-4 flex flex-col gap-3">
-                         <Button
-                            type="submit"
-                            v2={true}
-                            disabled={!newPostTitle || isUploading}
-                            className="w-full h-14 rounded-xl shadow-lg shadow-[var(--gold)]/10 text-[11px] font-bold uppercase tracking-[3px]"
-                         >
-                            {editingPost ? 'Update Transmission Node' : 'Deploy Node to Spectrum'} <ArrowUpRightIcon className="w-4 h-4 ml-2" />
-                         </Button>
-                         <Button 
-                            variant="secondary" 
-                            v2={true} 
-                            onClick={() => { setIsDeployModalOpen(false); setEditingPost(null); setNewPostTitle(''); }} 
-                            className="w-full h-12 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px]"
-                         >
-                            Discard Draft
-                         </Button>
-                      </div>
-                   </form>
-                </div>
-             </div>
-          )}
-
-          {/* History Modal */}
-          {isHistoryOpen && (
-             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-xl p-0 w-full max-w-lg h-[80vh] shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden flex flex-col">
-                   <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                            <ClipboardDocumentListIcon className="w-5 h-5" />
-                         </div>
-                         <div>
-                            <h2 className="text-[17px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
-                               Transmission Ledger
-                            </h2>
-                            <p className="text-[9px] text-[var(--gold)] font-bold uppercase tracking-[2px] mt-1 opacity-60">Full history of weekend logs</p>
-                         </div>
-                      </div>
-                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] w-8 h-8" onClick={() => setIsHistoryOpen(false)}>✕</Button>
-                   </div>
-
-                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                      {transmissionLogs.length > 0 ? (
-                         transmissionLogs.map((log) => (
-                            <div key={log.id} className="p-4 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all text-left">
-                               <div className="flex justify-between items-start mb-2">
-                                  <span className="text-[14px] font-bold text-[var(--text)] font-serif uppercase tracking-tight leading-none">{log.postTitle}</span>
-                                  <Badge variant="outline" className="text-[8px] font-bold border-none bg-green-50 text-green-600 px-2 py-0.5 uppercase tracking-widest">SENT</Badge>
-                               </div>
-                               <div className="grid grid-cols-2 gap-4 pb-2 border-b border-[var(--border)]/50 mt-2">
-                                  <div className="flex flex-col">
-                                     <span className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-wider mb-0.5 opacity-50">Delivered</span>
-                                     <span className="text-[12px] font-bold text-[var(--text2)] tracking-tight">{log.delivered} Nodes</span>
-                                  </div>
-                                  <div className="flex flex-col">
-                                     <span className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-wider mb-0.5 opacity-50">Read Rate</span>
-                                     <span className="text-[12px] font-bold text-[var(--text2)] tracking-tight">{log.delivered > 0 ? ((log.read / log.delivered) * 100).toFixed(1) : '0.0'}%</span>
-                                  </div>
-                               </div>
-                               <div className="flex items-center justify-between mt-2 text-[10px] font-bold text-[var(--text3)] uppercase tracking-widest opacity-60">
-                                  <span>{log.date}</span>
-                                  <span className="flex items-center gap-1.5 text-[var(--gold)]">
-                                     <CommandLineIcon className="w-3.5 h-3.5" />
-                                     {log.channel}
-                                  </span>
-                               </div>
-                            </div>
-                         ))
-                      ) : (
-                         <div className="text-center py-20 opacity-40">
-                            <CommandLineIcon className="w-12 h-12 mx-auto mb-4" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest">No transmissions recorded</p>
-                         </div>
-                      )}
-                   </div>
-
-                   <div className="p-6 border-t border-[var(--border)] bg-[var(--bg)]">
-                      <Button
-                         variant="secondary"
-                         v2={true}
-                         className="w-full h-12 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px]"
-                         onClick={() => setIsHistoryOpen(false)}
-                      >
-                         Close Ledger Protocol
-                      </Button>
-                   </div>
-                </div>
-             </div>
-          )}
-
-          {/* CSV Upload Modal */}
-          {isCsvUploadModalOpen && (
-             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                   <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm">
-                            <ArrowUpTrayIcon className="w-6 h-6 text-[var(--gold)]" />
-                         </div>
-                         <div>
-                            <h2 className="text-[17px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
-                               Linked Asset Link
-                            </h2>
-                            <p className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[2px] mt-1 opacity-60">Link contact dataset to registry</p>
-                         </div>
-                      </div>
-                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] w-8 h-8" onClick={() => setIsCsvUploadModalOpen(false)}>✕</Button>
-                   </div>
-
-                   <form className="p-6 space-y-4 text-left">
-                      <div
-                         onClick={() => document.getElementById('csv-file-input')?.click()}
-                         className="h-32 bg-[var(--bg)]/30 border-2 border-dashed border-[var(--border)] rounded-2xl flex flex-col items-center justify-center hover:bg-[var(--bg)] cursor-pointer transition-all overflow-hidden relative group"
-                      >
-                         <input type="file" id="csv-file-input" hidden accept=".csv" onChange={handleCsvFileUpload} />
-                         {csvFile ? (
-                            <div className="w-full h-full relative flex items-center justify-center bg-[var(--gold-lt)]/30">
-                               <div className="text-center">
-                                  <CheckBadgeIcon className="w-8 h-8 mx-auto text-[var(--gold)] mb-2" />
-                                  <div className="text-[11px] font-bold text-[var(--gold-dk)] uppercase tracking-[2px]">{csvFile.name}</div>
-                               </div>
-                               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <ArrowUpTrayIcon className="w-8 h-8 text-white drop-shadow-lg" />
-                                  <div className="text-[10px] font-bold text-white uppercase tracking-[2px] mt-2">Replace File</div>
-                               </div>
-                            </div>
-                         ) : (
-                            <div className="text-center">
-                               <ArrowUpTrayIcon className="w-8 h-8 mx-auto text-[var(--text3)] opacity-40 mb-3 group-hover:text-[var(--gold)] transition-colors" />
-                               <div className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2px] opacity-60">Select CSV Dataset</div>
-                            </div>
-                         )}
-                      </div>
-
-                      {isCsvUploading && (
-                         <div className="flex justify-center p-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--gold)]"></div>
-                         </div>
-                      )}
-
-                      <div className="pt-4 flex flex-col gap-3">
-                         <Button
-                            type="button"
-                            v2={true}
-                            disabled={isCsvUploading || !csvFile}
-                            onClick={handleAddCsvToRegistry}
-                            className="w-full h-14 rounded-xl shadow-lg shadow-[var(--gold)]/10 text-[11px] font-bold uppercase tracking-[3px]"
-                         >
-                            Add to Registry <ArrowPathIcon className="w-4 h-4 ml-2" />
-                         </Button>
-                         <Button 
-                            variant="secondary" 
-                            v2={true} 
-                            onClick={() => setIsCsvUploadModalOpen(false)} 
-                            className="w-full h-12 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px]"
-                         >
-                            Cancel
-                         </Button>
-                      </div>
-                   </form>
-                </div>
-             </div>
-          )}
-
-          {/* Rules Modal */}
-          {isRulesOpen && (
-             <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                   <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm">
-                            <AdjustmentsVerticalIcon className="w-6 h-6 text-[var(--gold)]" />
-                         </div>
-                         <div>
-                            <h2 className="text-[17px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
-                               Engagement Logic
-                            </h2>
-                            <p className="text-[9px] text-[var(--gold)] font-bold uppercase tracking-[2px] mt-1 opacity-60">System rule configuration</p>
-                         </div>
-                      </div>
-                      <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] w-8 h-8" onClick={() => setIsRulesOpen(false)}>✕</Button>
-                   </div>
-
-                  <div className="p-6 space-y-4">
-                     {weekendRules.map((rule) => {
-                        const isEnabled = pendingRules[rule.id] ?? rule.enabled;
-                        return (
-                           <div
-                              key={rule.id}
-                              className="flex items-center justify-between p-4 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all cursor-pointer"
-                              onClick={() => setPendingRules(prev => ({ ...prev, [rule.id]: !isEnabled }))}
-                           >
-                              <div className="flex items-center gap-4 text-left">
-                                 <div className={`w-2.5 h-2.5 rounded-full ${isEnabled ? 'bg-[var(--gold)] animate-pulse' : 'bg-slate-300'} shadow-sm`}></div>
-                                 <span className="text-[12px] font-bold text-[var(--text2)] uppercase tracking-widest">{rule.label}</span>
-                              </div>
-                              <div className={`w-12 h-6 rounded-full p-1 transition-all duration-300 ${isEnabled ? 'bg-[var(--gold)]' : 'bg-slate-200'}`}>
-                                 <div className={`h-full aspect-square bg-white rounded-full shadow-sm transition-all duration-300 ${isEnabled ? 'ml-6' : 'ml-0'}`}></div>
-                              </div>
-                           </div>
-                        );
-                     })}
+         {/* CSV Preview Modal */}
+         {previewCsv && (
+            <div className="modal-overlay">
+               <div className="modal-container shadow-2xl max-w-6xl rounded-[40px]">
+                  <div className="modal-header">
+                     <div className="flex items-center gap-6 text-left">
+                        <div className="modal-header-icon text-blue-600 w-14 h-14 bg-blue-50 border-blue-100">
+                           <CommandLineIcon className="w-6 h-6" />
+                        </div>
+                        <div className="text-left">
+                           <h2 className="text-[18px] font-bold text-gray-900 tracking-tight leading-none mb-1 uppercase">
+                              {previewCsv.name}
+                           </h2>
+                           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">
+                              {previewCsv.data.length} records detected in dataset
+                           </p>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-4">
+                        <Button
+                           v2={true}
+                           onClick={() => {
+                              if (!activeCampaign) {
+                                 alert("Select a campaign from 'Scheduled posts' first.");
+                                 return;
+                              }
+                              sendWeekendPostNow(activeCampaign.title, previewCsv.data.length);
+                              setPreviewCsv(null);
+                              setSendToast(`Mass transmission started for ${previewCsv.data.length} recipients`);
+                              setTimeout(() => setSendToast(null), 4000);
+                           }}
+                           className="h-12 px-8 rounded-xl shadow-lg bg-gray-900 text-white font-bold uppercase tracking-wider text-[11px]"
+                        >
+                           <PaperAirplaneIcon className="w-4 h-4 mr-2 text-amber-500" />
+                           Send to all
+                        </Button>
+                        <Button
+                           variant="secondary"
+                           size="icon"
+                           className="rounded-xl border-2 h-12 w-12 shadow-sm"
+                           onClick={() => setPreviewCsv(null)}
+                        >
+                           ✕
+                        </Button>
+                     </div>
                   </div>
 
-                  <div className="p-6 border-t border-[var(--border)] bg-[var(--bg)] space-y-4">
-                     <Button
-                        v2={true}
-                        onClick={handleApplyRules}
-                        className="w-full h-14 rounded-xl shadow-lg shadow-[var(--gold)]/10 text-[11px] font-bold uppercase tracking-[3px]"
-                     >
-                        Apply System Changes <ArrowUpRightIcon className="w-4 h-4 ml-2" />
-                     </Button>
-                     <Button
-                        variant="secondary"
-                        v2={true}
-                        className="w-full h-12 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px]"
-                        onClick={() => setIsRulesOpen(false)}
-                      >
-                        Discard Pending
-                      </Button>
-                    </div>
-                 </div>
-              </div>
-           )}
+                  <div className="modal-body p-0">
+                     <div className="overflow-x-auto max-h-[60vh]">
+                        <table className="w-full text-left border-collapse">
+                           <thead>
+                              <tr className="bg-gray-50 border-b-2 border-[var(--border)] sticky top-0 z-10">
+                                 <th className="p-[16px_24px] text-[10px] font-bold text-gray-500 tracking-widest uppercase bg-gray-50">ID</th>
+                                 <th className="p-[16px_24px] text-[10px] font-bold text-gray-500 tracking-widest uppercase bg-gray-50">Customer Name</th>
+                                 <th className="p-[16px_24px] text-[10px] font-bold text-gray-500 tracking-widest uppercase bg-gray-50">Phone Number</th>
+                                 <th className="p-[16px_24px] text-[10px] font-bold text-gray-500 tracking-widest uppercase bg-gray-50">Email Address</th>
+                                 <th className="p-[16px_24px] text-[10px] font-bold text-gray-500 tracking-widest uppercase bg-gray-50">Source</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-gray-100">
+                              {previewCsv.data.map((row: any, idx: number) => (
+                                 <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                    <td className="p-[10px_24px] text-[12px] font-bold text-[#002B49] tabular-nums">
+                                       {row.CustomerID || '-'}
+                                    </td>
+                                    <td className="p-[10px_24px] text-[13px] font-bold text-gray-900 uppercase">
+                                       {row.Name || `${row.FirstName || ''} ${row.LastName || ''}`.trim() || '-'}
+                                    </td>
+                                    <td className="p-[10px_24px] text-[13px] font-bold text-[#AD841F] tabular-nums">
+                                       {row.Phone || '-'}
+                                    </td>
+                                    <td className="p-[10px_24px] text-[12px] font-medium text-gray-500 lowercase">
+                                       {row.Email || '-'}
+                                    </td>
+                                    <td className="p-[10px_24px] text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                       {row.Source || 'External Import'}
+                                    </td>
+                                 </tr>
+                              ))}
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
 
-           {/* Send Now Confirmation Modal */}
-           {confirmSendPost && (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                 <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-                    <div className="p-6 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-[var(--green-lt)] rounded-xl flex items-center justify-center border border-[var(--green)]/20 shadow-sm">
-                             <PaperAirplaneIcon className="w-5 h-5 text-[var(--green)]" />
-                          </div>
-                          <div>
-                             <h2 className="text-[17px] font-black text-[var(--text)] tracking-tight uppercase font-serif">
-                                Confirm Dispatch
-                             </h2>
-                             <p className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[2px] mt-1 opacity-60">Weekend Transmission Protocol</p>
-                          </div>
-                       </div>
-                       <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] w-8 h-8" onClick={() => setConfirmSendPost(null)}>✕</Button>
-                    </div>
+                  <div className="modal-footer bg-gray-50/50 p-6 flex justify-between items-center rounded-b-[40px]">
+                     <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                        Ready for bulk transmission axis
+                     </div>
+                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                        Dataset ID: {previewCsv.id.split('-')[0]}
+                     </span>
+                  </div>
+               </div>
+            </div>
+         )}
 
-                    <div className="p-6 space-y-5 text-left">
-                       <div className="p-5 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)]">
-                          <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[2px] mb-2 opacity-50">Campaign</p>
-                          <p className="text-[14px] font-bold text-[var(--text)] font-serif uppercase tracking-tight">{confirmSendPost.title}</p>
-                       </div>
-
-                       <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)]">
-                             <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[2px] mb-1 opacity-50">Recipients</p>
-                             <p className="text-[18px] font-black text-[var(--gold)]">{followUps.filter(f => f.status !== 'Lost').length} contacts</p>
-                          </div>
-                          <div className="p-4 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)]">
-                             <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[2px] mb-1 opacity-50">Channel</p>
-                             <p className="text-[18px] font-black text-[var(--green)]">WhatsApp</p>
-                          </div>
-                       </div>
-
-                       {weekendRules.find(r => r.id === 'r4')?.enabled ? (
-                          <div className="p-4 bg-[var(--green-lt)]/30 rounded-xl border border-[var(--green)]/20 flex items-start gap-3">
-                             <CheckBadgeIcon className="w-5 h-5 text-[var(--green)] mt-0.5 flex-shrink-0" />
-                             <div>
-                                <p className="text-[11px] font-bold text-[var(--text)]">Customers Group: ON</p>
-                                <p className="text-[10px] text-[var(--text3)] mt-1">Follow-up interactions will be auto-logged for each customer.</p>
-                             </div>
-                          </div>
-                       ) : (
-                          <div className="p-4 bg-[var(--amber-lt)]/30 rounded-xl border border-[var(--amber)]/20 flex items-start gap-3">
-                             <XMarkIcon className="w-5 h-5 text-[var(--amber)] mt-0.5 flex-shrink-0" />
-                             <div>
-                                <p className="text-[11px] font-bold text-[var(--text)]">Customers Group: OFF</p>
-                                <p className="text-[10px] text-[var(--text3)] mt-1">No interactions will be auto-logged. Toggle ON in Rules to enable.</p>
-                             </div>
-                          </div>
-                       )}
-                    </div>
-
-                    <div className="p-6 border-t border-[var(--border)] bg-[var(--bg)] flex flex-col gap-3">
-                       <Button
-                          v2={true}
-                          className="w-full h-14 rounded-xl shadow-lg shadow-[var(--green)]/10 text-[11px] font-bold uppercase tracking-[3px]"
-                          onClick={() => {
-                             const contactCount = followUps.filter(f => f.status !== 'Lost').length;
-                             sendWeekendPostNow(confirmSendPost.title, contactCount);
-                             setConfirmSendPost(null);
-                             setSendToast(`"${confirmSendPost.title}" sent to ${contactCount} contacts`);
-                             setTimeout(() => setSendToast(null), 4000);
-                          }}
-                       >
-                          <PaperAirplaneIcon className="w-4 h-4 mr-2" />
-                          Confirm & Send Now
-                       </Button>
-                       <Button
-                          variant="secondary"
-                          v2={true}
-                          className="w-full h-12 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px]"
-                          onClick={() => setConfirmSendPost(null)}
-                       >
-                          Cancel
-                       </Button>
-                    </div>
-                 </div>
-              </div>
-           )}
-
-           {/* Send Toast */}
-           {sendToast && (
-              <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[700] bg-[var(--sb)] text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
-                 <div className="w-2 h-2 rounded-full bg-[var(--green)]"></div>
-                 <span className="text-[10px] font-bold uppercase tracking-[2.5px] whitespace-nowrap">{sendToast}</span>
-              </div>
-           )}
+         {/* Toast */}
+         {sendToast && (
+            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[700] bg-gray-900 text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3">
+               <div className="w-2 h-2 rounded-full bg-green-500"></div>
+               <span className="text-[10px] font-bold tracking-[2.5px] whitespace-nowrap uppercase">{sendToast}</span>
+            </div>
+         )}
       </>
    );
 }

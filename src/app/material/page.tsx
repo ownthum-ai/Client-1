@@ -6,27 +6,24 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { KPICard } from '@/components/ui/KPICard';
 import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
+import { Label } from '@/components/ui/Label';
 import {
   PlusIcon,
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
-  CubeIcon,
-  TruckIcon,
-  IdentificationIcon,
-  SignalIcon,
-  UserCircleIcon,
   ArrowRightIcon,
-  FunnelIcon
+  FunnelIcon,
+  InformationCircleIcon,
+  ShieldCheckIcon,
+  ArrowUpRightIcon
 } from '@heroicons/react/24/outline';
 
 export default function RunningMaterialPage() {
   const { materialStock, materialTxns, addMaterialTxn, addMaterial, deleteMaterial, updateMaterialThreshold } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'warning' } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'TIMELINE' | 'CATEGORICAL'>('TIMELINE');
@@ -37,7 +34,7 @@ export default function RunningMaterialPage() {
   const [isInwardModalOpen, setIsInwardModalOpen] = useState(false);
   const [isOutwardModalOpen, setIsOutwardModalOpen] = useState(false);
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
-  const [inwardForm, setInwardForm] = useState({ materialName: '', qty: 0, vendor: '', invoice: '', rate: 0 });
+  const [inwardForm, setInwardForm] = useState({ materialName: '', qty: 0, supplier: '', invoice: '', rate: 0 });
   const [outwardForm, setOutwardForm] = useState({ materialName: '', qty: 0, project: '', supervisor: '' });
   const [newMaterialForm, setNewMaterialForm] = useState({ name: '', customName: '', unit: '', threshold: 0, capacity: 0, colorVar: '--blue' });
 
@@ -53,12 +50,11 @@ export default function RunningMaterialPage() {
     { name: "Electrical Wiring", unit: "coils", defaultThreshold: 50, defaultCapacity: 300 }
   ];
 
-  // --- Calculations ---
   const totalInwardValue = useMemo(() =>
     materialTxns.filter(t => t.type === 'Inward').reduce((acc, t) => acc + (t.totalCost || 0), 0)
     , [materialTxns]);
 
-  const criticalItemsCount = useMemo(() =>
+  const urgentItemsCount = useMemo(() =>
     materialStock.filter(m => m.current < m.threshold).length
     , [materialStock]);
 
@@ -82,7 +78,6 @@ export default function RunningMaterialPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // --- Handlers ---
   const handleInward = (e: React.FormEvent) => {
     e.preventDefault();
     const material = materialStock.find(m => m.name === inwardForm.materialName);
@@ -92,14 +87,14 @@ export default function RunningMaterialPage() {
       qty: inwardForm.qty,
       unit: material?.unit || 'units',
       date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      vendorName: inwardForm.vendor,
+      vendorName: inwardForm.supplier,
       invoiceNumber: inwardForm.invoice,
       ratePerUnit: inwardForm.rate,
       totalCost: inwardForm.qty * inwardForm.rate
     });
     setIsInwardModalOpen(false);
-    setInwardForm({ materialName: '', qty: 0, vendor: '', invoice: '', rate: 0 });
-    showToast(`${inwardForm.materialName} inward recorded successfully.`);
+    setInwardForm({ materialName: '', qty: 0, supplier: '', invoice: '', rate: 0 });
+    showToast(`${inwardForm.materialName} stock added.`);
   };
 
   const handleOutward = (e: React.FormEvent) => {
@@ -121,9 +116,9 @@ export default function RunningMaterialPage() {
     setOutwardForm({ materialName: '', qty: 0, project: '', supervisor: '' });
 
     if (willBeLow) {
-      showToast(`${outwardForm.materialName} stock critical — ${projectedStock} ${material!.unit} remaining!`, 'warning');
+      showToast(`${outwardForm.materialName} stock is low — ${projectedStock} ${material!.unit} left.`, 'warning');
     } else {
-      showToast(`${outwardForm.materialName} issued to ${outwardForm.project}.`);
+      showToast(`${outwardForm.materialName} issued to site.`);
     }
   };
 
@@ -140,7 +135,7 @@ export default function RunningMaterialPage() {
     addMaterial(materialData as any);
     setIsAddMaterialModalOpen(false);
     setNewMaterialForm({ name: '', customName: '', unit: '', threshold: 0, capacity: 0, colorVar: '--blue' });
-    showToast(`${finalName} registered as new node.`);
+    showToast(`${finalName} added to inventory.`);
   };
 
   const handleExport = async () => {
@@ -158,8 +153,8 @@ export default function RunningMaterialPage() {
       }));
 
       const { exportToCSV } = await import('@/utils/export');
-      exportToCSV(csvData, `Material_Ledger_${new Date().toISOString().split('T')[0]}`);
-      showToast("Material ledger exported successfully.");
+      exportToCSV(csvData, `Stock_Log_${new Date().toISOString().split('T')[0]}`);
+      showToast("Stock log exported.");
     } catch (error) {
       console.error("Export failed:", error);
     } finally {
@@ -173,145 +168,128 @@ export default function RunningMaterialPage() {
 
   return (
     <>
-      <div className="space-y-[var(--section-gap)] animate-in fade-in duration-150 pb-20 text-left" onClick={() => setActiveMenuId(null)}>
-
+      <div className="space-y-[var(--section-gap)] pb-20 text-left">
         {/* Toast */}
         {toast && (
-          <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 ${toast.type === 'warning' ? 'bg-[var(--red)]' : 'bg-[var(--sb)]'}`}>
-            <div className={`w-2 h-2 rounded-full ${toast.type === 'warning' ? 'bg-white animate-pulse' : 'bg-[var(--gold)]'}`}></div>
-            <span className="text-[10px] font-bold uppercase tracking-[2.5px] whitespace-nowrap">{toast.message}</span>
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] bg-gray-900 text-white px-10 py-5 rounded-2xl shadow-2xl border-2 border-white/10 flex items-center gap-4">
+            <div className={`w-3 h-3 rounded-full ${toast.type === 'warning' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+            <span className="text-[14px] font-bold tracking-tight whitespace-nowrap uppercase">{toast.message}</span>
           </div>
         )}
 
-        {/* V2 Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="text-left">
-            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2">Running Material</h1>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 uppercase tracking-wider">
-                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5 animate-pulse"></span>
-                LIVE OPERATIONAL STREAM
-              </span>
-              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums uppercase tracking-tight">LOGISTICS NODE • AUDIT VERIFIED</span>
+            <h1 className="text-[var(--h1-fs)] font-bold text-[var(--text)] tracking-tight leading-tight mb-2 uppercase">Material Stock</h1>
+            <div className="flex items-center gap-3">
+              <Badge variant="success" className="px-3 py-1 text-[11px] font-bold shadow-sm">Live status</Badge>
+              <span className="text-[14px] text-[var(--text3)] font-bold tabular-nums tracking-tight opacity-80 uppercase">Stock list</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex bg-[var(--bg)] border border-[var(--border)] p-1 rounded-xl mr-4">
+          <div className="flex items-center gap-4">
+            <div className="flex bg-gray-100 border-2 border-[var(--border)] p-1.5 rounded-2xl">
               <button
                 onClick={() => setViewMode('TIMELINE')}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[1px] transition-all
-                  ${viewMode === 'TIMELINE' ? 'bg-white text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text)]'}`}
+                className={`px-6 py-2.5 rounded-xl text-[12px] font-bold tracking-wider uppercase
+                  ${viewMode === 'TIMELINE' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 Timeline
               </button>
               <button
                 onClick={() => setViewMode('CATEGORICAL')}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[1px] transition-all
-                  ${viewMode === 'CATEGORICAL' ? 'bg-white text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text)]'}`}
+                className={`px-6 py-2.5 rounded-xl text-[12px] font-bold tracking-wider uppercase
+                  ${viewMode === 'CATEGORICAL' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 Categories
               </button>
             </div>
             <Button
-              v2={true}
               variant="secondary"
               size="default"
               onClick={handleExport}
-              className="px-6"
+              className="px-8 shadow-md rounded-xl h-[52px]"
               disabled={isExporting}
             >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-              {isExporting ? 'Exporting...' : 'Export CSV'}
+              <ArrowDownTrayIcon className="w-5 h-5 mr-3" />
+              {isExporting ? 'Exporting...' : 'Export log'}
             </Button>
-            <div className="h-8 w-[1px] bg-[var(--border)] mx-2"></div>
+            <div className="h-10 w-[2px] bg-[var(--border)] mx-2"></div>
             <Button
-              v2={true}
-              variant="secondary"
               size="default"
-              onClick={() => setIsInwardModalOpen(true)}
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-              Inward
-            </Button>
-            <Button
-              v2={true}
-              variant="secondary"
-              size="default"
-              onClick={() => setIsOutwardModalOpen(true)}
-            >
-              <ArrowUpTrayIcon className="w-4 h-4 mr-2" />
-              Outward
-            </Button>
-            <Button
-              v2={true}
-              size="default"
-              className="px-8 shadow-xl shadow-black/10 transition-all hover:scale-[1.02]"
+              className="px-10 shadow-lg rounded-xl h-[52px]"
               onClick={() => setIsAddMaterialModalOpen(true)}
             >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              New Entry
+              <PlusIcon className="w-5 h-5 mr-3" />
+              Add material
             </Button>
           </div>
         </div>
 
-        {/* KPI Matrix */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            label="INVENTORY VALUE"
-            value={formatCurrency(totalInwardValue)}
-            trend={{ value: "+8.2%", type: "up" }}
+            label="Stock value"
+            value={totalInwardValue}
+            trend={{ value: "Total cost", type: "neutral" }}
           />
           <KPICard
-            label="CRITICAL ALERTS"
-            value={`${criticalItemsCount} Items`}
-            trend={{ value: criticalItemsCount > 0 ? "ATTENTION" : "STABLE", type: criticalItemsCount > 0 ? "down" : "up" }}
+            label="Low stock"
+            value={`${urgentItemsCount} items`}
+            trend={{ value: urgentItemsCount > 0 ? "Urgent" : "Healthy", type: urgentItemsCount > 0 ? "down" : "up" }}
           />
           <KPICard
-            label="DISBURSEMENT LOGS"
-            value={`${materialTxns.filter(t => t.type === 'Outward').length} Entries`}
-            trend={{ value: "Manual Trace", type: "neutral" }}
+            label="Usage logs"
+            value={`${materialTxns.filter(t => t.type === 'Outward').length} logs`}
+            trend={{ value: "Tracking", type: "neutral" }}
           />
           <KPICard
-            label="PROCUREMENT FLOW"
-            value={formatCurrency(materialTxns.filter(t => t.type === 'Inward').reduce((acc, t) => acc + (t.totalCost || 0), 0) / 10)}
-            trend={{ value: "Active", type: "up" }}
+            label="Avg cost"
+            value={materialTxns.filter(t => t.type === 'Inward').reduce((acc, t) => acc + (t.totalCost || 0), 0) / (materialTxns.length || 1)}
+            trend={{ value: "Buying", type: "up" }}
           />
         </div>
 
+        <div className="flex gap-4">
+          <Button variant="primary" className="px-8" onClick={() => setIsInwardModalOpen(true)}>
+            <ArrowDownTrayIcon className="w-5 h-5 mr-3" /> Add Stock In
+          </Button>
+          <Button variant="secondary" className="px-8" onClick={() => setIsOutwardModalOpen(true)}>
+            <ArrowUpTrayIcon className="w-5 h-5 mr-3" /> Send Stock Out
+          </Button>
+        </div>
+
         {viewMode === 'TIMELINE' ? (
-          <div className="grid grid-cols-12 gap-[var(--section-gap)] items-start animate-in fade-in duration-500">
-            {/* Left: Transaction Log */}
-            <Card variant="premium" className="col-span-12 lg:col-span-8 p-0 overflow-hidden min-h-[600px]">
-              <div className="p-6 border-b border-[var(--border)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-[12px] font-bold text-[var(--text)] uppercase tracking-[2px]">Transaction Heritage Log</h2>
-                    <p className="text-[10px] font-medium text-[var(--text3)] uppercase tracking-[1px] mt-1 opacity-60">Real-time procurement & site disbursement</p>
+          <div className="grid grid-cols-12 gap-[var(--section-gap)] items-start">
+            {/* Movement Log */}
+            <Card className="col-span-12 lg:col-span-8 p-0 overflow-hidden min-h-[600px] shadow-lg border-2">
+              <div className="p-8 border-b-2 border-[var(--border)] bg-gray-50">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="text-left">
+                    <h2 className="text-[18px] font-bold text-gray-900 tracking-tight uppercase">Stock Log</h2>
+                    <p className="text-[12px] font-bold text-gray-500 mt-1 uppercase tracking-wider opacity-70">Stock movement and site usage</p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    {/* Material Filter */}
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg">
-                      <FunnelIcon className="w-3.5 h-3.5 text-[var(--gold)]" />
+                  <div className="flex items-center gap-6">
+                    <div className="relative w-72">
+                      <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+                      <Input
+                        placeholder="Search logs..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-12 h-12 shadow-sm rounded-xl border-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-2 border-[var(--border)] rounded-xl shadow-sm min-w-[200px]">
+                      <FunnelIcon className="w-5 h-5 text-amber-500" />
                       <select
                         value={activeMaterialFilter}
                         onChange={(e) => setActiveMaterialFilter(e.target.value)}
-                        className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-[1px] text-[var(--text)] cursor-pointer"
+                        className="bg-transparent border-none outline-none text-[12px] font-bold text-gray-900 cursor-pointer w-full uppercase"
                       >
-                        <option value="ALL">ALL CATEGORIES</option>
+                        <option value="ALL">All categories</option>
                         {materialStock.map(m => (
-                          <option key={m.id} value={m.name}>{m.name.toUpperCase()}</option>
+                          <option key={m.id} value={m.name}>{m.name}</option>
                         ))}
                       </select>
-                    </div>
-
-                    <div className="relative group w-64">
-                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text3)] z-10" />
-                      <Input
-                        placeholder="FILTER LOGS..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
                     </div>
                   </div>
                 </div>
@@ -320,48 +298,50 @@ export default function RunningMaterialPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                      <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Timeline Node</th>
-                      <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Material Node</th>
-                      <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Flow state</th>
-                      <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Volume</th>
-                      <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Stakeholder</th>
+                    <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
+                      <th className="p-[16px_32px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Date</th>
+                      <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Material</th>
+                      <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Type</th>
+                      <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Quantity</th>
+                      <th className="p-[16px_32px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Source / Site</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
+                  <tbody className="divide-y-2 divide-[var(--border)]">
                     {filteredTxns.length > 0 ? filteredTxns.map(t => (
-                      <tr key={t.id} className="group hover:bg-[var(--bg)] transition-all">
-                        <td className="p-[12px_24px] text-[12px] font-bold text-[var(--text2)] uppercase tracking-tight leading-none">{t.date}</td>
-                        <td className="p-[12px_15px]">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[18px] group-hover:border-[var(--gold)]/30 transition-all">
+                      <tr key={t.id} className="hover:bg-gray-50">
+                        <td className="p-[16px_32px] text-[14px] font-bold text-gray-900 tabular-nums">{t.date}</td>
+                        <td className="p-[16px_20px]">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white border-2 border-[var(--border)] flex items-center justify-center text-[20px] shadow-sm">
                               📦
                             </div>
-                            <span className="text-[13px] font-bold text-[var(--text)] tracking-tight uppercase leading-none group-hover:text-[var(--gold)] transition-colors">{t.materialName}</span>
+                            <span className="text-[15px] font-bold text-gray-900 tracking-tight">{t.materialName}</span>
                           </div>
                         </td>
-                        <td className="p-[12px_15px]">
-                          <Badge variant={t.type === 'Inward' ? 'success' : 'warning'} className="text-[10px] font-bold uppercase">
-                            {t.type.toUpperCase()}
+                        <td className="p-[16px_20px]">
+                          <Badge variant={t.type === 'Inward' ? 'success' : 'warning'} className="text-[11px] font-bold px-3 py-1 shadow-sm">
+                            {t.type}
                           </Badge>
                         </td>
-                        <td className="p-[12px_15px]">
+                        <td className="p-[16px_20px]">
                           <div className="flex flex-col">
-                            <span className="text-[14px] font-bold text-[var(--text)] tracking-tight">{t.qty}</span>
-                            <span className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[1px] opacity-40 mt-1">{t.unit}</span>
+                            <span className="text-[16px] font-bold text-gray-900 tabular-nums">
+                              {t.qty.toLocaleString()} <span className="text-[11px] text-gray-400 font-bold uppercase">{t.unit}</span>
+                            </span>
+                            {t.totalCost && <span className="text-[11px] text-amber-600 font-bold mt-1">₹{t.totalCost.toLocaleString()}</span>}
                           </div>
                         </td>
-                        <td className="p-[12px_24px]">
+                        <td className="p-[16px_32px]">
                           <div className="flex flex-col">
-                            <span className="text-[12px] text-[var(--text2)] font-bold uppercase tracking-[0.5px] leading-none">{t.vendorName || t.projectBlock}</span>
-                            <span className="text-[9px] text-[var(--text3)] font-black uppercase tracking-[1px] mt-1.5 opacity-40 leading-none">{t.invoiceNumber || t.supervisorName}</span>
+                            <span className="text-[14px] text-gray-900 font-bold tracking-tight uppercase">{t.vendorName || t.projectBlock}</span>
+                            <span className="text-[11px] text-gray-400 font-bold mt-1 uppercase tracking-wider opacity-80">{t.invoiceNumber || t.supervisorName}</span>
                           </div>
                         </td>
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan={5} className="p-20 text-center opacity-20 grayscale italic text-[12px] uppercase tracking-[3px]">
-                          No transactional trace detected for these nodes.
+                        <td colSpan={5} className="p-32 text-center text-gray-400 font-bold uppercase tracking-widest text-[13px] italic opacity-50">
+                          No records found.
                         </td>
                       </tr>
                     )}
@@ -370,44 +350,42 @@ export default function RunningMaterialPage() {
               </div>
             </Card>
 
-            {/* Right: Stock Levels Summary */}
-            <Card variant="premium" className="col-span-12 lg:col-span-4 p-8">
-              <div className="mb-10">
-                <h2 className="text-[16px] font-bold text-[var(--text)] tracking-tight leading-none uppercase">Stock Equilibrium</h2>
-                <p className="text-[10px] text-[var(--gold)] font-bold uppercase tracking-[3px] mt-2 leading-none opacity-60">Volumetric availability logs</p>
+            {/* Stock Status Summary */}
+            <Card className="col-span-12 lg:col-span-4 p-8 shadow-lg border-2">
+              <div className="mb-12 text-left">
+                <h2 className="text-[20px] font-bold text-gray-900 tracking-tight uppercase">Current stock</h2>
+                <p className="text-[12px] text-amber-600 font-bold tracking-widest mt-2 uppercase opacity-80">Stock levels</p>
               </div>
 
-              <div className="space-y-10">
+              <div className="space-y-12 text-left">
                 {materialStock.map((m, i) => {
                   const percentage = Math.min((m.current / m.capacity) * 100, 100);
-                  const isCritical = m.current < m.threshold;
+                  const isUrgent = m.current < m.threshold;
                   return (
-                    <div key={i} className="space-y-4">
+                    <div key={i} className="space-y-5">
                       <div className="flex justify-between items-end">
                         <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-bold text-[var(--text)] uppercase tracking-tight leading-none">{m.name}</span>
-                            {isCritical && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[7px] font-bold bg-[var(--red-lt)] text-[var(--red)] border border-[var(--red)]/20 uppercase tracking-wider animate-pulse">
-                                LOW
-                              </span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[15px] font-bold text-gray-900 tracking-tight">{m.name}</span>
+                            {isUrgent && (
+                              <Badge variant="danger" className="text-[9px] font-bold px-2 py-0.5">CRITICAL</Badge>
                             )}
                             <button
                               onClick={() => { if (confirm(`Delete ${m.name} category?`)) deleteMaterial(m.id); }}
-                              className="p-1 rounded-md text-[var(--text3)] hover:text-[var(--red)] hover:bg-[var(--red-lt)] opacity-0 group-hover:opacity-100 transition-all"
+                              className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-none"
                             >
-                              <XMarkIcon className="w-3 h-3" />
+                              <XMarkIcon className="w-4 h-4" />
                             </button>
                           </div>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[1px] opacity-40 leading-none">{m.unit.toUpperCase()} UNIT</span>
-                            <span className="text-[9px] text-[var(--text3)] font-bold opacity-30">|</span>
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">{m.unit}</span>
+                            <span className="text-[11px] text-gray-200 font-bold">|</span>
                             {editingThresholdId === m.id ? (
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
                                   autoFocus
-                                  className="w-12 h-4 text-[9px] font-bold text-[var(--gold)] bg-white border border-[var(--gold)]/30 rounded px-1 outline-none"
+                                  className="w-16 h-6 text-[11px] font-bold text-amber-600 bg-white border-2 border-amber-200 rounded-lg px-2 outline-none shadow-sm"
                                   value={thresholdValue}
                                   onChange={e => setThresholdValue(Number(e.target.value))}
                                   onKeyDown={e => {
@@ -419,37 +397,27 @@ export default function RunningMaterialPage() {
                                 />
                                 <button
                                   onClick={() => { updateMaterialThreshold(m.id, thresholdValue); setEditingThresholdId(null); }}
-                                  className="text-[8px] font-bold text-[var(--green)] uppercase"
-                                >OK</button>
-                                <button
-                                  onClick={() => setEditingThresholdId(null)}
-                                  className="text-[8px] font-bold text-[var(--text3)] uppercase"
-                                >✕</button>
+                                  className="text-[10px] font-bold text-green-600 uppercase"
+                                >Save</button>
                               </div>
                             ) : (
                               <button
                                 onClick={() => { setEditingThresholdId(m.id); setThresholdValue(m.threshold); }}
-                                className="text-[9px] text-[var(--gold)] font-bold opacity-60 hover:opacity-100 transition-opacity"
+                                className="text-[11px] text-amber-600 font-bold hover:underline uppercase tracking-wider"
                               >
-                                Min: {m.threshold} {m.unit}
+                                Limit: {m.threshold.toLocaleString()}
                               </button>
                             )}
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
-                          <span className={`text-[14px] font-bold tracking-tight ${isCritical ? 'text-[var(--red)]' : 'text-[var(--text)]'}`}>{m.current.toLocaleString()}</span>
-                          <span className={`text-[9px] font-bold uppercase tracking-[1.5px] mt-1 ${isCritical ? 'text-[var(--red)] animate-pulse' : 'text-[var(--gold)]'}`}>{percentage.toFixed(0)}% FILL</span>
+                          <span className={`text-[18px] font-bold tabular-nums ${isUrgent ? 'text-red-600' : 'text-gray-900'}`}>{m.current.toLocaleString()}</span>
+                          <span className={`text-[11px] font-bold tracking-widest mt-1 uppercase ${isUrgent ? 'text-red-600' : 'text-amber-600'}`}>{percentage.toFixed(0)}% Fill</span>
                         </div>
                       </div>
-                      <div className="relative h-1.5 w-full bg-[var(--bg)] rounded-full overflow-hidden border border-[var(--border)] p-0.5">
-                        {m.threshold > 0 && m.capacity > 0 && (
-                          <div
-                            className="absolute top-0 bottom-0 w-[1px] bg-[var(--red)] z-10 opacity-60"
-                            style={{ left: `${Math.min((m.threshold / m.capacity) * 100, 100)}%` }}
-                          ></div>
-                        )}
+                      <div className="relative h-2.5 w-full bg-gray-100 rounded-full overflow-hidden border-2 border-gray-100 p-0.5 shadow-inner">
                         <div
-                          className={`h-full ${isCritical ? 'bg-[var(--red)]' : 'bg-[var(--gold)]'} rounded-full transition-all duration-1000 ease-out`}
+                          className={`h-full ${isUrgent ? 'bg-red-600' : 'bg-amber-500'} rounded-full`}
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>
@@ -458,68 +426,65 @@ export default function RunningMaterialPage() {
                 })}
               </div>
 
-              <div className="mt-16 pt-10 border-t border-[var(--border)] text-center">
-                <div className="relative w-40 h-40 mx-auto opacity-40 grayscale group-hover:grayscale-0 transition-all">
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[40px] mb-2">📊</span>
-                    <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-widest">Global Fill</p>
-                    <p className="text-[20px] font-bold text-[var(--text)]">
-                      {materialStock.length > 0
-                        ? Math.round(materialStock.reduce((acc, m) => acc + (Math.min((m.current / m.capacity) * 100, 100)), 0) / materialStock.length)
-                        : 0}%
-                    </p>
-                  </div>
+              <div className="mt-20 pt-12 border-t-2 border-[var(--border)] text-center">
+                <div className="relative w-48 h-48 mx-auto bg-gray-50 rounded-full border-2 border-dashed border-gray-200 flex flex-col items-center justify-center">
+                  <span className="text-[48px] mb-3">📊</span>
+                  <p className="text-[11px] font-bold text-gray-400 tracking-widest uppercase">Overall stock</p>
+                  <p className="text-[28px] font-bold text-gray-900 tabular-nums">
+                    {materialStock.length > 0
+                      ? Math.round(materialStock.reduce((acc, m) => acc + (Math.min((m.current / m.capacity) * 100, 100)), 0) / materialStock.length)
+                      : 0}%
+                  </p>
                 </div>
               </div>
             </Card>
           </div>
         ) : (
-          <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-700">
+          <div className="space-y-8 text-left">
             {materialStock.map((material) => {
               const txns = materialTxns.filter(t => t.materialName === material.name);
-              const isCritical = material.current < material.threshold;
+              const isUrgent = material.current < material.threshold;
 
               return (
-                <Card key={material.id} variant="premium" className="p-0 overflow-hidden border-t-2">
-                  <div style={{ borderColor: isCritical ? 'var(--red)' : 'var(--gold)' }} className="absolute top-0 left-0 right-0 h-0.5 border-t-2" />
-                  <div className="p-5 border-b border-[var(--border)] bg-[var(--bg)]">
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center text-[22px] border border-[var(--border)] shadow-sm">
+                <Card key={material.id} className="p-0 overflow-hidden border-2 shadow-lg relative">
+                  <div style={{ backgroundColor: isUrgent ? 'var(--red)' : 'var(--gold)' }} className="absolute top-0 left-0 right-0 h-1" />
+                  <div className="p-8 border-b-2 border-[var(--border)] bg-gray-50">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                      <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-[28px] border-2 border-[var(--border)] shadow-md">
                           {material.name.toLowerCase().includes('steel') ? '🏗️' :
                             material.name.toLowerCase().includes('cement') ? '🧱' :
                               material.name.toLowerCase().includes('sand') ? '⏳' : '📦'}
                         </div>
                         <div>
-                          <h2 className="text-[15px] font-bold text-[var(--text)] uppercase tracking-tight">{material.name}</h2>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={isCritical ? 'warning' : 'success'} className="text-[8px] font-black tracking-widest px-2 py-0">
-                              {isCritical ? 'CRITICAL' : 'STABLE'}
+                          <h2 className="text-[18px] font-bold text-gray-900 tracking-tight uppercase">{material.name}</h2>
+                          <div className="flex items-center gap-4 mt-2">
+                            <Badge variant={isUrgent ? 'danger' : 'success'} className="text-[10px] font-bold px-3 py-1 uppercase tracking-widest">
+                              {isUrgent ? 'Low Stock' : 'Stock is Good'}
                             </Badge>
-                            <span className="text-[9px] text-[var(--text3)] font-bold uppercase tracking-[1px] opacity-40">
-                              Nodes: {txns.length}
+                            <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+                              {txns.length} Total entries
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-10">
                         <div className="text-right">
-                          <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1.5px] mb-0.5 opacity-60">Equilibrium</p>
-                          <p className={`text-[18px] font-black tracking-tighter tabular-nums ${isCritical ? 'text-[var(--red)]' : 'text-[var(--text)]'}`}>
-                            {material.current.toLocaleString()} <span className="text-[11px] font-bold text-[var(--text3)] opacity-40">{material.unit.toUpperCase()}</span>
+                          <p className="text-[11px] font-bold text-gray-400 tracking-widest mb-1 uppercase">Available stock</p>
+                          <p className={`text-[24px] font-bold tracking-tight tabular-nums ${isUrgent ? 'text-red-600' : 'text-gray-900'}`}>
+                            {material.current.toLocaleString()} <span className="text-[13px] font-bold text-gray-400 uppercase">{material.unit}</span>
                           </p>
                         </div>
-                        <div className="w-32 h-1.5 bg-[var(--border)] rounded-full overflow-hidden p-[1px]">
+                        <div className="w-40 h-2.5 bg-gray-200 rounded-full overflow-hidden p-0.5 shadow-inner border-2 border-gray-100">
                           <div
-                            className={`h-full rounded-full transition-all duration-1000 ${isCritical ? 'bg-[var(--red)]' : 'bg-[var(--gold)]'}`}
+                            className={`h-full rounded-full ${isUrgent ? 'bg-red-600' : 'bg-amber-500'}`}
                             style={{ width: `${Math.min((material.current / material.capacity) * 100, 100)}%` }}
                           />
                         </div>
                       </div>
                     </div>
 
-                    {/* Compact Category Insight Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white rounded-xl border border-[var(--border)] shadow-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm mt-8">
                       {(() => {
                         const inwards = txns.filter(t => t.type === 'Inward');
                         const outwards = txns.filter(t => t.type === 'Outward');
@@ -528,40 +493,35 @@ export default function RunningMaterialPage() {
                         const totalInCost = inwards.reduce((acc, t) => acc + (t.totalCost || 0), 0);
                         const avgRate = totalInQty > 0 ? totalInCost / totalInQty : 0;
 
-                        const vendorCounts = inwards.reduce((acc: any, t) => {
+                        const supplierCounts = inwards.reduce((acc: any, t) => {
                           acc[t.vendorName || 'Unknown'] = (acc[t.vendorName || 'Unknown'] || 0) + 1;
                           return acc;
                         }, {});
-                        const primaryVendor = Object.entries(vendorCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A';
+                        const primarySupplier = Object.entries(supplierCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A';
 
                         const projectCounts = outwards.reduce((acc: any, t) => {
                           acc[t.projectBlock || 'Site'] = (acc[t.projectBlock || 'Site'] || 0) + t.qty;
                           return acc;
                         }, {});
                         const topProject = Object.entries(projectCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A';
-                        const lastPrice = inwards[0]?.ratePerUnit || 0;
 
                         return (
                           <>
-                            <div>
-                              <p className="text-[8px] font-black text-[var(--text3)] uppercase tracking-[1.5px] opacity-40 mb-0.5">Lifetime In</p>
-                              <p className="text-[12px] font-bold text-[var(--text)] tabular-nums">{totalInQty.toLocaleString()} <small className="opacity-40">{material.unit}</small></p>
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Total inward</p>
+                              <p className="text-[15px] font-bold text-gray-900 tabular-nums">{totalInQty.toLocaleString()} <span className="text-[11px] opacity-50">{material.unit}</span></p>
                             </div>
-                            <div>
-                              <p className="text-[8px] font-black text-[var(--text3)] uppercase tracking-[1.5px] opacity-40 mb-0.5">Consumption</p>
-                              <p className="text-[12px] font-bold text-[var(--amber-dk)] tabular-nums">{totalOutQty.toLocaleString()} <small className="opacity-40">{material.unit}</small></p>
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Total outward</p>
+                              <p className="text-[15px] font-bold text-amber-700 tabular-nums">{totalOutQty.toLocaleString()} <span className="text-[11px] opacity-50">{material.unit}</span></p>
                             </div>
-                            <div>
-                              <p className="text-[8px] font-black text-[var(--text3)] uppercase tracking-[1.5px] opacity-40 mb-0.5">Rates (Avg/Last)</p>
-                              <p className="text-[12px] font-bold text-[var(--text)] tabular-nums">
-                                ₹{avgRate.toFixed(0)} <span className="text-[9px] opacity-30 font-medium">/ ₹{lastPrice.toFixed(0)}</span>
-                              </p>
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Average rate</p>
+                              <p className="text-[15px] font-bold text-gray-900 tabular-nums">₹{avgRate.toFixed(0)} <span className="text-[11px] opacity-50">/ {material.unit}</span></p>
                             </div>
-                            <div>
-                              <p className="text-[8px] font-black text-[var(--text3)] uppercase tracking-[1px] opacity-40 mb-0.5">Usage/Source</p>
-                              <p className="text-[11px] font-bold text-[var(--gold)] truncate uppercase">
-                                {topProject} <span className="text-[8px] opacity-40 lowercase font-medium">via</span> {primaryVendor}
-                              </p>
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Main site / supplier</p>
+                              <p className="text-[13px] font-bold text-amber-600 truncate uppercase">{topProject} · {primarySupplier}</p>
                             </div>
                           </>
                         );
@@ -572,40 +532,40 @@ export default function RunningMaterialPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-[var(--bg)]/50 border-b border-[var(--border)]">
-                          <th className="p-[8px_20px] text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Timestamp</th>
-                          <th className="p-[8px_15px] text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Node</th>
-                          <th className="p-[8px_15px] text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Vendor / Project</th>
-                          <th className="p-[8px_15px] text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Qty</th>
-                          <th className="p-[8px_20px] text-right text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Node Value</th>
+                        <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
+                          <th className="p-[12px_32px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Date</th>
+                          <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Type</th>
+                          <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Source / Destination</th>
+                          <th className="p-[12px_20px] text-[10px] font-bold text-gray-500 tracking-widest uppercase">Quantity</th>
+                          <th className="p-[12px_32px] text-right text-[10px] font-bold text-gray-500 tracking-widest uppercase">Total value</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[var(--border)]">
+                      <tbody className="divide-y-2 divide-[var(--border)]">
                         {txns.length > 0 ? txns.map(t => (
-                          <tr key={t.id} className="group hover:bg-[var(--bg)]/30 transition-all">
-                            <td className="p-[8px_20px] text-[11px] font-bold text-[var(--text2)] uppercase">{t.date}</td>
-                            <td className="p-[8px_15px]">
-                              <Badge variant={t.type === 'Inward' ? 'success' : 'warning'} className="text-[8px] font-black px-1.5 py-0">
-                                {t.type.toUpperCase()}
+                          <tr key={t.id} className="hover:bg-gray-50">
+                            <td className="p-[12px_32px] text-[13px] font-bold text-gray-900 tabular-nums">{t.date}</td>
+                            <td className="p-[12px_20px]">
+                              <Badge variant={t.type === 'Inward' ? 'success' : 'warning'} className="text-[10px] font-bold px-2 py-0.5 uppercase shadow-sm">
+                                {t.type}
                               </Badge>
                             </td>
-                            <td className="p-[8px_15px]">
+                            <td className="p-[12px_20px]">
                               <div className="flex flex-col">
-                                <span className="text-[11px] font-bold text-[var(--text)] uppercase tracking-tight">{t.vendorName || t.projectBlock}</span>
-                                <span className="text-[8px] text-[var(--text3)] font-bold uppercase tracking-[0.5px] opacity-30">{t.invoiceNumber || t.supervisorName}</span>
+                                <span className="text-[13px] font-bold text-gray-900 tracking-tight uppercase">{t.vendorName || t.projectBlock}</span>
+                                <span className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider opacity-80">{t.invoiceNumber || t.supervisorName}</span>
                               </div>
                             </td>
-                            <td className="p-[8px_15px]">
-                              <span className="text-[12px] font-black text-[var(--text)] font-price">{t.qty} <small className="text-[9px] font-bold opacity-30 ml-0.5">{t.unit}</small></span>
+                            <td className="p-[12px_20px]">
+                              <span className="text-[15px] font-bold text-gray-900 tabular-nums">{t.qty.toLocaleString()} <span className="text-[11px] opacity-40 uppercase">{t.unit}</span></span>
                             </td>
-                            <td className="p-[8px_20px] text-right">
-                              <span className="text-[12px] font-black text-[var(--text)] font-price">{t.totalCost ? formatCurrency(t.totalCost) : '--'}</span>
+                            <td className="p-[12px_32px] text-right">
+                              <span className="text-[15px] font-bold text-gray-900 tabular-nums">{t.totalCost ? formatCurrency(t.totalCost) : '--'}</span>
                             </td>
                           </tr>
                         )) : (
                           <tr>
-                            <td colSpan={5} className="p-10 text-center opacity-20 grayscale italic text-[11px] uppercase tracking-[3px]">
-                              Zero transactional trace detected.
+                            <td colSpan={5} className="p-12 text-center text-gray-300 font-bold uppercase tracking-widest text-[12px] italic">
+                              No logs recorded.
                             </td>
                           </tr>
                         )}
@@ -618,52 +578,73 @@ export default function RunningMaterialPage() {
           </div>
         )}
       </div>
-
-      {/* Register Inward Node (Outside animated container) */}
+      
+      {/* Add Stock Modal */}
       {isInwardModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                  <ArrowDownTrayIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <ArrowDownTrayIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Inward Node</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">Acquisition of construction capital assets</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Add Stock</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Add items to stock</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsInwardModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsInwardModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleInward} className="modal-body space-y-8">
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Material Node</label>
-                <Select
-                  v2={true}
-                  required
-                  value={inwardForm.materialName}
-                  onChange={e => setInwardForm({ ...inwardForm, materialName: e.target.value })}
-                >
-                  <option value="">SELECT MATERIAL SOURCE</option>
-                  {materialStock.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
-                </Select>
+            <form onSubmit={handleInward} className="modal-body space-y-10 text-left">
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label required>Material Name</Label>
+                  <Select
+                    v2={true}
+                    required
+                    value={inwardForm.materialName}
+                    onChange={e => setInwardForm({ ...inwardForm, materialName: e.target.value })}
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
+                  >
+                    <option value="">Choose material...</option>
+                    {materialStock.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                  </Select>
+                </div>
+                <div className="space-y-4">
+                  <Label required>Quantity</Label>
+                  <div className="relative">
+                    <Input
+                      required
+                      v2={true}
+                      type="number"
+                      placeholder="0.00"
+                      value={inwardForm.qty || ''}
+                      onChange={e => setInwardForm({ ...inwardForm, qty: Number(e.target.value) })}
+                      className="h-[56px] shadow-md rounded-2xl font-bold tabular-nums text-[18px]"
+                    />
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white/80 px-2 rounded-md">
+                      {materialStock.find(m => m.name === inwardForm.materialName)?.unit || 'Units'}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Volume Quantity</label>
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label required>Supplier</Label>
                   <Input
                     required
                     v2={true}
-                    type="number"
-                    placeholder="0"
-                    value={inwardForm.qty || ''}
-                    onChange={e => setInwardForm({ ...inwardForm, qty: Number(e.target.value) })}
+                    type="text"
+                    placeholder="Enter supplier name"
+                    value={inwardForm.supplier}
+                    onChange={e => setInwardForm({ ...inwardForm, supplier: e.target.value })}
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Rate Per Unit (₹)</label>
+                <div className="space-y-4">
+                  <Label required>Unit Price (₹)</Label>
                   <Input
                     required
                     v2={true}
@@ -671,51 +652,46 @@ export default function RunningMaterialPage() {
                     placeholder="0.00"
                     value={inwardForm.rate || ''}
                     onChange={e => setInwardForm({ ...inwardForm, rate: Number(e.target.value) })}
+                    className="h-[56px] shadow-md rounded-2xl font-bold text-amber-600 tabular-nums text-[18px] font-price"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Vendor Moniker</label>
-                  <Input
-                    required
-                    v2={true}
-                    type="text"
-                    placeholder="SOURCE IDENTITY"
-                    value={inwardForm.vendor}
-                    onChange={e => setInwardForm({ ...inwardForm, vendor: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Invoice Registry</label>
-                  <Input
-                    required
-                    v2={true}
-                    type="text"
-                    placeholder="INV-000"
-                    value={inwardForm.invoice}
-                    onChange={e => setInwardForm({ ...inwardForm, invoice: e.target.value })}
-                  />
-                </div>
+              <div className="space-y-4">
+                <Label required>Bill No.</Label>
+                <Input
+                  required
+                  v2={true}
+                  type="text"
+                  placeholder="INV-XXXX-2026"
+                  value={inwardForm.invoice}
+                  onChange={e => setInwardForm({ ...inwardForm, invoice: e.target.value })}
+                  className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
+                />
               </div>
 
-              <div className="pt-4 flex gap-4">
+              <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                <ShieldCheckIcon className="w-10 h-10 text-amber-500 shrink-0" />
+                <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                    This item will be added to main stock list.
+                </p>
+              </div>
+
+              <div className="pt-6 flex gap-6">
                 <Button
                   type="button"
                   variant="secondary"
-                  v2={true}
-                  className="flex-1 h-12 rounded-xl border-[var(--border)] font-bold uppercase tracking-[2px] text-[10px]"
+                  className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2"
                   onClick={() => setIsInwardModalOpen(false)}
                 >
-                  Abort Protocol
+                  Discard
                 </Button>
                 <Button
                   type="submit"
-                  v2={true}
-                  className="flex-[2] h-12 rounded-xl shadow-lg shadow-[var(--gold)]/10 font-bold uppercase tracking-[3px] text-[10px]"
+                  variant="primary"
+                  className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl"
                 >
-                  Confirm Inward Node
+                  Commit
                 </Button>
               </div>
             </form>
@@ -723,72 +699,82 @@ export default function RunningMaterialPage() {
         </div>
       )}
 
-      {/* Record Outward Node (Outside animated container) */}
+      {/* Issue Stock Modal */}
       {isOutwardModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                  <ArrowUpTrayIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <ArrowUpTrayIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Outward Node</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">Disbursement of material to site execution</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Send Stock</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Send material to site</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsOutwardModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsOutwardModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleOutward} className="modal-body space-y-8">
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Material Node</label>
-                <Select
-                  v2={true}
-                  required
-                  value={outwardForm.materialName}
-                  onChange={e => setOutwardForm({ ...outwardForm, materialName: e.target.value })}
-                >
-                  <option value="">SELECT MATERIAL DESTINATION</option>
-                  {materialStock.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
-                </Select>
+            <form onSubmit={handleOutward} className="modal-body space-y-10 text-left">
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label required>Material Name</Label>
+                  <Select
+                    v2={true}
+                    required
+                    value={outwardForm.materialName}
+                    onChange={e => setOutwardForm({ ...outwardForm, materialName: e.target.value })}
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
+                  >
+                    <option value="">Select material...</option>
+                    {materialStock.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                  </Select>
+                </div>
+                <div className="space-y-4">
+                  <Label required>Quantity to Send</Label>
+                  <div className="relative">
+                    <Input
+                      required
+                      v2={true}
+                      type="number"
+                      placeholder="0"
+                      value={outwardForm.qty || ''}
+                      onChange={e => setOutwardForm({ ...outwardForm, qty: Number(e.target.value) })}
+                      className="h-[56px] shadow-md rounded-2xl font-bold tabular-nums text-[18px]"
+                    />
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white/80 px-2 rounded-md">
+                      {materialStock.find(m => m.name === outwardForm.materialName)?.unit || 'Units'}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Volume Quantity</label>
-                  <Input
-                    required
-                    v2={true}
-                    type="number"
-                    placeholder="0"
-                    value={outwardForm.qty || ''}
-                    onChange={e => setOutwardForm({ ...outwardForm, qty: Number(e.target.value) })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Supervisor Identity</label>
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label required>Name</Label>
                   <Input
                     required
                     v2={true}
                     type="text"
-                    placeholder="AUTH NAME"
+                    placeholder="Enter person name"
                     value={outwardForm.supervisor}
                     onChange={e => setOutwardForm({ ...outwardForm, supervisor: e.target.value })}
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Disbursement Destination</label>
-                <Input
-                  required
-                  v2={true}
-                  type="text"
-                  placeholder="PROJECT / BLOCK / SECTOR"
-                  value={outwardForm.project}
-                  onChange={e => setOutwardForm({ ...outwardForm, project: e.target.value })}
-                />
+                <div className="space-y-4">
+                  <Label required>Site / Location</Label>
+                  <Input
+                    required
+                    v2={true}
+                    type="text"
+                    placeholder="Enter block/site"
+                    value={outwardForm.project}
+                    onChange={e => setOutwardForm({ ...outwardForm, project: e.target.value })}
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
+                  />
+                </div>
               </div>
 
               {outwardForm.materialName && (() => {
@@ -798,35 +784,37 @@ export default function RunningMaterialPage() {
                 const isAlreadyLow = material.current < material.threshold;
                 const willBeLow = projectedStock < material.threshold;
                 return (
-                  <div className={`p-4 rounded-xl border flex items-start gap-3 ${willBeLow ? 'bg-[var(--red-lt)] border-[var(--red)]/20' : isAlreadyLow ? 'bg-[var(--amber-lt)] border-[var(--amber)]/20' : 'bg-[var(--green-lt)] border-[var(--green)]/20'}`}>
-                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${willBeLow ? 'bg-[var(--red)] animate-pulse' : isAlreadyLow ? 'bg-[var(--amber)]' : 'bg-[var(--green)]'}`}></div>
+                  <div className={`p-10 rounded-[16px] border-2 flex items-start gap-6 shadow-lg ${willBeLow ? 'bg-red-50 border-red-200' : isAlreadyLow ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+                    <div className={`w-4 h-4 rounded-full mt-2 shrink-0 ${willBeLow ? 'bg-red-600 animate-pulse' : isAlreadyLow ? 'bg-amber-500' : 'bg-green-600'}`}></div>
                     <div>
-                      <p className={`text-[11px] font-bold ${willBeLow ? 'text-[var(--red)]' : isAlreadyLow ? 'text-[var(--amber-dk)]' : 'text-[var(--green)]'}`}>
-                        {willBeLow ? `⚠ CRITICAL: Stock will drop to ${projectedStock} ${material.unit} (threshold: ${material.threshold})` :
-                          isAlreadyLow ? `⚠ WARNING: Current stock ${material.current} ${material.unit} already below threshold ${material.threshold}` :
-                            `✓ Stock OK: ${material.current} ${material.unit} available`}
+                      <p className={`text-[15px] font-bold uppercase tracking-tight mb-2 ${willBeLow ? 'text-red-700' : isAlreadyLow ? 'text-amber-700' : 'text-green-700'}`}>
+                        {willBeLow ? 'Alert: Stock will be low' : isAlreadyLow ? 'Alert: Stock is low' : 'Stock is good'}
+                      </p>
+                      <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide opacity-80">
+                        {willBeLow ? `Stock will drop to ${projectedStock.toLocaleString()} ${material.unit}, which is below the limit of ${material.threshold.toLocaleString()}.` :
+                          isAlreadyLow ? `Current stock is only ${material.current.toLocaleString()} ${material.unit}, which is low.` :
+                            `After sending, stock of ${projectedStock.toLocaleString()} ${material.unit} is still good.`}
                       </p>
                     </div>
                   </div>
                 );
               })()}
 
-              <div className="pt-4 flex gap-4">
+              <div className="pt-6 flex gap-6">
                 <Button
                   type="button"
                   variant="secondary"
-                  v2={true}
-                  className="flex-1 h-12 rounded-xl border-[var(--border)] font-bold uppercase tracking-[2px] text-[10px]"
+                  className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2"
                   onClick={() => setIsOutwardModalOpen(false)}
                 >
-                  Abort Protocol
+                  Discard
                 </Button>
                 <Button
                   type="submit"
-                  v2={true}
-                  className="flex-[2] h-12 rounded-xl shadow-lg shadow-[var(--gold)]/10 font-bold uppercase tracking-[3px] text-[10px]"
+                  variant="primary"
+                  className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl"
                 >
-                  Confirm Outward Node
+                  Approve & Send
                 </Button>
               </div>
             </form>
@@ -834,145 +822,123 @@ export default function RunningMaterialPage() {
         </div>
       )}
 
-      {/* New Material Category Protocol (Outside animated container) */}
+      {/* Add Material Category Modal */}
       {isAddMaterialModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container max-w-2xl shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                  <PlusIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <PlusIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Category Protocol</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">Define new capital asset category</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Add New Item</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Add new stock item</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsAddMaterialModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddMaterialModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleAddMaterial} className="modal-body space-y-8">
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Material Moniker</label>
-                <Select
-                  required
-                  v2={true}
-                  value={newMaterialForm.name}
-                  onChange={e => {
-                    const val = e.target.value;
-                    if (val === 'Custom/Other') {
-                      setNewMaterialForm({ ...newMaterialForm, name: 'Custom/Other', unit: '', threshold: 0, capacity: 0 });
-                    } else {
-                      const selected = STANDARD_MATERIALS.find(m => m.name === val);
-                      if (selected) {
-                        setNewMaterialForm({ 
-                          ...newMaterialForm, 
-                          name: selected.name,
-                          unit: selected.unit,
-                          threshold: selected.defaultThreshold,
-                          capacity: selected.defaultCapacity
-                        });
-                      } else {
-                        setNewMaterialForm({ ...newMaterialForm, name: val });
-                      }
-                    }
-                  }}
-                >
-                  <option value="">SELECT MATERIAL CATEGORY</option>
-                  {STANDARD_MATERIALS.map(mat => (
-                    <option key={mat.name} value={mat.name}>{mat.name}</option>
-                  ))}
-                  <option value="Custom/Other">CUSTOM / OTHER</option>
-                </Select>
-                {newMaterialForm.name === 'Custom/Other' && (
-                  <Input
-                    required
-                    v2={true}
-                    className="mt-3 font-black uppercase tracking-widest"
-                    placeholder="ENTER CUSTOM MATERIAL NAME..."
-                    value={newMaterialForm.customName || ''}
-                    onChange={e => setNewMaterialForm({ ...newMaterialForm, customName: e.target.value })}
-                  />
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Unit of Measure</label>
-                  <Input
-                    required
-                    v2={true}
-                    type="text"
-                    placeholder="e.g. SFT / KGS"
-                    value={newMaterialForm.unit}
-                    onChange={e => setNewMaterialForm({ ...newMaterialForm, unit: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Visual Theme</label>
+            <form onSubmit={handleAddMaterial} className="modal-body space-y-10 text-left">
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label required>Item Name</Label>
                   <Select
                     v2={true}
-                    value={newMaterialForm.colorVar}
-                    onChange={e => setNewMaterialForm({ ...newMaterialForm, colorVar: e.target.value })}
+                    required
+                    value={newMaterialForm.name}
+                    onChange={e => {
+                      const selected = STANDARD_MATERIALS.find(m => m.name === e.target.value);
+                      setNewMaterialForm({
+                        ...newMaterialForm,
+                        name: e.target.value,
+                        unit: selected?.unit || '',
+                        threshold: selected?.defaultThreshold || 0,
+                        capacity: selected?.defaultCapacity || 0
+                      });
+                    }}
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
                   >
-                    <option value="--blue">CYAN SHIELD</option>
-                    <option value="--gold">GOLD TRACE</option>
-                    <option value="--amber">AMBER ALERT</option>
-                    <option value="--green">GREEN PASS</option>
+                    <option value="">Select standard...</option>
+                    {STANDARD_MATERIALS.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                    <option value="Custom/Other">Custom / Manual entry</option>
                   </Select>
                 </div>
+                {newMaterialForm.name === 'Custom/Other' && (
+                  <div className="space-y-4">
+                    <Label required>Custom Name</Label>
+                    <Input
+                      required
+                      v2={true}
+                      value={newMaterialForm.customName}
+                      onChange={e => setNewMaterialForm({ ...newMaterialForm, customName: e.target.value })}
+                      placeholder="Enter custom name"
+                      className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
+                    />
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <Label required>Measurement unit</Label>
+                  <Input
+                    required
+                    v2={true}
+                    value={newMaterialForm.unit}
+                    onChange={e => setNewMaterialForm({ ...newMaterialForm, unit: e.target.value })}
+                    placeholder="e.g. KG, BAGS, SQFT"
+                    className="h-[56px] shadow-md rounded-2xl font-bold uppercase"
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Crisis Threshold</label>
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label required>Low Stock Alert Level</Label>
                   <Input
                     required
                     v2={true}
                     type="number"
-                    placeholder="ALARM LEVEL"
                     value={newMaterialForm.threshold || ''}
                     onChange={e => setNewMaterialForm({ ...newMaterialForm, threshold: Number(e.target.value) })}
+                    placeholder="0"
+                    className="h-[56px] shadow-md rounded-2xl font-bold tabular-nums"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px] px-1">Projected Capacity</label>
+                <div className="space-y-4">
+                  <Label required>Maximum Storage Amount</Label>
                   <Input
                     required
                     v2={true}
                     type="number"
-                    placeholder="MAX STORAGE"
                     value={newMaterialForm.capacity || ''}
                     onChange={e => setNewMaterialForm({ ...newMaterialForm, capacity: Number(e.target.value) })}
+                    placeholder="0"
+                    className="h-[56px] shadow-md rounded-2xl font-bold tabular-nums"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-6 bg-[var(--bg)]/50 rounded-xl border border-dashed border-[var(--border)]">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--gold)] border border-[var(--border)] shadow-sm">
-                  <ArrowRightIcon className="w-5 h-5" />
-                </div>
-                <p className="text-[10px] text-[var(--text3)] font-bold italic leading-relaxed uppercase tracking-[1px] opacity-60">
-                  Registering this protocol will initialize tracking for this material category across all site operations.
+              <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                <InformationCircleIcon className="w-10 h-10 text-amber-500 shrink-0" />
+                <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                  New categories are initialized with zero stock and require an inward entry to populate inventory levels.
                 </p>
               </div>
 
-              <div className="pt-4 flex gap-4">
+              <div className="pt-6 flex gap-6">
                 <Button
                   type="button"
                   variant="secondary"
-                  v2={true}
-                  className="flex-1 h-12 rounded-xl border-[var(--border)] font-bold uppercase tracking-[2px] text-[10px]"
+                  className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2"
                   onClick={() => setIsAddMaterialModalOpen(false)}
                 >
-                  Abort
+                  Discard
                 </Button>
                 <Button
                   type="submit"
-                  v2={true}
-                  className="flex-[2] h-12 rounded-xl shadow-lg shadow-[var(--gold)]/10 font-bold uppercase tracking-[3px] text-[10px]"
+                  variant="primary"
+                  className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl"
                 >
-                  Initialize Node
+                  Add item
                 </Button>
               </div>
             </form>

@@ -10,9 +10,11 @@ export interface Query {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   source: LeadSource;
   interest: string;
   budget: string;
+  message?: string;
   date: string;
   status: LeadStatus;
   isContacted: boolean;
@@ -26,6 +28,7 @@ export interface Payment {
   amount: number;
   mode: PaymentMode | 'Cash' | 'DD';
   installmentRatio: string;
+  installmentName?: string;
   balanceDue: number;
   receiptNumber?: string;
   status: 'Complete' | 'Pending';
@@ -188,6 +191,7 @@ export type ConstructionStatus = 'Completed' | 'In Progress' | 'Behind Schedule'
 export interface ConstructionPhase {
   id: string;
   name: string;
+  siteName?: string;
   progress: number;
   targetDate: string;
   status: ConstructionStatus;
@@ -397,16 +401,14 @@ interface StoreState {
 
   weekendPosts: WeekendPost[];
   transmissionLogs: TransmissionLog[];
-  weekendRules: WeekendRule[];
-  uploadedCsvs: UploadedCsv[];
   deployWeekendPost: (post: Omit<WeekendPost, 'id' | 'date'>) => void;
   deleteWeekendPost: (id: string) => void;
-  updateWeekendRule: (id: string, enabled: boolean) => void;
   logWeekendPost: (post: Omit<WeekendPost, 'id' | 'date'>) => void;
-  sendWeekendPostToCsvContacts: (postTitle: string, contacts: any[]) => void;
   sendWeekendPostToBrokers: (postTitle: string) => void;
-  addUploadedCsv: (csv: Omit<UploadedCsv, 'id' | 'date'>) => void;
-  deleteUploadedCsv: (id: string) => void;
+  sendWeekendPostToCsvContacts: (postTitle: string, contacts: any[]) => void;
+  sendWeekendPostNow: (postTitle: string, contactCount: number) => void;
+  weekendRules: WeekendRule[];
+  updateWeekendRule: (id: string, enabled: boolean) => void;
 
   lands: LandPurchase[];
   addLand: (land: Omit<LandPurchase, 'id'>) => void;
@@ -444,8 +446,6 @@ interface StoreState {
   assets: Asset[];
   addAsset: (asset: Omit<Asset, 'id'>) => void;
   updateAssetCondition: (id: string, condition: AssetCondition) => void;
-  updateAsset: (id: string, assetData: Partial<Asset>) => void;
-  deleteAsset: (id: string) => void;
 
   payments: Payment[];
   addPayment: (payment: Omit<Payment, 'id'>) => void;
@@ -482,7 +482,9 @@ interface StoreState {
   addActivityFeedItem: (item: Omit<ActivityFeedItem, 'id' | 'timestamp' | 'read'>) => void;
   markAllNotificationsRead: () => void;
   clearActivityFeed: () => void;
-  sendWeekendPostNow: (postTitle: string, contactCount: number) => void;
+  uploadedCsvs: UploadedCsv[];
+  addUploadedCsv: (csv: Omit<UploadedCsv, 'id' | 'date'>) => void;
+  deleteUploadedCsv: (id: string) => void;
   resetSystem: () => void;
 }
 
@@ -498,12 +500,7 @@ const initialSiteVisits: SiteVisit[] = [];
 const initialFollowUps: FollowUp[] = [];
 const initialBrokers: Broker[] = [];
 const initialTransmissionLogs: TransmissionLog[] = [];
-const initialWeekendRules: WeekendRule[] = [
-  { id: 'r1', label: 'Auto-Send Saturday 09:00', enabled: false },
-  { id: 'r2', label: 'Include Broker Meta-Tags', enabled: false },
-  { id: 'r3', label: 'Confirm Before SMS Batch', enabled: false },
-  { id: 'r4', label: 'Dormant Lead Loop (Sync)', enabled: true },
-];
+const initialWeekendRules: WeekendRule[] = [];
 const initialWeekendPosts: WeekendPost[] = [];
 const initialLands: LandPurchase[] = [];
 const initialLayouts: Layout[] = [];
@@ -544,11 +541,36 @@ export const useStore = create<StoreState>()(
   unreadFollowUps: 0,
   notifications: 0,
   unreadQueries: 0,
-
-
+  
   // --- Mock DB State ---
   queries: initialQueries,
-  addQuery: (queryData) => set((state) => {
+  siteVisits: initialSiteVisits,
+  followUps: initialFollowUps,
+  brokers: initialBrokers,
+  weekendPosts: initialWeekendPosts,
+  transmissionLogs: initialTransmissionLogs,
+  weekendRules: initialWeekendRules,
+  uploadedCsvs: initialUploadedCsvs,
+  lands: initialLands,
+  layouts: initialLayouts,
+  plots: initialPlots,
+  constructionPhases: initialConstructionPhases,
+  constructionBlocks: initialConstructionBlocks,
+  materialStock: initialMaterialStock,
+  materialTxns: initialMaterialTxns,
+  assets: initialAssets,
+  payments: initialPayments,
+  propertyHolders: initialPropertyHolders,
+  salaries: initialSalaries,
+  salaryAdvances: initialSalaryAdvances,
+  brochures: initialBrochures,
+  brochureShares: initialBrochureShares,
+  campaigns: initialCampaigns,
+  constructionCosts: initialConstructionCosts,
+  inspectionAlerts: initialInspectionAlerts,
+  activityFeed: initialActivityFeed,
+
+   addQuery: (queryData) => set((state) => {
     const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
     // Cascade 1: Auto-create follow-up for today
@@ -669,6 +691,7 @@ export const useStore = create<StoreState>()(
           amount: 0,
           mode: 'Bank Transfer',
           installmentRatio: 'Booking Amount',
+          installmentName: 'Booking Amount',
           balanceDue: plotValue,
           status: 'Pending',
           receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
@@ -727,7 +750,6 @@ export const useStore = create<StoreState>()(
     queries: state.queries.map(q => q.id === id ? { ...q, ...queryData } : q)
   })),
 
-  siteVisits: initialSiteVisits,
   addSiteVisit: (visit) => set((state) => {
     const newVisitId = `v-${Math.random().toString(36).substr(2, 9)}`;
     const alreadyExists = state.followUps.some(f => f.phone === visit.phone);
@@ -770,7 +792,6 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  followUps: initialFollowUps,
   addFollowUp: (f) => set((state) => ({
     followUps: [{ ...f, id: `f${Date.now()}`, interactions: [], createdAt: new Date().toISOString() }, ...state.followUps],
     unreadFollowUps: state.activeModule === 'followup' ? 0 : state.unreadFollowUps + 1
@@ -838,6 +859,7 @@ export const useStore = create<StoreState>()(
           amount: 0,
           mode: 'Bank Transfer',
           installmentRatio: 'Booking Amount',
+          installmentName: 'Booking Amount',
           balanceDue: linkedPlot ? (linkedPlot.size || 0) * (linkedPlot.rate || 0) : 0,
           status: 'Pending',
           receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
@@ -893,7 +915,6 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  brokers: initialBrokers,
   addBroker: (b) => set((state) => ({
     brokers: [{
       ...b,
@@ -921,11 +942,6 @@ export const useStore = create<StoreState>()(
     })
   })),
 
-  weekendPosts: initialWeekendPosts,
-  transmissionLogs: initialTransmissionLogs,
-  weekendRules: initialWeekendRules,
-  uploadedCsvs: initialUploadedCsvs,
-
   deployWeekendPost: (postData) => set((state) => ({
     weekendPosts: [{ ...postData, id: `w${Date.now()}`, date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }, ...state.weekendPosts]
   })),
@@ -947,7 +963,7 @@ export const useStore = create<StoreState>()(
   }),
 
   // Send weekend post to CSV contacts
-  sendWeekendPostToCsvContacts: (postTitle, contacts) => set((state) => {
+  sendWeekendPostToCsvContacts: (postTitle: string, contacts: any[]) => set((state) => {
     // Check if Customers Group is enabled
     const customersGroupEnabled = state.weekendRules.find(r => r.id === 'r4')?.enabled ?? true;
 
@@ -955,7 +971,7 @@ export const useStore = create<StoreState>()(
     const lostCustomerNames = new Set(
       state.followUps.filter(f => f.status === 'Lost').map(f => f.customerName.toLowerCase())
     );
-    const filteredContacts = contacts.filter(c =>
+    const filteredContacts = contacts.filter((c: any) =>
       !lostCustomerNames.has(String(c).toLowerCase())
     );
 
@@ -980,7 +996,7 @@ export const useStore = create<StoreState>()(
         if (f.status === 'Lost') return f;
 
         // Check if this customer is in the contact list
-        const isContact = filteredContacts.some(c =>
+        const isContact = filteredContacts.some((c: any) =>
           String(c).toLowerCase() === f.customerName.toLowerCase() ||
           String(c).toLowerCase() === f.phone.toLowerCase()
         );
@@ -1041,15 +1057,6 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  addUploadedCsv: (csv) => set((state) => ({
-    uploadedCsvs: [{ ...csv, id: `csv${Date.now()}`, date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }, ...state.uploadedCsvs]
-  })),
-
-  deleteUploadedCsv: (id) => set((state) => ({
-    uploadedCsvs: state.uploadedCsvs.filter(c => c.id !== id)
-  })),
-
-  lands: initialLands,
   addLand: (land) => set((state) => {
     const landId = `l-${Math.random().toString(36).substr(2, 9)}`;
     const newLand = { ...land, id: landId };
@@ -1151,10 +1158,6 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-
-
-
-  layouts: initialLayouts,
   addLayout: (layout) => set((state) => {
     const id = `l${state.layouts.length + 1}`;
     const newLayout = { ...layout, id, docs: [] };
@@ -1193,7 +1196,7 @@ export const useStore = create<StoreState>()(
   addLayoutDoc: (layoutId, doc) => set((state) => ({
     layouts: state.layouts.map(l => l.id === layoutId ? { ...l, docs: [...(l.docs || []), doc] } : l)
   })),
-  plots: initialPlots,
+
   updatePlotStatus: (id, status, customerName, amount) => set((state) => {
     const plot = state.plots.find(p => p.id === id);
     if (!plot) return state;
@@ -1212,6 +1215,7 @@ export const useStore = create<StoreState>()(
         amount: amount || 0,
         mode: 'Bank Transfer',
         installmentRatio: 'Booking Amount',
+        installmentName: 'Booking Amount',
         balanceDue: plotValue,
         status: 'Pending',
         receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
@@ -1251,6 +1255,7 @@ export const useStore = create<StoreState>()(
         amount: plotValue,
         mode: 'Bank Transfer',
         installmentRatio: 'Full Sale',
+        installmentName: 'Full Sale',
         balanceDue: 0,
         status: 'Complete',
         receiptNumber: `SL-${Date.now().toString().slice(-4)}`,
@@ -1398,7 +1403,6 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  constructionPhases: initialConstructionPhases,
   updatePhaseProgress: (id, progress, status) => set((state) => {
     const phase = state.constructionPhases.find(p => p.id === id);
     const phaseName = phase?.name || '';
@@ -1470,7 +1474,7 @@ export const useStore = create<StoreState>()(
     } : p)
   })),
 
-  constructionBlocks: initialConstructionBlocks,
+
   addConstructionBlock: (block) => set((state) => ({
     constructionBlocks: [...state.constructionBlocks, { ...block, id: `b-${Math.random().toString(36).substr(2, 9)}` }]
   })),
@@ -1481,8 +1485,7 @@ export const useStore = create<StoreState>()(
     constructionBlocks: state.constructionBlocks.map(b => b.id === id ? { ...b, progress } : b)
   })),
 
-  materialStock: initialMaterialStock,
-  materialTxns: initialMaterialTxns,
+
   addMaterialTxn: (txn) => set((state) => {
     const now = new Date();
     const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1593,12 +1596,12 @@ export const useStore = create<StoreState>()(
         ...m,
         threshold,
         colorVar: newQty < threshold ? '--red' : (newQty < threshold * 1.5 ? '--amber' : '--blue'),
-        statusText: newQty < threshold ? '⚠ Critical stock level' : (newQty < threshold * 1.5 ? '⚠ Reorder soon' : '')
+        statusText: newQty < threshold ? '⚠ Very Low Stock' : (newQty < threshold * 1.5 ? '⚠ Order Soon' : '')
       };
     })
   })),
 
-  assets: initialAssets,
+
   addAsset: (asset) => set((state) => {
     const now = new Date();
     const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -1662,14 +1665,8 @@ export const useStore = create<StoreState>()(
       activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
     };
   }),
-  updateAsset: (id, assetData) => set((state) => ({
-    assets: state.assets.map(a => a.id === id ? { ...a, ...assetData } : a)
-  })),
-  deleteAsset: (id) => set((state) => ({
-    assets: state.assets.filter(a => a.id !== id)
-  })),
 
-  payments: initialPayments,
+
   addPayment: (payment) => set((state) => {
     const now = new Date();
     const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -1760,7 +1757,7 @@ export const useStore = create<StoreState>()(
           id: `i${Date.now()}`,
           type: 'Receipt' as InteractionType,
           outcome: 'N/A' as InteractionOutcome,
-          notes: `Receipt: ₹${payment.amount.toLocaleString('en-IN')} Settled. Installment ${payment.installmentRatio || 'Registry'} recorded via ${payment.mode}`,
+          notes: `Receipt: ₹${payment.amount.toLocaleString('en-IN')} Settled. Installment ${payment.installmentName || payment.installmentRatio || 'Registry'} recorded via ${payment.mode}`,
           date: fullTimestamp,
           loggedBy: 'System'
         };
@@ -1783,7 +1780,7 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  propertyHolders: initialPropertyHolders,
+
   markInstallmentPaid: (holderId, installmentId, paidDate) => set((state) => {
     const holder = state.propertyHolders.find(h => h.id === holderId);
     const installment = holder?.installments.find(i => i.id === installmentId);
@@ -1859,7 +1856,7 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  salaries: initialSalaries,
+
   addSalary: (salary) => set((state) => ({
     salaries: [{ ...salary, id: `s${Date.now()}` }, ...state.salaries]
   })),
@@ -1890,7 +1887,7 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  salaryAdvances: initialSalaryAdvances,
+
   addSalaryAdvance: (advance) => set((state) => {
     const now = new Date();
     const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -1951,8 +1948,7 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  brochures: initialBrochures,
-  brochureShares: initialBrochureShares,
+
   logBrochureShare: (share) => set((state) => {
     const now = new Date();
     const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -2025,12 +2021,12 @@ export const useStore = create<StoreState>()(
     weekendPosts: state.weekendPosts.map(p => p.id === postId ? { ...p, attachedBrochureId: brochureId } : p)
   })),
 
-  campaigns: initialCampaigns,
+
   addCampaign: (campaign) => set((state) => ({
     campaigns: [{ ...campaign, id: `c${Date.now()}` }, ...state.campaigns]
   })),
 
-  constructionCosts: initialConstructionCosts,
+
   addConstructionCost: (cost) => set((state) => {
     const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const newCost: ConstructionCost = { ...cost, id: `cc${Date.now()}`, date: timestamp };
@@ -2060,7 +2056,7 @@ export const useStore = create<StoreState>()(
             ...m,
             current: Math.max(0, newQty),
             colorVar: newQty < m.threshold ? '--red' : (newQty < m.threshold * 1.5 ? '--amber' : '--blue'),
-            statusText: newQty < m.threshold ? '⚠ Critical stock level' : (newQty < m.threshold * 1.5 ? '⚠ Reorder soon' : '')
+            statusText: newQty < m.threshold ? '⚠ Very Low Stock' : (newQty < m.threshold * 1.5 ? '⚠ Order Soon' : '')
           };
         }
         return m;
@@ -2074,9 +2070,7 @@ export const useStore = create<StoreState>()(
     };
   }),
 
-  inspectionAlerts: initialInspectionAlerts,
 
-  activityFeed: initialActivityFeed,
   addActivityFeedItem: (item) => set((state) => {
     const now = new Date();
     const timestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -2090,8 +2084,7 @@ export const useStore = create<StoreState>()(
   })),
   clearActivityFeed: () => set({ activityFeed: [] }),
 
-  sendWeekendPostNow: (postTitle, contactCount) => set((state) => {
-    const customersGroupEnabled = state.weekendRules.find(r => r.id === 'r4')?.enabled ?? true;
+  sendWeekendPostNow: (postTitle: string, contactCount: number) => set((state) => {
     const now = new Date();
     const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -2106,43 +2099,7 @@ export const useStore = create<StoreState>()(
       date: timestamp
     };
 
-    // 2. Auto-log follow-up interactions for each matching customer (if Sync Loop enabled)
-    let updatedFollowUps = state.followUps;
-    if (customersGroupEnabled) {
-      updatedFollowUps = state.followUps.map(f => {
-        // Live Sync: Only send to nodes older than 21 days (Mature Leads)
-        if (!f.createdAt || f.status === 'Lost') return f;
-        
-        const created = new Date(f.createdAt);
-        const diffDays = Math.ceil(Math.abs(now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays <= 21) return f; // Active Lead: Handled by manual follow-ups
-
-        const newInteraction: Interaction = {
-          id: `i${Date.now()}-${f.id}`,
-          type: 'WhatsApp',
-          date: fullTimestamp,
-          outcome: 'N/A',
-          notes: `[Live Sync] Weekend dispatch: ${postTitle}`,
-          loggedBy: 'System'
-        };
-        return {
-          ...f,
-          interactions: [newInteraction, ...f.interactions],
-          lastContact: fullTimestamp
-        };
-      });
-    }
-
-    // 3. Update broker last-contacted dates for active brokers
-    const updatedBrokers = state.brokers.map(b => {
-      if (b.status === 'Active') {
-        return { ...b, lastContact: fullTimestamp };
-      }
-      return b;
-    });
-
-    // 4. Add activity feed entry
+    // 2. Add activity feed entry
     const feedItem: ActivityFeedItem = {
       id: `af${Date.now()}`,
       message: `Weekend post sent to ${contactCount} contacts`,
@@ -2154,11 +2111,36 @@ export const useStore = create<StoreState>()(
 
     return {
       transmissionLogs: [logEntry, ...state.transmissionLogs],
-      followUps: updatedFollowUps,
-      brokers: updatedBrokers,
       activityFeed: [feedItem, ...state.activityFeed]
     };
   }),
+  addUploadedCsv: (csv) => set((state) => {
+    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const fullTimestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+    
+    const newCsv: UploadedCsv = {
+      ...csv,
+      id: `csv-${Date.now()}`,
+      date: timestamp
+    };
+
+    const feedItem: ActivityFeedItem = {
+      id: `af${Date.now()}`,
+      message: `CSV file uploaded: ${csv.name} (${csv.data.length} records)`,
+      type: 'system',
+      priority: 'low',
+      read: false,
+      timestamp: fullTimestamp
+    };
+
+    return {
+      uploadedCsvs: [newCsv, ...state.uploadedCsvs],
+      activityFeed: [feedItem, ...state.activityFeed]
+    };
+  }),
+  deleteUploadedCsv: (id) => set((state) => ({
+    uploadedCsvs: state.uploadedCsvs.filter(csv => csv.id !== id)
+  })),
   resetSystem: () => {
     localStorage.removeItem('ownthume-storage');
     window.location.reload();

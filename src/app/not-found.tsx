@@ -1,3 +1,4 @@
+"use client";
 import React from 'react'
 import { Button } from '@/components/ui/Button'
 import { HomeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
@@ -12,11 +13,11 @@ export default function NotFound() {
       </div>
       
       <h1 className="text-5xl font-serif text-[var(--gold)] mb-6 tracking-tight uppercase">
-        Node Not Found
+        Page Not Found
       </h1>
       
       <p className="text-[14px] text-[var(--text-dim)] max-w-sm mx-auto mb-12 leading-relaxed uppercase tracking-[3px] font-medium opacity-60">
-        Specified coordinates do not map to any active environment. Check the registry or return to primary node.
+        We could not find this page. Please check the link or go back home.
       </p>
 
       <Button 

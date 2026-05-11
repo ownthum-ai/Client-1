@@ -5,17 +5,9 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
   LockClosedIcon,
-  LockOpenIcon,
   DocumentTextIcon,
-  BanknotesIcon,
   UserIcon,
-  ChartBarIcon,
   CalendarDaysIcon,
-  BellIcon,
-  ArrowPathIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/Badge';
@@ -25,7 +17,6 @@ import { KPICard } from '@/components/ui/KPICard';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
-import { ProfessionalReceipt } from '@/components/ProfessionalReceipt';
 
 const formatCurrency = (amt: number) => {
   return new Intl.NumberFormat('en-IN', {
@@ -45,19 +36,19 @@ const HolderFilter = ({
   value: string | 'all',
   onChange: (val: string | 'all') => void
 }) => (
-  <div className="flex bg-[var(--bg)] border border-[var(--border)] p-1 rounded-xl">
+  <div className="flex bg-gray-100 border border-[var(--border)] p-1 rounded-xl">
     <button
       onClick={() => onChange('all')}
-      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[1px] transition-all
+      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold tracking-[1px] transition-none
         ${value === 'all' ? 'bg-white text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text)]'}`}
     >
-      All Assets
+      All owners
     </button>
     {holders.map(h => (
       <button
         key={h.id}
         onClick={() => onChange(h.id)}
-        className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[1px] transition-all
+        className={`px-4 py-1.5 rounded-lg text-[10px] font-bold tracking-[1px] transition-none
           ${value === h.id ? 'bg-white text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text)]'}`}
       >
         {h.name.split(' ')[0]}
@@ -67,14 +58,13 @@ const HolderFilter = ({
 );
 
 export default function PropertyHolderPage() {
-  const { 
-    propertyHolders, 
-    lands, 
-    layouts, 
-    addLandPayment, 
+  const {
+    propertyHolders,
+    lands,
+    layouts,
+    addLandPayment,
     markInstallmentPaid,
     addPropertyHolderInstallment,
-    constructionPhases,
     uploadInstallmentReceipt
   } = useStore();
 
@@ -82,10 +72,10 @@ export default function PropertyHolderPage() {
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [isAddSchedModalOpen, setIsAddSchedModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadTarget, setUploadTarget] = useState<{hId: string, iId: string} | null>(null);
-  const [pinInput, setPinInput] = useState('');
+  const [isGlobalPinModalOpen, setIsGlobalPinModalOpen] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState<{ hId: string, iId: string } | null>(null);
+  const [isPinUnlocked, setIsPinUnlocked] = useState(false);
   const [toast, setToast] = useState<{ message: string, type?: 'success' | 'warning' } | null>(null);
-  const [printingData, setPrintingData] = useState<{ holder: any; installment: any } | null>(null);
 
   // New Transaction State
   const [txHolder, setTxHolder] = useState('');
@@ -99,18 +89,18 @@ export default function PropertyHolderPage() {
   };
 
   // --- Calculations ---
-  const activeHolders = useMemo(() => 
+  const activeHolders = useMemo(() =>
     filterHolderId === 'all' ? propertyHolders : propertyHolders.filter(h => h.id === filterHolderId)
-  , [propertyHolders, filterHolderId]);
+    , [propertyHolders, filterHolderId]);
 
   const stats = useMemo(() => {
-    let totalValuation = 0;
+    let totalValue = 0;
     let whitePaid = 0;
     let cashPaid = 0;
     let totalUnits = 0;
 
     activeHolders.forEach(h => {
-      totalValuation += h.totalAmount;
+      totalValue += h.totalAmount;
       const land = lands.find(l => l.surveyNo === h.parcelId);
       if (land) {
         land.payments?.forEach(p => {
@@ -122,12 +112,12 @@ export default function PropertyHolderPage() {
       }
     });
 
-    return { 
-      totalValuation, 
-      whitePaid, 
-      cashPaid, 
-      totalUnits, 
-      balance: totalValuation - (whitePaid + cashPaid) 
+    return {
+      totalValue,
+      whitePaid,
+      cashPaid,
+      totalUnits,
+      balance: totalValue - (whitePaid + cashPaid)
     };
   }, [activeHolders, lands, layouts]);
 
@@ -149,12 +139,14 @@ export default function PropertyHolderPage() {
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [activeHolders, lands]);
 
+  const institutionalPayments = useMemo(() => allPayments.filter(p => p.mode === 'White'), [allPayments]);
+  const privatePayments = useMemo(() => allPayments.filter(p => p.mode === 'Cash'), [allPayments]);
 
   const handleTxSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const holder = propertyHolders.find(h => h.id === txHolder);
     const land = lands.find(l => l.surveyNo === holder?.parcelId);
-    
+
     if (!land) return;
 
     addLandPayment(land.id, {
@@ -165,140 +157,144 @@ export default function PropertyHolderPage() {
     });
 
     setIsAddTxModalOpen(false);
-    showToast(`Settlement Recorded: ${formatCurrency(Number(txAmount))}`, txMode === 'Cash' ? 'warning' : 'success');
+    showToast(`Payment saved: ${formatCurrency(Number(txAmount))}`, txMode === 'Cash' ? 'warning' : 'success');
   };
+
+  const [mounted, setMounted] = React.useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
 
   return (
     <>
-      <div className="space-y-[var(--section-gap)] animate-in fade-in duration-150 pb-20 text-left">
+      <div className="space-y-[var(--section-gap)] pb-20 text-left">
         {/* Toast */}
         {toast && (
-          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 bg-[var(--sb)]">
-            <div className={`w-2 h-2 rounded-full ${toast.type === 'warning' ? 'bg-[var(--amber)] animate-pulse' : 'bg-[var(--gold)]'}`}></div>
-            <span className="text-[10px] font-bold uppercase tracking-[2.5px] whitespace-nowrap">{toast.message}</span>
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] bg-gray-900 text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${toast.type === 'warning' ? 'bg-amber-500' : 'bg-green-500'}`}></div>
+            <span className="text-[10px] font-bold tracking-[1px] whitespace-nowrap uppercase">{toast.message}</span>
           </div>
         )}
 
-        {/* V2 Header */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="text-left">
-            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2 uppercase">Property Holder Financials</h1>
+            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2">Owner payments</h1>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 uppercase tracking-wider">
-                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5 animate-pulse"></span>
-                LIVE ARITHMETIC SYNC
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 tracking-wider">
+                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5"></span>
+                Live status
               </span>
-              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums uppercase tracking-tight opacity-50">Operational land settlement and project valuation registry</span>
+              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums tracking-tight opacity-70">Settlement and valuation records</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <HolderFilter holders={propertyHolders} value={filterHolderId} onChange={setFilterHolderId} />
-            <Button 
+            <Button
               v2={true}
               size="default"
-              className="px-8"
+              className="px-8 shadow-sm rounded-lg"
               onClick={() => setIsAddTxModalOpen(true)}
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              New Entry
+              New payment
             </Button>
           </div>
         </div>
 
-        {/* KPI Matrix */}
+        {/* Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
           <KPICard
-            label="PROJECT VALUATION"
-            value={formatCurrency(stats.totalValuation)}
+            label="Value"
+            value={formatCurrency(stats.totalValue)}
             color="gold"
-            trend={{ value: "Global Assets", type: "neutral" }}
+            trend={{ value: "Items", type: "neutral" }}
           />
           <KPICard
-            label="UNIT INVENTORY"
+            label="Units"
             value={stats.totalUnits.toString()}
             color="gold"
-            trend={{ value: "Yield Node", type: "neutral" }}
+            trend={{ value: "Plots", type: "neutral" }}
           />
           <KPICard
-            label="INSTITUTIONAL SETTLED"
+            label="Paid (Bank)"
             value={`+ ${formatCurrency(stats.whitePaid)}`}
             color="green"
-            trend={{ value: "Authorized", type: "up" }}
+            trend={{ value: "Verified", type: "up" }}
           />
           <KPICard
-            label="PRIVATE SETTLED"
+            label="Paid (Cash)"
             color={isPinUnlocked ? "green" : "gold"}
             value={
-              <div className={`transition-all duration-700 font-price ${isPinUnlocked ? 'blur-0 opacity-100 text-[var(--green)]' : 'blur-md opacity-20'}`}>
+              <div className={`font-price ${isPinUnlocked ? 'opacity-100 text-[var(--green)]' : 'opacity-20 blur-sm'}`}>
                 + {formatCurrency(stats.cashPaid)}
               </div>
             }
-            trend={isPinUnlocked ? { value: "Decrypted", type: "up" } : "Locked Vault"}
+            trend={isPinUnlocked ? { value: "Visible", type: "up" } : "Locked"}
           />
           <KPICard
-            label="IN-TRANSIT BAL."
+            label="Balance"
             value={`- ${formatCurrency(stats.balance)}`}
             color="red"
-            trend={{ value: "Net Due", type: "down" }}
+            trend={{ value: "Due", type: "down" }}
           />
         </div>
 
-        {/* Main Settlement Schedule Table */}
-        <Card className="p-0 overflow-hidden">
-          <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
-            <div>
-              <h2 className="text-[12px] font-bold text-[var(--text)] uppercase tracking-[2px]">Settlement Timeline Matrix</h2>
-              <p className="text-[10px] font-medium text-[var(--text3)] uppercase tracking-[1px] mt-1 opacity-60">Planned milestones and contractual obligations</p>
+        {/* Payment Schedule */}
+        <Card className="p-0 overflow-hidden shadow-sm">
+          <div className="p-6 border-b border-[var(--border)] flex justify-between items-center text-left">
+            <div className="text-left">
+              <h2 className="text-[12px] font-bold text-[var(--text)] tracking-[1px] uppercase">Payment schedule</h2>
+              <p className="text-[10px] font-medium text-[var(--text3)] mt-1 opacity-70">Steps and obligations</p>
             </div>
-            <Button variant="secondary" size="sm" onClick={() => setIsAddSchedModalOpen(true)} v2={true}>
-              <CalendarDaysIcon className="w-4 h-4 mr-2" /> Schedule Milestone
+            <Button variant="secondary" size="sm" onClick={() => setIsAddSchedModalOpen(true)} v2={true} className="bg-white border-[var(--border)] shadow-sm">
+              <CalendarDaysIcon className="w-4 h-4 mr-2" /> Add step
             </Button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                  <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Landowner Entity</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Milestone</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Due Date</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Value</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">State</th>
-                  <th className="p-[12px_24px] text-center text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Action</th>
+                <tr className="bg-gray-50 border-b border-[var(--border)]">
+                  <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Owner</th>
+                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Step</th>
+                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Due date</th>
+                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Amount</th>
+                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Status</th>
+                  <th className="p-[12px_24px] text-center text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {allInstallments.map((item) => (
-                  <tr key={item.id} className="group hover:bg-[var(--bg)] transition-all">
+                  <tr key={item.id} className="hover:bg-gray-50">
                     <td className="p-[12px_24px]">
-                      <span className="text-[13px] font-bold text-[var(--text)] uppercase tracking-tight">{item.holderName}</span>
+                      <span className="text-[13px] font-bold text-[var(--text)]">{item.holderName}</span>
                     </td>
                     <td className="p-[12px_15px]">
-                      <span className="text-[11px] font-bold text-[var(--text3)] uppercase tracking-[1px]">{item.installmentName}</span>
+                      <span className="text-[11px] font-bold text-[var(--text3)]">{item.installmentName}</span>
                     </td>
                     <td className="p-[12px_15px]">
-                      <span className="text-[12px] font-bold text-[var(--text)] uppercase">{item.dueDate}</span>
+                      <span className="text-[12px] font-bold text-[var(--text)]">{item.dueDate}</span>
                     </td>
                     <td className="p-[12px_15px]">
-                      <span className="text-[14px] font-bold text-[var(--text)] font-price">{formatCurrency(item.amount)}</span>
+                      <span className="text-[14px] font-bold text-[var(--text)]">{formatCurrency(item.amount)}</span>
                     </td>
                     <td className="p-[12px_15px]">
-                      <Badge variant={item.status === 'Paid' ? 'success' : item.status === 'Overdue' ? 'danger' : 'warning'}>
-                        {item.status.toUpperCase()}
+                      <Badge variant={item.status === 'Paid' ? 'success' : item.status === 'Overdue' ? 'danger' : 'warning'} className="shadow-sm uppercase text-[9px] font-bold">
+                        {item.status}
                       </Badge>
                     </td>
                     <td className="p-[12px_24px] text-center flex items-center justify-center gap-2">
                       {item.status !== 'Paid' && (
-                        <Button variant="primary" size="inline" onClick={() => markInstallmentPaid(item.holderId, item.id, new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))}>
-                          Authorize
+                        <Button variant="primary" size="inline" onClick={() => markInstallmentPaid(item.holderId, item.id, new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))} className="shadow-sm text-[9px] font-bold uppercase">
+                          Approve
                         </Button>
                       )}
                       {item.status === 'Paid' && !item.receiptUrl && (
-                        <Button variant="secondary" size="inline" onClick={() => { setUploadTarget({hId: item.holderId, iId: item.id}); setIsUploadModalOpen(true); }}>
-                          Upload Receipt
+                        <Button variant="secondary" size="inline" onClick={() => { setUploadTarget({ hId: item.holderId, iId: item.id }); setIsUploadModalOpen(true); }} className="shadow-sm text-[9px] font-bold uppercase bg-white border-[var(--border)]">
+                          Upload receipt
                         </Button>
                       )}
                       {item.receiptUrl && (
-                        <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 text-[var(--gold)] rounded-lg hover:bg-gray-100 transition-colors">
+                        <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 text-[var(--gold)] rounded-lg border border-[var(--border)] shadow-sm">
                           <DocumentTextIcon className="w-4 h-4" />
                         </a>
                       )}
@@ -310,74 +306,74 @@ export default function PropertyHolderPage() {
           </div>
         </Card>
 
-        {/* Dual Table Section: Institutional vs Private */}
+        {/* Payment History */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Institutional Ledger */}
-          <Card className="p-0 overflow-hidden border-[var(--gold)]/20">
-            <div className="p-6 border-b border-[var(--border)] bg-gradient-to-r from-[var(--gold)]/5 to-transparent">
-              <h2 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[2px]">Institutional Audit Ledger</h2>
-              <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] opacity-60">Bank-verified transactions (White Money)</p>
+          {/* Bank Payments */}
+          <Card className="p-0 overflow-hidden shadow-sm text-left">
+            <div className="p-6 border-b border-[var(--border)] bg-gray-50/30">
+              <h2 className="text-[12px] font-bold text-[var(--text)] tracking-[1px] uppercase">Bank payments</h2>
+              <p className="text-[9px] font-bold text-[var(--text3)] opacity-70 uppercase">Verified records</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                    <th className="p-[12px_24px] text-[9px] font-bold text-[var(--text3)] uppercase">Entity</th>
+                  <tr className="bg-gray-50 border-b border-[var(--border)]">
+                    <th className="p-[12px_24px] text-[9px] font-bold text-[var(--text3)] uppercase">Owner</th>
                     <th className="p-[12px_15px] text-[9px] font-bold text-[var(--text3)] uppercase">Date</th>
-                    <th className="p-[12px_15px] text-right text-[9px] font-bold text-[var(--text3)] uppercase">Value</th>
+                    <th className="p-[12px_15px] text-right text-[9px] font-bold text-[var(--text3)] uppercase">Amount</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {institutionalPayments.map((p) => (
-                    <tr key={p.id} className="hover:bg-[var(--bg)] transition-all">
-                      <td className="p-[12px_24px] text-[12px] font-bold uppercase">{p.holderName}</td>
-                      <td className="p-[12px_15px] text-[11px] font-medium">{p.date}</td>
-                      <td className="p-[12px_15px] text-right text-[13px] font-bold font-price">{formatCurrency(p.amount)}</td>
+                    <tr key={p.id} className="hover:bg-gray-50">
+                      <td className="p-[12px_24px] text-[12px] font-bold text-[var(--text)]">{p.holderName}</td>
+                      <td className="p-[12px_15px] text-[11px] font-bold text-[var(--text3)]">{p.date}</td>
+                      <td className="p-[12px_15px] text-right text-[13px] font-bold text-[var(--text)]">{formatCurrency(p.amount)}</td>
                     </tr>
                   ))}
                   {institutionalPayments.length === 0 && (
-                    <tr><td colSpan={3} className="p-10 text-center text-[10px] font-bold text-[var(--text3)] opacity-40 uppercase">No Institutional records</td></tr>
+                    <tr><td colSpan={3} className="p-10 text-center text-[10px] font-bold text-[var(--text3)] opacity-40 uppercase">No records found</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </Card>
 
-          {/* Private Ledger */}
-          <Card className={`p-0 overflow-hidden border-[var(--sb)]/20 transition-all duration-700 ${!isPinUnlocked ? 'opacity-60' : 'opacity-100'}`}>
-            <div className="p-6 border-b border-[var(--border)] bg-gradient-to-r from-[var(--sb)]/5 to-transparent flex justify-between items-center">
-              <div>
-                <h2 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[2px]">Private Security Ledger</h2>
-                <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] opacity-60">Locked registry (Black Money)</p>
+          {/* Cash Payments */}
+          <Card className={`p-0 overflow-hidden shadow-sm text-left ${!isPinUnlocked ? 'opacity-60' : 'opacity-100'}`}>
+            <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-gray-50/30">
+              <div className="text-left">
+                <h2 className="text-[12px] font-bold text-[var(--text)] tracking-[1px] uppercase">Cash payments</h2>
+                <p className="text-[9px] font-bold text-[var(--text3)] opacity-70 uppercase">Secure records</p>
               </div>
               {!isPinUnlocked && (
-                <Button size="sm" onClick={() => setIsGlobalPinModalOpen(true)} className="bg-[var(--sb)] text-white text-[9px] px-4">Unlock Vault</Button>
+                <Button size="sm" onClick={() => setIsGlobalPinModalOpen(true)} className="bg-gray-900 text-white text-[9px] px-4 font-bold shadow-sm uppercase">Unlock</Button>
               )}
             </div>
             <div className="overflow-x-auto relative min-h-[200px]">
               {!isPinUnlocked && (
-                <div className="absolute inset-0 z-10 backdrop-blur-md bg-white/40 flex items-center justify-center">
-                  <LockClosedIcon className="w-8 h-8 text-[var(--sb)] opacity-40" />
+                <div className="absolute inset-0 z-10 bg-white/60 flex items-center justify-center">
+                  <LockClosedIcon className="w-8 h-8 text-gray-400 opacity-40" />
                 </div>
               )}
-              <table className={`w-full text-left border-collapse transition-all duration-700 ${!isPinUnlocked ? 'blur-xl opacity-10' : 'blur-0'}`}>
+              <table className={`w-full text-left border-collapse ${!isPinUnlocked ? 'opacity-5 blur-sm' : ''}`}>
                 <thead>
-                  <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                    <th className="p-[12px_24px] text-[9px] font-bold text-[var(--text3)] uppercase">Entity</th>
+                  <tr className="bg-gray-50 border-b border-[var(--border)]">
+                    <th className="p-[12px_24px] text-[9px] font-bold text-[var(--text3)] uppercase">Owner</th>
                     <th className="p-[12px_15px] text-[9px] font-bold text-[var(--text3)] uppercase">Date</th>
-                    <th className="p-[12px_15px] text-right text-[9px] font-bold text-[var(--text3)] uppercase">Value</th>
+                    <th className="p-[12px_15px] text-right text-[9px] font-bold text-[var(--text3)] uppercase">Amount</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {privatePayments.map((p) => (
-                    <tr key={p.id} className="hover:bg-[var(--bg)] transition-all">
-                      <td className="p-[12px_24px] text-[12px] font-bold uppercase">{p.holderName}</td>
-                      <td className="p-[12px_15px] text-[11px] font-medium">{p.date}</td>
-                      <td className="p-[12px_15px] text-right text-[13px] font-bold font-price">{formatCurrency(p.amount)}</td>
+                    <tr key={p.id} className="hover:bg-gray-50">
+                      <td className="p-[12px_24px] text-[12px] font-bold text-[var(--text)]">{p.holderName}</td>
+                      <td className="p-[12px_15px] text-[11px] font-bold text-[var(--text3)]">{p.date}</td>
+                      <td className="p-[12px_15px] text-right text-[13px] font-bold text-[var(--text)]">{formatCurrency(p.amount)}</td>
                     </tr>
                   ))}
                   {privatePayments.length === 0 && (
-                    <tr><td colSpan={3} className="p-10 text-center text-[10px] font-bold text-[var(--text3)] opacity-40 uppercase">No Private records</td></tr>
+                    <tr><td colSpan={3} className="p-10 text-center text-[10px] font-bold text-[var(--text3)] opacity-40 uppercase">No records found</td></tr>
                   )}
                 </tbody>
               </table>
@@ -386,68 +382,98 @@ export default function PropertyHolderPage() {
         </div>
       </div>
 
-      {/* Modals outside the animated container avoid the 'containing block' trap */}
+      {/* New Payment Modal */}
       {isAddTxModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container max-w-xl">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="text-left">
-                <h2 className="text-[26px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-2">Monetary Entry Registry</h2>
-                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">RECORD DUAL-MODE LAND SETTLEMENT</p>
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <PlusIcon className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Add Payment</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">New owner settlement entry</p>
+                </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAddTxModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddTxModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-6">
-              <form onSubmit={handleTxSubmit} className="space-y-6">
-                <div className="space-y-2 text-left">
-                  <Label required>Property Holder</Label>
-                  <Select 
+            <div className="modal-body space-y-10">
+              <form onSubmit={handleTxSubmit} className="space-y-10 text-left">
+                <div className="space-y-4">
+                  <Label required>Property owner</Label>
+                  <Select
                     v2={true}
-                    required 
+                    required
                     value={txHolder} onChange={e => setTxHolder(e.target.value)}
+                    className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]"
                   >
-                    <option value="">SELECT ENTITY</option>
+                    <option value="">Select owner profile</option>
                     {propertyHolders.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 text-left">
-                  <div className="space-y-2">
-                    <Label required>Value (₹)</Label>
-                    <Input required v2={true} type="number" placeholder="00,00,000" value={txAmount} onChange={e => setTxAmount(e.target.value)} />
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <Label required>Settlement amount (₹)</Label>
+                    <Input required v2={true} type="number" placeholder="0.00" value={txAmount} onChange={e => setTxAmount(e.target.value)} className="h-[56px] shadow-md rounded-2xl font-bold text-[18px] text-amber-600 font-price" />
                   </div>
-                  <div className="space-y-2">
-                    <Label required>Date</Label>
-                    <Input required v2={true} type="date" value={txDate} onChange={e => setTxDate(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="space-y-3 text-left">
-                  <Label required>Transaction Mode</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button 
-                      type="button" 
-                      onClick={() => setTxMode('White')} 
-                      className={`h-14 flex items-center justify-center rounded-2xl border-2 font-bold text-[11px] uppercase tracking-wider transition-all
-                        ${txMode === 'White' ? 'border-[var(--gold)] bg-[var(--gold-lt)]/10 text-[var(--gold)]' : 'border-[var(--border)] bg-gray-50/50 text-[var(--text3)] hover:border-[var(--gold)]/30'}`}
-                    >
-                      Institutional
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => setTxMode('Cash')} 
-                      className={`h-14 flex items-center justify-center rounded-2xl border-2 font-bold text-[11px] uppercase tracking-wider transition-all
-                        ${txMode === 'Cash' ? 'border-[var(--sb)] bg-[var(--sb)] text-white shadow-lg' : 'border-[var(--border)] bg-gray-50/50 text-[var(--text3)] hover:border-[var(--sb)]/30'}`}
-                    >
-                      Private (Cash)
-                    </button>
+                  <div className="space-y-4">
+                    <Label required>Transaction date</Label>
+                    <Input required v2={true} type="date" value={txDate} onChange={e => setTxDate(e.target.value)} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] tabular-nums" />
                   </div>
                 </div>
 
-                <div className="modal-footer px-0 border-none bg-transparent pt-6 flex gap-4">
-                  <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsAddTxModalOpen(false)}>Discard Registry</Button>
-                  <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Commit Registry</Button>
+                <div className="space-y-4">
+                  <Label required>Settlement channel</Label>
+                  <div className="grid grid-cols-2 gap-6">
+                    <button
+                      type="button"
+                      onClick={() => setTxMode('White')}
+                      className={`h-[60px] flex items-center justify-center rounded-2xl border-2 font-bold text-[12px] tracking-widest uppercase transition-none
+                        ${txMode === 'White' ? 'border-amber-500 bg-amber-50 text-amber-600 shadow-md' : 'border-[var(--border)] bg-white text-gray-400 hover:bg-gray-50'}`}
+                    >
+                      Bank Transfer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTxMode('Cash')}
+                      className={`h-[60px] flex items-center justify-center rounded-2xl border-2 font-bold text-[12px] tracking-widest uppercase transition-none
+                        ${txMode === 'Cash' ? 'border-gray-900 bg-gray-900 text-white shadow-xl' : 'border-[var(--border)] bg-white text-gray-400 hover:bg-gray-50'}`}
+                    >
+                      Physical Cash
+                    </button>
+                  </div>
+                </div>
+
+                {txMode === 'Cash' ? (
+                  <div className="flex items-center gap-5 p-8 bg-gray-900 text-white rounded-[32px] shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                       <LockClosedIcon className="w-16 h-16" />
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-amber-500 border border-white/10 shadow-sm shrink-0">
+                       <LockClosedIcon className="w-6 h-6" />
+                    </div>
+                    <div className="text-left relative">
+                      <p className="text-[11px] font-bold tracking-[3px] uppercase text-amber-500 mb-1">Secure cash protocol</p>
+                      <p className="text-[13px] font-medium text-white/60 tracking-wide uppercase">This transaction will be recorded in the authorized internal ledger.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amber-500 border border-gray-100 shadow-sm">
+                      <UserIcon className="w-5 h-5" />
+                    </div>
+                    <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                      Payments are automatically matched with the main project balance.
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-6 flex gap-6">
+                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsAddTxModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Commit payment</Button>
                 </div>
               </form>
             </div>
@@ -455,20 +481,24 @@ export default function PropertyHolderPage() {
         </div>
       )}
 
-      {/* Global PIN Modal Handles This Now */}
-
+      {/* Schedule Modal */}
       {isAddSchedModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container max-w-xl">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="text-left">
-                <h2 className="text-[26px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-2">Schedule Protocol</h2>
-                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70">DEFINE NEW SETTLEMENT MILESTONE</p>
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <CalendarDaysIcon className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Schedule step</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">New future payment obligation</p>
+                </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAddSchedModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddSchedModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-6">
+            <div className="modal-body space-y-10">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const d = new FormData(e.currentTarget);
@@ -479,25 +509,50 @@ export default function PropertyHolderPage() {
                   condition: d.get('cond') as string,
                   status: 'Upcoming'
                 });
-                setIsAddSchedModalOpen(false); showToast("Milestone Scheduled");
-              }} className="space-y-6 text-left">
-                <div className="space-y-2">
-                  <Label required>Landowner Entity</Label>
-                  <Select name="hId" required v2={true}>
+                setIsAddSchedModalOpen(false); showToast("Payment step added");
+              }} className="space-y-10 text-left">
+                <div className="space-y-4">
+                  <Label required>Property owner</Label>
+                  <Select name="hId" required v2={true} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]">
+                    <option value="">Select owner</option>
                     {propertyHolders.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label required>Node Name</Label><Input name="name" v2={true} required placeholder="e.g. Agreement" /></div>
-                  <div className="space-y-2"><Label required>Value (₹)</Label><Input name="amt" v2={true} required type="number" /></div>
+
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <Label required>Step name</Label>
+                    <Input name="name" v2={true} required placeholder="e.g. Possession Payment" className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]" />
+                  </div>
+                  <div className="space-y-4">
+                    <Label required>Projected amount (₹)</Label>
+                    <Input name="amt" v2={true} required type="number" placeholder="0.00" className="h-[56px] shadow-md rounded-2xl font-bold text-[18px] text-amber-600 font-price" />
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label required>Due Date</Label><Input name="date" v2={true} required type="date" /></div>
-                  <div className="space-y-2"><Label required>Condition Node</Label><Input name="cond" v2={true} required placeholder="On registration..." /></div>
+
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <Label required>Due date</Label>
+                    <Input name="date" v2={true} required type="date" className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] tabular-nums" />
+                  </div>
+                  <div className="space-y-4">
+                    <Label required>Release condition</Label>
+                    <Input name="cond" v2={true} required placeholder="e.g. On Boundary Completion" className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]" />
+                  </div>
                 </div>
-                <div className="modal-footer px-0 border-none bg-transparent pt-6 flex gap-4">
-                  <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsAddSchedModalOpen(false)}>Discard Schedule</Button>
-                  <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Enforce Schedule</Button>
+
+                <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amber-500 border border-gray-100 shadow-sm">
+                    <CalendarDaysIcon className="w-5 h-5" />
+                  </div>
+                  <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                    Payment steps are automatically tracked in the owner payment list.
+                  </p>
+                </div>
+
+                <div className="pt-6 flex gap-6">
+                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsAddSchedModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Save step</Button>
                 </div>
               </form>
             </div>
@@ -505,38 +560,90 @@ export default function PropertyHolderPage() {
         </div>
       )}
 
+      {/* Upload Modal */}
       {isUploadModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container max-w-md">
+          <div className="modal-container max-w-md shadow-2xl">
             <div className="modal-header">
-              <div className="text-left">
-                <h2 className="text-[26px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-2">DocuSync Registry</h2>
-                <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[2.5px] opacity-70 italic">ATTACH PHYSICAL RECEIPT</p>
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <DocumentTextIcon className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Attach receipt</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Outside document list</p>
+                </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsUploadModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsUploadModalOpen(false)}>✕</Button>
             </div>
-            <div className="modal-body space-y-8">
+
+            <div className="modal-body space-y-10">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 if (uploadTarget) {
-                  uploadInstallmentReceipt(uploadTarget.hId, uploadTarget.iId, "#"); // Simulating upload
+                  uploadInstallmentReceipt(uploadTarget.hId, uploadTarget.iId, "#");
                   setIsUploadModalOpen(false);
-                  showToast("DOCUMENT SYNCHRONIZED TO REGISTRY");
+                  showToast("Digital receipt successfully archived.");
                 }
-              }} className="space-y-6 text-left">
-                <div className="border-2 border-dashed border-gray-100 rounded-2xl p-8 flex flex-col items-center justify-center bg-gray-50/50 group hover:border-[var(--gold)]/30 hover:bg-white transition-all cursor-pointer">
-                  <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                    <DocumentTextIcon className="w-6 h-6 text-gray-300 group-hover:text-[var(--gold)]" />
+              }} className="space-y-10 text-left">
+                <div className="border-2 border-dashed border-gray-200 rounded-[32px] p-12 flex flex-col items-center justify-center bg-gray-50 shadow-inner group cursor-pointer hover:bg-gray-100 transition-colors">
+                  <div className="w-16 h-16 rounded-[20px] bg-white flex items-center justify-center mb-6 shadow-md border border-gray-100 text-gray-400 group-hover:text-amber-500 transition-colors">
+                    <DocumentTextIcon className="w-8 h-8" />
                   </div>
-                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-900">Select receipt or drag here</p>
-                  <p className="text-[9px] font-medium text-gray-300 mt-1 uppercase">PDF, PNG or JPG supported</p>
+                  <p className="text-[12px] font-bold text-gray-600 tracking-[2px] uppercase mb-1">Click to browse files</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase opacity-60">Max size 10MB · PDF, PNG, JPG</p>
                 </div>
 
-                <div className="modal-footer px-0 border-none bg-transparent pt-6 flex gap-4">
-                  <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsUploadModalOpen(false)}>Discard</Button>
-                  <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Sync to Registry</Button>
+                <div className="pt-6 flex gap-6">
+                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsUploadModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Sync document</Button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pin Modal */}
+      {isGlobalPinModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-container max-w-sm shadow-2xl">
+            <div className="modal-header">
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-gray-900 border-gray-200 bg-gray-50">
+                  <LockClosedIcon className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Security gate</h2>
+                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Internal record verification</p>
+                </div>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsGlobalPinModalOpen(false)}>✕</Button>
+            </div>
+
+            <div className="modal-body p-10 space-y-8">
+              <div className="space-y-4 text-left">
+                <Label className="text-[10px] font-bold uppercase tracking-[3px] text-center block">Enter authentication pin</Label>
+                <Input
+                  type="password"
+                  v2={true}
+                  autoFocus
+                  placeholder="••••"
+                  maxLength={4}
+                  className="h-[80px] text-center text-[32px] tracking-[24px] font-bold shadow-xl rounded-2xl border-2 border-gray-900/10 focus:border-gray-900 outline-none tabular-nums"
+                  onChange={(e) => {
+                    if (e.target.value === '1234') { // Mock pin
+                      setIsPinUnlocked(true);
+                      setIsGlobalPinModalOpen(false);
+                      showToast("Access granted. Ledger unlocked.");
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-center gap-3 py-4 border-t-2 border-dashed border-gray-100">
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[3px]">Allowed Personnel Only</p>
+              </div>
             </div>
           </div>
         </div>

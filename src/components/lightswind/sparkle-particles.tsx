@@ -66,7 +66,7 @@ export function SparkleParticles({
 
     setActiveColor(resolveThemeColor());
 
-    initParticlesEngine(async (engine) => {
+    initParticlesEngine(async (engine: any) => {
       await loadSlim(engine);
     }).then(() => {
       setIsEngineReady(true);

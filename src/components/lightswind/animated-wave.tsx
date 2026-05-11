@@ -103,13 +103,15 @@ const getDeviceInfo = (): DeviceInfo => {
 };
 
 const addEase = (
-  pos: THREE.Vector3,
+  pos: THREE.Vector3 | THREE.Euler,
   to: { x: number; y: number; z: number },
   ease: number
 ) => {
   pos.x += (to.x - pos.x) / ease;
   pos.y += (to.y - pos.y) / ease;
-  pos.z += (to.z - pos.z) / ease;
+  if ('z' in pos) {
+    (pos as any).z += (to.z - pos.z) / ease;
+  }
 };
 
 const getElementBackground = (element: HTMLElement): string | null => {
@@ -374,8 +376,7 @@ const AnimatedWave: React.FC<AnimatedWaveProps> = ({
             // `this.distortionTime` makes the ripple evolve over time.
             const mouseRippleNoise = this.simplex(
               distX_mouse / this.mouseDistortionSmoothness, // Smoothness of the mouse ripple
-              distY_mouse / this.mouseDistortionSmoothness,
-              this.distortionTime // Third dimension for time-based evolution
+              distY_mouse / this.mouseDistortionSmoothness
             ) * this.mouseDistortionStrength; // Overall strength of the mouse ripple
 
             // Apply a falloff (diminishing effect) as the vertex gets further from the mouse.
@@ -430,7 +431,7 @@ const AnimatedWave: React.FC<AnimatedWaveProps> = ({
           this.move.x = -(mouse.x * 0.04);
           this.move.y = waveOffsetY + (mouse.y * 0.04); // Add Y movement with corrected direction
           addEase(this.group.position, this.move, this.ease);
-          addEase(this.group.rotation, this.look, this.ease);
+          addEase(this.group.rotation, { x: this.look.x, y: this.look.y, z: this.look.z }, this.ease);
         }
       },
 

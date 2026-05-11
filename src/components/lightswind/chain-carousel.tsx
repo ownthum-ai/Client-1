@@ -1,3 +1,4 @@
+﻿"use client";
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
@@ -354,3 +355,4 @@ const ChainCarousel: React.FC<ChainCarouselProps> = ({
 };
 
 export default ChainCarousel;
+

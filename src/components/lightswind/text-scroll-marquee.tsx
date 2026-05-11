@@ -43,7 +43,7 @@ export default function TextScrollMarquee({
   });
 
   // ✅ Use modular wrap from -100% to 0% for seamless loop
-  const x = useTransform(baseX, (v) => `${wrap(-100, 0, v % 100)}%`);
+  const x = useTransform(baseX, (v: number) => `${wrap(-100, 0, v % 100)}%`);
 
   const directionFactor = useRef<number>(direction === 'left' ? 1 : -1);
   const hasStarted = useRef(false);
@@ -60,7 +60,7 @@ export default function TextScrollMarquee({
     directionFactor.current = direction === 'left' ? 1 : -1;
   }, [direction]);
 
-  useAnimationFrame((t, delta) => {
+   useAnimationFrame((t: number, delta: number) => {
     if (!hasStarted.current) return;
 
     let moveBy = directionFactor.current * baseVelocity * (delta / 1000);

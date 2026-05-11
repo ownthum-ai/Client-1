@@ -23,16 +23,6 @@ export const AppShellSkeleton = () => {
 
       {/* Main Content Skeleton */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar Skeleton */}
-        <div className="h-[var(--tb-h)] border-b border-[var(--border)] bg-white flex items-center justify-between px-8">
-          <Skeleton width="200px" height="16px" />
-          <div className="flex items-center gap-4">
-            <Skeleton width="32px" height="32px" borderRadius="50%" />
-            <Skeleton width="32px" height="32px" borderRadius="50%" />
-            <Skeleton width="80px" height="32px" borderRadius="8px" />
-          </div>
-        </div>
-
         {/* Content Area Skeleton */}
         <main className="flex-1 overflow-hidden p-[var(--content-p)]">
           <div className="max-w-[var(--max-content-w)] mx-auto space-y-8 text-left">

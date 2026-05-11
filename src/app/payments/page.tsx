@@ -5,18 +5,11 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
   LockClosedIcon,
-  LockOpenIcon,
   DocumentTextIcon,
   BanknotesIcon,
   UserIcon,
   ChartBarIcon,
-  CalendarDaysIcon,
-  BellIcon,
-  ArrowPathIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  CubeIcon,
-  XMarkIcon
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -25,14 +18,11 @@ import { KPICard } from '@/components/ui/KPICard';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Label } from '@/components/ui/Label';
-import { ProfessionalReceipt } from '@/components/ProfessionalReceipt';
 
 export default function PaymentsPage() {
-  const { 
-    payments, 
-    propertyHolders, 
-    addPayment, 
-    layouts, 
+  const {
+    payments,
+    addPayment,
     plots
   } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,16 +30,6 @@ export default function PaymentsPage() {
   const [toast, setToast] = useState<{ message: string, type?: 'success' | 'warning' } | null>(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<Payment | null>(null);
-
-  // Lock body scroll when modals are open
-  React.useEffect(() => {
-    if (isAddModalOpen || selectedPaymentId || viewingReceipt) {
-      document.body.classList.add('body-lock');
-    } else {
-      document.body.classList.remove('body-lock');
-    }
-    return () => document.body.classList.remove('body-lock');
-  }, [isAddModalOpen, selectedPaymentId, viewingReceipt]);
 
   // New Payment Form State
   const [newCustomer, setNewCustomer] = useState('');
@@ -68,19 +48,19 @@ export default function PaymentsPage() {
     const paymentData = {
       customerName: newCustomer,
       plotId: newPlot,
-      installmentName: newInstallment,
       amount: Number(newAmount),
       date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       mode: newMode,
       status: 'Complete' as const,
       receiptNumber: `REC-${Math.floor(1000 + Math.random() * 9000)}`,
-      installmentRatio: '0/0',
+      installmentRatio: newInstallment || 'General',
+      installmentName: newInstallment || 'General',
       balanceDue: 0
     };
 
     addPayment(paymentData);
     setIsAddModalOpen(false);
-    showToast(`Payment Recorded: ${formatCurrency(Number(newAmount))}`, newMode === 'Cash' ? 'warning' : 'success');
+    showToast(`Payment saved: ${formatCurrency(Number(newAmount))}`, newMode === 'Cash' ? 'warning' : 'success');
     resetForm();
   };
 
@@ -95,8 +75,7 @@ export default function PaymentsPage() {
   const selectedPayment = payments.find(p => p.id === selectedPaymentId);
   const totalWhite = payments.filter(p => p.mode !== 'Cash').reduce((acc, curr) => acc + curr.amount, 0);
   const totalBlack = payments.filter(p => p.mode === 'Cash').reduce((acc, curr) => acc + curr.amount, 0);
-  
-  // Calculate dynamic Total Outstanding
+
   const totalExpectedRevenue = useMemo(() => {
     return plots
       .filter((p: Plot) => p.status === 'Booked' || p.status === 'Sold')
@@ -116,94 +95,98 @@ export default function PaymentsPage() {
     p.plotId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
+
   return (
     <>
-      <div className="space-y-[var(--section-gap)] animate-in fade-in duration-150 pb-20 text-left">
+      <div className="space-y-[var(--section-gap)] pb-20 text-left">
         {/* Toast */}
         {toast && (
-          <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 ${toast.type === 'warning' ? 'bg-[var(--sb)]' : 'bg-[var(--sb)]'}`}>
-            <div className={`w-2 h-2 rounded-full ${toast.type === 'warning' ? 'bg-[var(--amber)] animate-pulse' : 'bg-[var(--gold)]'}`}></div>
-            <span className="text-[10px] font-bold uppercase tracking-[2.5px] whitespace-nowrap">{toast.message}</span>
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] bg-gray-900 text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${toast.type === 'warning' ? 'bg-amber-500' : 'bg-green-500'}`}></div>
+            <span className="text-[10px] font-bold tracking-[1px] whitespace-nowrap uppercase">{toast.message}</span>
           </div>
         )}
 
-        {/* V2 Header */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="text-left">
-            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2 uppercase">Customer Payments</h1>
+            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2">Customer Payments</h1>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 uppercase tracking-wider">
-                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5 animate-pulse"></span>
-                LIVE OPERATIONAL STREAM
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 tracking-wider leading-none">
+                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5"></span>
+                Live status
               </span>
-              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums uppercase tracking-tight opacity-50">Private ledger vault and institutional transaction registry</span>
+              <span className="text-[11px] text-[var(--text3)] font-medium tracking-tight opacity-50">Payment history and receipts</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button
               v2={true}
               size="default"
-              className="px-8 shadow-lg shadow-black/10"
+              className="px-8 shadow-sm rounded-lg"
               onClick={() => setIsAddModalOpen(true)}
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              New Entry
+              Add payment
             </Button>
           </div>
         </div>
 
-        {/* Analytics Matrix */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 pt-4">
+        {/* Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <KPICard
-            label="WHITE TOTAL"
+            label="Bank Total"
             value={formatCurrency(totalWhite)}
             color="gold"
-            trend={{ value: "Confirmed Bank", type: "up" }}
+            trend={{ value: "Confirmed", type: "up" }}
           />
           <KPICard
-            label="OUTSTANDING"
+            label="Pending Amount"
             value={formatCurrency(totalOutstanding)}
             color="red"
-            trend={{ value: "Requires Audit", type: "down" }}
+            trend={{ value: "Remaining", type: "down" }}
           />
           <KPICard
-            label="RECEIPTS"
+            label="Total Receipts"
             value={receiptsCount.toString()}
             color="gold"
-            trend={{ value: "Protocol Logs", type: "neutral" }}
+            trend={{ value: "Total", type: "neutral" }}
           />
           <KPICard
-            label="PRIVATE FLOW"
+            label="Cash Total"
             color="green"
             value={
               <div className="font-price">
                 {formatCurrency(totalBlack)}
               </div>
             }
-            trend={{ value: "Authorized Ledger", type: "up" }}
+            trend={{ value: "Allowed", type: "up" }}
           />
         </div>
 
-        {/* Institutional Audit Ledger (White Money) */}
-        <Card className="p-0 overflow-hidden border-[var(--gold)]/20 shadow-[0_15px_40px_rgba(200,151,58,0.08)] relative">
-          <div className="p-6 border-b border-[var(--border)] bg-gradient-to-r from-[var(--gold)]/5 to-transparent">
+        {/* Bank History */}
+        <Card className="p-0 overflow-hidden border-[var(--border)] shadow-sm relative text-left">
+          <div className="p-6 border-b border-[var(--border)] bg-gray-50/30">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white rounded-xl border border-[var(--gold)] shadow-sm flex items-center justify-center text-[var(--gold)]">
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-10 h-10 bg-white rounded-xl border border-[var(--border)] shadow-sm flex items-center justify-center text-[var(--gold)]">
                   <BanknotesIcon className="w-6 h-6" />
                 </div>
-                <div>
-                  <h2 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[2px]">Institutional Audit Ledger</h2>
-                  <p className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px] mt-0.5 opacity-60">Audit-ready documentation and bank-verified records (White Money)</p>
+                <div className="text-left">
+                  <h2 className="text-[12px] font-bold text-[var(--text)] tracking-[1px] uppercase">Bank Payments</h2>
+                  <p className="text-[10px] font-medium text-[var(--text3)] mt-0.5 opacity-60 uppercase">Payment list</p>
                 </div>
               </div>
-              <div className="relative group w-full lg:w-80">
+              <div className="relative w-full lg:w-80">
                 <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text3)] z-10" />
                 <Input
-                  placeholder="Search institutional archives..."
+                  placeholder="Search bank..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-11 h-11"
+                  className="pl-11 h-11 shadow-sm rounded-lg"
                 />
               </div>
             </div>
@@ -212,13 +195,13 @@ export default function PaymentsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                  <th className="p-[15px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Client Registry</th>
-                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Plot node</th>
-                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Timestamp</th>
-                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Financial mode</th>
-                  <th className="p-[15px_15px] text-right text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Monetary Value</th>
-                  <th className="p-[15px_24px] text-center text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Validation</th>
+                <tr className="bg-gray-50 border-b border-[var(--border)]">
+                  <th className="p-[15px_24px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Customer</th>
+                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Plot</th>
+                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Date</th>
+                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Mode</th>
+                  <th className="p-[15px_15px] text-right text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Amount</th>
+                  <th className="p-[15px_24px] text-center text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -226,38 +209,38 @@ export default function PaymentsPage() {
                   <tr
                     key={p.id}
                     onClick={() => setSelectedPaymentId(p.id)}
-                    className="group transition-all hover:bg-[var(--bg)] cursor-pointer"
+                    className="hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="p-[15px_24px]">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[12px] font-bold text-[var(--text3)] group-hover:bg-[var(--gold)] group-hover:text-white group-hover:border-[var(--gold)] transition-all">
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 border border-[var(--border)] flex items-center justify-center text-[12px] font-bold text-[var(--text3)] shadow-sm">
                           {p.customerName.charAt(0)}
                         </div>
-                        <span className="text-[13px] font-bold text-[var(--text)] uppercase tracking-tight group-hover:text-[var(--gold)] transition-colors">{p.customerName}</span>
+                        <span className="text-[13px] font-bold text-[var(--text)] tracking-tight">{p.customerName}</span>
                       </div>
                     </td>
                     <td className="p-[15px_15px]">
-                      <Badge variant="neutral" className="border-[var(--border)] text-[9px] font-black uppercase tracking-wider">{p.plotId}</Badge>
+                      <Badge variant="neutral" className="border-[var(--border)] text-[9px] font-bold tracking-wider uppercase">{p.plotId}</Badge>
                     </td>
                     <td className="p-[15px_15px]">
-                      <span className="text-[11.5px] font-bold text-[var(--text)] uppercase tracking-[0.5px]">{p.date}</span>
+                      <span className="text-[11.5px] font-bold text-[var(--text)]">{p.date}</span>
                     </td>
                     <td className="p-[15px_15px]">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-[var(--text)] uppercase tracking-[0.5px]">{p.mode}</span>
+                      <div className="flex flex-col text-left">
+                        <span className="text-[11px] font-bold text-[var(--text)]">{p.mode}</span>
                         {p.receiptNumber && (
-                          <span className="text-[8px] font-bold text-[var(--gold)] uppercase mt-0.5 tracking-wider">Ref: {p.receiptNumber}</span>
+                          <span className="text-[8px] font-bold text-[var(--gold)] mt-0.5 tracking-wider uppercase">Ref: {p.receiptNumber}</span>
                         )}
                       </div>
                     </td>
                     <td className="p-[15px_15px] text-right">
-                      <span className="text-[14px] font-bold text-[var(--text)] font-price tracking-tight">{formatCurrency(p.amount)}</span>
+                      <span className="text-[14px] font-bold text-[var(--text)] tracking-tight">{formatCurrency(p.amount)}</span>
                     </td>
                     <td className="p-[15px_24px] text-center">
                       <Button
                         variant="secondary" size="inline"
                         onClick={(e) => { e.stopPropagation(); setViewingReceipt(p); }}
-                        className="group-hover:bg-[var(--gold)] group-hover:text-white group-hover:border-[var(--gold)] gap-2 py-1.5"
+                        className="gap-2 py-1.5 shadow-sm rounded-lg bg-white border-[var(--border)] text-[9px] font-bold uppercase"
                       >
                         <DocumentTextIcon className="w-3.5 h-3.5" /> Receipt
                       </Button>
@@ -267,9 +250,9 @@ export default function PaymentsPage() {
                 {searchedPayments.filter(p => p.mode !== 'Cash').length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-20 text-center">
-                      <div className="flex flex-col items-center opacity-30 grayscale">
+                      <div className="flex flex-col items-center opacity-30">
                         <BanknotesIcon className="w-12 h-12 mb-4 text-[var(--text)]" />
-                        <p className="text-[11px] font-bold text-[var(--text3)] uppercase tracking-[2px]">No Institutional Records Found</p>
+                        <p className="text-[11px] font-bold text-[var(--text3)] tracking-[1px] uppercase">No records found</p>
                       </div>
                     </td>
                   </tr>
@@ -279,19 +262,17 @@ export default function PaymentsPage() {
           </div>
         </Card>
 
-        {/* Private Security Ledger (Black Money) */}
-        <Card className="p-0 overflow-hidden border-[var(--sb)]/20 shadow-[0_15px_40px_rgba(17,17,16,0.08)]">
-          <div className="p-6 border-b border-[var(--border)] bg-gradient-to-r from-[var(--green)]/5 to-transparent">
+        {/* Cash History */}
+        <Card className="p-0 overflow-hidden border-[var(--border)] shadow-sm text-left">
+          <div className="p-6 border-b border-[var(--border)] bg-gray-50/30">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white rounded-xl border border-[var(--green)] text-[var(--green)] flex items-center justify-center shadow-sm">
-                  <LockOpenIcon className="w-6 h-6" />
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-10 h-10 bg-white rounded-xl border border-[var(--border)] text-green-600 flex items-center justify-center shadow-sm">
+                  <LockClosedIcon className="w-6 h-6" />
                 </div>
-                <div>
-                  <h2 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[2px]">Private Security Ledger</h2>
-                  <p className="text-[10px] font-bold text-[var(--green)] uppercase tracking-[1px] mt-0.5">
-                    Secure Cash Flow Registry Authorized
-                  </p>
+                <div className="text-left">
+                  <h2 className="text-[12px] font-bold text-[var(--text)] tracking-[1px] uppercase">Cash Payments</h2>
+                  <p className="text-[10px] font-bold text-green-600 mt-0.5 uppercase">Secure records</p>
                 </div>
               </div>
             </div>
@@ -300,13 +281,13 @@ export default function PaymentsPage() {
           <div className="overflow-x-auto relative min-h-[300px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                  <th className="p-[15px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Client Registry</th>
-                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Plot node</th>
-                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Timestamp</th>
-                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Financial mode</th>
-                  <th className="p-[15px_15px] text-right text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Private Value</th>
-                  <th className="p-[15px_24px] text-center text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Operations</th>
+                <tr className="bg-gray-50 border-b border-[var(--border)]">
+                  <th className="p-[15px_24px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Customer</th>
+                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Plot</th>
+                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Date</th>
+                  <th className="p-[15px_15px] text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Mode</th>
+                  <th className="p-[15px_15px] text-right text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Amount</th>
+                  <th className="p-[15px_24px] text-center text-[10px] font-bold text-[var(--text3)] tracking-[1px] uppercase">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -314,39 +295,39 @@ export default function PaymentsPage() {
                   <tr
                     key={p.id}
                     onClick={() => setSelectedPaymentId(p.id)}
-                    className="group transition-all hover:bg-[var(--bg)] cursor-pointer"
+                    className="hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="p-[15px_24px]">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[12px] font-bold text-[var(--text3)] group-hover:bg-[var(--sb)] group-hover:text-white group-hover:border-[var(--sb)] transition-all">
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 border border-[var(--border)] flex items-center justify-center text-[12px] font-bold text-[var(--text3)] shadow-sm">
                           {p.customerName.charAt(0)}
                         </div>
-                        <span className="text-[13px] font-bold text-[var(--text)] uppercase tracking-tight group-hover:text-[var(--sb)] transition-colors">{p.customerName}</span>
+                        <span className="text-[13px] font-bold text-[var(--text)] tracking-tight">{p.customerName}</span>
                       </div>
                     </td>
                     <td className="p-[15px_15px]">
-                      <Badge variant="neutral" className="border-[var(--border)] text-[9px] font-black uppercase tracking-wider">{p.plotId}</Badge>
+                      <Badge variant="neutral" className="border-[var(--border)] text-[9px] font-bold tracking-wider uppercase">{p.plotId}</Badge>
                     </td>
                     <td className="p-[15px_15px]">
-                      <span className="text-[11.5px] font-bold text-[var(--text)] uppercase tracking-[0.5px]">{p.date}</span>
+                      <span className="text-[11.5px] font-bold text-[var(--text)]">{p.date}</span>
                     </td>
                     <td className="p-[15px_15px]">
-                      <span className="text-[11px] font-bold text-[var(--text)] uppercase tracking-[0.5px]">{p.mode}</span>
+                      <span className="text-[11px] font-bold text-[var(--text)]">{p.mode}</span>
                     </td>
                     <td className="p-[15px_15px] text-right">
-                      <span className="text-[14px] font-bold text-[var(--text)] font-price tracking-tight">{formatCurrency(p.amount)}</span>
+                      <span className="text-[14px] font-bold text-[var(--text)] tracking-tight">{formatCurrency(p.amount)}</span>
                     </td>
                     <td className="p-[15px_24px] text-center">
-                      <span className="text-[9px] font-black text-[var(--green)] uppercase tracking-wider bg-[var(--green-lt)]/30 px-3 py-1.5 rounded-lg border border-[var(--green)]/10 transition-all">Verified</span>
+                      <span className="text-[9px] font-bold text-green-600 tracking-wider bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 uppercase">Verified</span>
                     </td>
                   </tr>
                 ))}
                 {searchedPayments.filter(p => p.mode === 'Cash').length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-20 text-center">
-                      <div className="flex flex-col items-center opacity-30 grayscale">
-                        <LockOpenIcon className="w-12 h-12 mb-4 text-[var(--text)]" />
-                        <p className="text-[11px] font-bold text-[var(--text3)] uppercase tracking-[2px]">No Private Flow Records Found</p>
+                      <div className="flex flex-col items-center opacity-30">
+                        <LockClosedIcon className="w-12 h-12 mb-4 text-[var(--text)]" />
+                        <p className="text-[11px] font-bold text-[var(--text3)] tracking-[1px] uppercase">No records found</p>
                       </div>
                     </td>
                   </tr>
@@ -357,148 +338,207 @@ export default function PaymentsPage() {
         </Card>
       </div>
 
-      {/* Modals outside the animated container avoid the 'containing block' trap */}
-      {/* Global PIN Modal Handles This Now */}
-
+      {/* Receipt Modal */}
       {viewingReceipt && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
-            <div className="modal-header">
-              <div>
-                <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Official Transaction Receipt</h2>
-                <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">Node Identifier: #{viewingReceipt.receiptNumber || 'N/A'}</p>
-              </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setViewingReceipt(null)}>✕</Button>
-            </div>
-            <div className="modal-body overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] rotate-[-15deg] pointer-events-none select-none">
-                <h1 className="text-[120px] font-bold text-[var(--text)]">OFFICIAL</h1>
-              </div>
-
-              <div className="grid grid-cols-2 gap-12 relative z-10">
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px] block mb-1">Received From</label>
-                    <p className="text-[15px] font-bold text-[var(--text)] uppercase border-b border-[var(--border)] pb-2">{viewingReceipt.customerName}</p>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px] block mb-1">Monetary Sum</label>
-                    <p className="text-[20px] font-bold text-[var(--text)] uppercase border-b border-[var(--border)] pb-2 leading-none font-price">{formatCurrency(viewingReceipt.amount)}</p>
-                  </div>
+        <div className="modal-overlay">
+          <div className="modal-container max-w-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
+            <div className="modal-header flex-shrink-0">
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <DocumentTextIcon className="w-8 h-8" />
                 </div>
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px] block mb-1">Plot Identification</label>
-                    <p className="text-[15px] font-bold text-[var(--text)] uppercase border-b border-[var(--border)] pb-2">{viewingReceipt.plotId}</p>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px] block mb-1">Timestamp</label>
-                    <p className="text-[13px] font-bold text-[var(--text2)] uppercase border-b border-[var(--border)] pb-2">{viewingReceipt.date}</p>
-                  </div>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Payment Record</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none truncate max-w-[200px]">ID: {viewingReceipt.receiptNumber || 'TXN-ALPHA'}</p>
                 </div>
               </div>
-
-              <div className="pt-10 flex justify-between items-end gap-10">
-                <div className="w-20 h-20 bg-[var(--bg)] border border-[var(--border)] rounded-2xl flex items-center justify-center p-2">
-                  <div className="text-[7px] font-bold text-[var(--text3)] uppercase text-center leading-tight tracking-[1px] opacity-40">SYSTEM<br />VALIDATED<br />STAMP</div>
-                </div>
-                <div className="text-right flex flex-col items-end gap-2 shrink-0 pb-1">
-                  <div className="w-32 border-b-2 border-[var(--text)] opacity-10"></div>
-                  <p className="text-[10px] font-bold text-[var(--text)] uppercase tracking-[2px]">Authorized Ledger</p>
-                </div>
-              </div>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setViewingReceipt(null)}>✕</Button>
             </div>
 
-            <div className="modal-footer flex items-center justify-between gap-3 print:hidden">
-              <div className="flex gap-2">
-                <Button variant="primary" size="sm" onClick={() => window.print()}>Print Receipt</Button>
-                <Button variant="secondary" size="sm" onClick={() => alert('Secure cloud backup initiated.')}>Archive PDF</Button>
+            <div className="modal-body overflow-hidden relative bg-white space-y-10 flex-1 flex flex-col p-10">
+              <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] rotate-[-15deg] pointer-events-none select-none">
+                <h1 className="text-[140px] font-bold text-gray-900">VERIFIED</h1>
               </div>
-              <Button variant="secondary" size="sm" onClick={() => setViewingReceipt(null)}>Dismiss</Button>
+
+              <div className="grid grid-cols-2 gap-12 relative z-10 text-left">
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                  <Label className="text-[10px] font-bold tracking-[3px] uppercase opacity-40">Customer Name</Label>
+                    <p className="text-[20px] font-bold text-gray-900 border-b-2 border-gray-50 pb-4 uppercase leading-tight">{viewingReceipt.customerName}</p>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-bold tracking-[3px] uppercase opacity-40">Amount Paid</Label>
+                    <p className="text-[28px] font-bold text-amber-600 border-b-2 border-gray-50 pb-4 leading-none">{formatCurrency(viewingReceipt.amount)}</p>
+                  </div>
+                </div>
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-bold tracking-[3px] uppercase opacity-40">Plot reference</Label>
+                    <p className="text-[20px] font-bold text-gray-900 border-b-2 border-gray-50 pb-4 uppercase leading-tight">Plot {viewingReceipt.plotId}</p>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-bold tracking-[3px] uppercase opacity-40">Date</Label>
+                    <p className="text-[20px] font-bold text-gray-700 border-b-2 border-gray-50 pb-4 tabular-nums">{viewingReceipt.date}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-left relative z-10">
+                <Label className="text-[10px] font-bold tracking-[3px] uppercase opacity-40">Installment / Type</Label>
+                <p className="text-[20px] font-bold text-gray-900 border-b-2 border-gray-50 pb-4 uppercase leading-tight">
+                  {viewingReceipt.installmentName || viewingReceipt.installmentRatio || 'Standard Payment'}
+                </p>
+              </div>
+
+              <div className="p-8 bg-amber-50 rounded-[16px] border-2 border-dashed border-amber-100 mt-auto relative z-10">
+                 <div className="flex items-center justify-between gap-8">
+                    <div className="flex items-center gap-6">
+                       <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-amber-600 shadow-lg border border-amber-50">
+                          <ShieldCheckIcon className="w-7 h-7" />
+                       </div>
+                       <div className="flex flex-col">
+                          <span className="text-[13px] font-bold text-amber-900 uppercase tracking-[1px]">Payment verified</span>
+                          <span className="text-[10px] font-bold text-amber-600/60 uppercase tracking-widest">Checked by main payment list</span>
+                       </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-3 pb-2 opacity-30">
+                       <div className="w-32 h-px bg-amber-900"></div>
+                       <p className="text-[9px] font-bold text-amber-900 tracking-[4px] uppercase italic">Authorized signature</p>
+                    </div>
+                 </div>
+              </div>
+            </div>
+
+            <div className="modal-footer bg-gray-50/50 border-t-2 border-gray-100 p-10 flex-shrink-0">
+              <div className="flex items-center justify-between w-full gap-8">
+                <div className="flex gap-6 flex-1">
+                  <Button variant="primary" className="flex-1 h-[64px] rounded-[12px] shadow-xl font-bold uppercase tracking-widest bg-gray-900 text-white hover:bg-black transition-all" onClick={() => window.print()}>Approve & Print</Button>
+                  <Button variant="secondary" className="flex-1 h-[64px] rounded-[12px] border-2 font-bold uppercase tracking-widest shadow-md bg-white hover:bg-gray-50 transition-all" onClick={() => showToast('Online record exported.')}>Digital Export</Button>
+                </div>
+                <Button variant="secondary" className="h-[64px] px-12 rounded-[12px] border-2 font-bold uppercase tracking-widest shadow-md bg-white" onClick={() => setViewingReceipt(null)}>Close Record</Button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Add Modal */}
       {isAddModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div>
-                <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Monetary Entry Registry</h2>
-                <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">RECORD DUAL-MODE CUSTOMER INSTALLMENT</p>
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <PlusIcon className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Add Payment</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Add new payment details</p>
+                </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsAddModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body">
-              <form onSubmit={handleAddSubmit} className="space-y-6">
-                <div className="space-y-1.5">
-                  <Label required>Customer Identification</Label>
+            <div className="modal-body space-y-10">
+              <form onSubmit={handleAddSubmit} className="space-y-10 text-left">
+                <div className="space-y-4">
+                  <Label required>Customer Name</Label>
                   <Input
-                    required placeholder="SEARCH ENTITY NAME"
+                    required placeholder="Enter full name for record"
                     v2={true}
                     value={newCustomer} onChange={e => setNewCustomer(e.target.value)}
+                    className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] uppercase"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label required>Plot Identifier</Label>
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <Label required>Plot ID</Label>
                     <Input
-                      required placeholder="e.g. A-12"
+                      required placeholder="e.g. A-112"
                       v2={true}
                       value={newPlot} onChange={e => setNewPlot(e.target.value)}
+                      className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] uppercase"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label required>Installment Node</Label>
+                  <div className="space-y-4">
+                    <Label required>Payment For</Label>
                     <Input
-                      required placeholder="e.g. 2nd of 5"
+                      required placeholder="e.g. Booking Advancement"
                       v2={true}
                       value={newInstallment} onChange={e => setNewInstallment(e.target.value)}
+                      className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] uppercase"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label required>Value (₹)</Label>
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <Label required>Amount (INR)</Label>
                     <Input
-                      required type="number" placeholder="00,00,000"
+                      required type="number" placeholder="0.00"
                       v2={true}
                       value={newAmount} onChange={e => setNewAmount(e.target.value)}
+                      className="h-[56px] shadow-md rounded-2xl font-bold text-[18px] text-amber-600"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label required>Transaction Mode</Label>
+                  <div className="space-y-4">
+                    <Label required>Payment Mode</Label>
                     <Select
                       v2={true}
                       value={newMode}
                       onChange={e => setNewMode(e.target.value as any)}
                       required
+                      className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] uppercase"
                     >
                       <option value="Bank Transfer">Bank Transfer</option>
-                      <option value="Cheque">Cheque Instrument</option>
-                      <option value="Cash">Cash Flow</option>
+                      <option value="Cheque">Cheque</option>
+                      <option value="Cash">Cash</option>
                       <option value="DD">Demand Draft</option>
                     </Select>
                   </div>
                 </div>
 
-                {newMode === 'Cash' && (
-                  <div className="p-5 bg-[var(--sb)] text-white rounded-2xl flex gap-4 animate-in slide-in-from-top-2 duration-300">
-                    <LockClosedIcon className="w-5 h-5 text-[var(--gold)] shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[1px]">Fast Private Entry Node</p>
-                      <p className="text-[9px] font-bold text-white/60 uppercase mt-1 leading-tight tracking-[0.5px]">Cash flow is recorded into the Private Security Ledger and remains encrypted until authorized.</p>
+                {newMode === 'Cash' ? (
+                  <div className="flex items-center gap-6 p-10 bg-gray-900 text-white rounded-[20px] shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-10 opacity-10 group-hover:opacity-20 transition-opacity">
+                       <LockClosedIcon className="w-24 h-24" />
                     </div>
+                    <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-amber-500 border border-white/10 shadow-lg shrink-0">
+                       <LockClosedIcon className="w-7 h-7" />
+                    </div>
+                    <div className="text-left relative">
+                      <p className="text-[11px] font-bold tracking-[4px] uppercase text-amber-500 mb-2">Cash Note</p>
+                      <p className="text-[14px] font-medium text-white/60 leading-relaxed uppercase tracking-wide">Cash payment will be saved for manual checking.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-6 p-8 bg-amber-50 rounded-[16px] border-2 border-amber-100 shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-amber-600 shadow-md">
+                      <BanknotesIcon className="w-6 h-6" />
+                    </div>
+                    <p className="text-[13px] text-amber-800 font-bold leading-relaxed uppercase tracking-wide opacity-80">
+                      Payments are saved to the project account.
+                    </p>
                   </div>
                 )}
 
-                <div className="modal-footer flex gap-4 pt-6 px-0 border-none bg-transparent">
-                  <Button type="button" variant="secondary" className="flex-1 h-12" onClick={() => setIsAddModalOpen(false)}>Discard Registry</Button>
-                  <Button type="submit" variant="primary" className="flex-[1.5] h-12 shadow-lg shadow-[var(--gold)]/20">Commit Registry</Button>
+                <div className="pt-6 flex gap-6">
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    className="flex-1 h-[60px] rounded-[12px] font-bold uppercase tracking-widest shadow-md bg-white border-2 hover:bg-gray-50 transition-all duration-300" 
+                    onClick={() => setIsAddModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="flex-[2] h-[60px] rounded-[12px] font-bold uppercase tracking-widest shadow-xl transition-all duration-300"
+                  >
+                    Approve & Save
+                  </Button>
                 </div>
               </form>
             </div>
@@ -506,89 +546,96 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* History Detail Panel - Converted to Centered Modal */}
+      {/* Details Modal */}
       {selectedPayment && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
-            <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
-                  <UserIcon className="w-6 h-6" />
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl overflow-hidden flex flex-col h-[90vh]">
+            <div className="modal-header flex-shrink-0">
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <UserIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-1.5">{selectedPayment.customerName}</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-60 leading-none">Plot Registry Node: {selectedPayment.plotId}</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedPayment.customerName}</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Payment Details · Plot {selectedPayment.plotId}</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setSelectedPaymentId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedPaymentId(null)}>✕</Button>
             </div>
-            <div className="modal-body space-y-10">
-              {/* Financial Progression */}
-              <div className="space-y-4 p-6 bg-[var(--bg)] rounded-2xl border border-[var(--border)]">
-                <div className="flex justify-between text-[11px] font-bold text-[var(--text)] uppercase tracking-[1px]">
-                  <span>Monetary Deployment</span>
-                  <span className="text-[var(--gold)]">75%</span>
+
+            <div className="modal-body space-y-10 flex-1 flex flex-col p-10 overflow-y-auto">
+              <div className="space-y-8 p-10 bg-gray-900 rounded-[20px] text-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <ChartBarIcon className="w-32 h-32" />
                 </div>
-                <div className="h-2.5 bg-white border border-[var(--border)] rounded-full overflow-hidden leading-none relative">
-                  <div className="h-full bg-[var(--gold)] rounded-full transition-all duration-1000" style={{ width: '75%' }}></div>
+                <div className="flex justify-between text-[11px] font-bold text-white/40 tracking-[4px] uppercase relative">
+                  <span>Payment Progress</span>
+                  <span className="text-amber-500">Done: 75%</span>
                 </div>
-                <div className="flex justify-between items-center pt-2">
+                <div className="h-4 bg-white/10 rounded-full overflow-hidden relative shadow-inner">
+                  <div className="h-full bg-amber-500 rounded-full shadow-[0_0_25px_rgba(245,158,11,0.6)]" style={{ width: '75%' }}></div>
+                </div>
+                <div className="grid grid-cols-2 gap-12 pt-6 relative">
                   <div className="text-left">
-                    <p className="text-[9px] font-bold text-[var(--text3)] uppercase mb-1 opacity-60">Allocated</p>
-                    <p className="text-[15px] font-bold text-[var(--text)] uppercase font-price">{formatCurrency(payments.filter(p => p.customerName === selectedPayment.customerName).reduce((a, b) => a + b.amount, 0))}</p>
+                    <p className="text-[10px] font-bold text-white/40 mb-3 uppercase tracking-[3px]">Total Paid</p>
+                    <p className="text-[28px] font-bold text-white leading-none">{formatCurrency(payments.filter(p => p.customerName === selectedPayment.customerName).reduce((a, b) => a + b.amount, 0))}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[9px] font-bold text-[var(--text3)] uppercase mb-1 opacity-60">Last Deposit</p>
-                    <p className="text-[15px] font-bold text-[var(--text2)] uppercase font-price">{formatCurrency(selectedPayment.amount)}</p>
+                    <p className="text-[10px] font-bold text-white/40 mb-3 uppercase tracking-[3px]">Current Payment</p>
+                    <p className="text-[28px] font-bold text-amber-500 leading-none">{formatCurrency(selectedPayment.amount)}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Timeline Overview */}
-              <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
-                  <h3 className="text-[11px] font-bold text-[var(--text)] uppercase tracking-[1px]">Installment Timeline</h3>
-                  <ChartBarIcon className="w-5 h-5 text-[var(--text3)]" />
-                </div>
+              <div className="space-y-8 text-left">
+                <h3 className="text-[12px] font-bold text-gray-900 tracking-[4px] uppercase border-b-2 border-gray-50 pb-5">Payment History</h3>
 
-                <div className="relative space-y-6 pl-5 before:content-[''] before:absolute before:left-1.5 before:top-2 before:bottom-0 before:w-[2px] before:bg-[var(--border)]">
+                <div className="grid grid-cols-1 gap-5">
                   {payments
                     .filter(p => p.customerName === selectedPayment.customerName && p.plotId === selectedPayment.plotId)
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((item, idx) => (
-                      <div key={idx} className="relative group">
-                        <div className={`absolute -left-[23px] top-1.5 w-4 h-4 rounded-full border-2 border-white shadow-sm flex items-center justify-center
-                                ${item.mode === 'Cash' ? 'bg-[var(--sb)]' : 'bg-[var(--gold)]'}`}>
+                      <div key={idx} className="p-8 rounded-[16px] border-2 border-gray-50 bg-white shadow-sm hover:border-amber-100 hover:shadow-lg transition-all duration-300 group">
+                        <div className="flex justify-between items-center mb-5">
+                          <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:text-amber-600 group-hover:bg-amber-50 transition-colors shadow-inner">
+                                <BanknotesIcon className="w-6 h-6" />
+                             </div>
+                             <span className="text-[15px] font-bold text-gray-400 tabular-nums uppercase tracking-[1px]">{item.date}</span>
+                          </div>
+                          <span className="text-[22px] font-bold text-gray-900 leading-none">{formatCurrency(item.amount)}</span>
                         </div>
-                        <div className="p-5 rounded-2xl border transition-all group-hover:shadow-[var(--sh-md)] bg-white border-[var(--border)]">
-                          <div className="flex justify-between items-start mb-3">
-                            <span className="text-[11px] font-bold text-[var(--text)] uppercase tracking-[0.5px]">{item.date}</span>
-                            <span className="text-[13px] font-bold text-[var(--text)] font-price">{formatCurrency(item.amount)}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-[1px] text-[var(--text3)] opacity-60">
-                            <span className="flex items-center gap-1.5">
-                              {item.mode === 'Cash' ? '🔒 REGISTERED PRIVATE' : '🏦 LEDGER SYNC'}
-                            </span>
-                            {item.receiptNumber && <span className="text-[var(--gold)] underline">{item.receiptNumber}</span>}
-                          </div>
+                        <div className="flex justify-between items-center text-[11px] font-bold tracking-[2px] text-gray-400 uppercase opacity-60">
+                          <span className="flex items-center gap-2">
+                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                             {item.mode} channel
+                          </span>
+                          {item.receiptNumber && <span className="text-amber-600 font-bold border-b border-amber-200">Ref: REC-{item.receiptNumber}</span>}
                         </div>
                       </div>
                     ))}
                 </div>
               </div>
             </div>
-            <div className="modal-footer flex gap-3">
+
+            <div className="modal-footer bg-white border-t-2 border-gray-50 p-10 flex-shrink-0 flex gap-8">
               <Button
-                variant="primary" size="default" className="flex-1 !py-4 shadow-xl"
-                onClick={() => { alert('Sharing payment summary via WhatsApp Secure API...'); }}
+                variant="primary" className="flex-[2] h-[64px] rounded-[12px] shadow-xl font-bold uppercase tracking-widest bg-gray-900 text-white hover:bg-black transition-all"
+                onClick={() => showToast('Payment list shared with contact.')}
               >
-                Share Protocol
+                Share record
               </Button>
               <Button
-                variant="secondary" className="w-14 !p-0 flex items-center justify-center"
+                variant="secondary" className="flex-1 h-[64px] rounded-[12px] border-2 font-bold uppercase tracking-widest shadow-md bg-white hover:bg-gray-50 transition-all"
                 onClick={() => window.print()}
               >
-                🖨️
+                Hardcopy Print
+              </Button>
+              <Button
+                variant="secondary" className="h-[64px] px-10 rounded-[12px] border-2 font-bold uppercase tracking-widest shadow-md bg-white"
+                onClick={() => setSelectedPaymentId(null)}
+              >
+                Close
               </Button>
             </div>
           </div>
