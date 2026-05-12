@@ -1,7 +1,5 @@
-'use client'
-
+"use client";
 import React from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { HomeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
@@ -15,22 +13,21 @@ export default function NotFound() {
       </div>
       
       <h1 className="text-5xl font-serif text-[var(--gold)] mb-6 tracking-tight uppercase">
-        Node Not Found
+        Page Not Found
       </h1>
       
       <p className="text-[14px] text-[var(--text-dim)] max-w-sm mx-auto mb-12 leading-relaxed uppercase tracking-[3px] font-medium opacity-60">
-        Specified coordinates do not map to any active environment. Check the registry or return to primary node.
+        We could not find this page. Please check the link or go back home.
       </p>
 
-      <Link href="/">
-        <Button
-          variant="primary"
-          className="h-16 px-10 !rounded-[32px] tracking-[5px] font-bold shadow-gold-500/20"
-          icon={<HomeIcon className="w-5 h-5" />}
-        >
-          Back to Command Center
-        </Button>
-      </Link>
+      <Button 
+        variant="primary" 
+        onClick={() => {}} // Next link handled by wrapper or component if needed
+        className="h-16 px-10 !rounded-[32px] tracking-[5px] font-bold shadow-gold-500/20"
+        icon={<HomeIcon className="w-5 h-5" />}
+      >
+        <a href="/">Back to Command Center</a>
+      </Button>
       
       <div className="mt-20 flex gap-10 opacity-20">
         <div className="text-[9px] font-bold uppercase tracking-[5px]">X-Coordinate: null</div>

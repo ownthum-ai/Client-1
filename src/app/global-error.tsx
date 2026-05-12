@@ -20,7 +20,7 @@ export default function GlobalError({
     <html lang="en">
       <body className={instrument.className} style={{ margin: 0, backgroundColor: '#111110', color: 'white', display: 'flex', alignItems: 'center', minHeight: '100vh', justifyContent: 'center', textAlign: 'center', fontFamily: 'serif' }}>
         <div style={{ padding: '20px' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', textTransform: 'uppercase' }}>Critical System Failure</h1>
+          <h1 style={{ fontSize: '48px', marginBottom: '20px', textTransform: 'uppercase' }}>System Error</h1>
           <p style={{ opacity: 0.5, fontSize: '14px', letterSpacing: '2px', marginBottom: '40px' }}>ROOT_LAYOUT_NOMINAL_STATE_LOST</p>
           <button 
             onClick={() => reset()}

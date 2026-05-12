@@ -15,7 +15,6 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const [selectedLabel, setSelectedLabel] = useState<string>("");
     
-    // Extract options from children
     const options = React.useMemo(() => {
       return React.Children.map(children, (child) => {
         if (React.isValidElement(child) && child.type === 'option') {
@@ -29,14 +28,12 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       })?.filter(Boolean) || [];
     }, [children]);
 
-    // Update selected label when value or children change
     useEffect(() => {
       const currentValue = props.value || props.defaultValue;
       const option = options.find(o => o.value === currentValue);
       if (option) {
         setSelectedLabel(option.label);
       } else if (options.length > 0) {
-        // Find if any option is marked as selected in props
         const selectedChild = options.find(o => o.selected);
         if (selectedChild) {
            setSelectedLabel(selectedChild.label);
@@ -46,7 +43,6 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       }
     }, [props.value, props.defaultValue, options]);
 
-    // Handle click outside
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -61,7 +57,6 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       setSelectedLabel(option.label);
       setIsOpen(false);
       
-      // Manually trigger onChange if present
       if (props.onChange) {
         const event = {
           target: {
@@ -75,7 +70,6 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
     return (
       <div className="relative w-full" ref={containerRef}>
-        {/* Hidden native select for form integration */}
         <select
           ref={ref}
           className="hidden"
@@ -84,58 +78,54 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           {children}
         </select>
 
-        {/* Custom Trigger */}
         <div
           onClick={() => !props.disabled && setIsOpen(!isOpen)}
           className={cn(
-            "flex items-center justify-between w-full appearance-none transition-all duration-250 ease-out outline-none cursor-pointer form-control",
-            v2 ? "h-14 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm focus:border-[var(--gold)]/30 focus:shadow-[0_0_0_4px_rgba(201,150,59,0.08)] px-6 text-[13px] font-bold uppercase tracking-tight" :
-               "h-[var(--form-h)] rounded-[var(--form-r)] border border-[var(--form-border)] bg-gray-50/50 px-[var(--form-px)] text-[var(--form-fs)] font-medium focus:border-[var(--form-border-focus)] focus:ring-4 focus:ring-[var(--form-ring)]",
-            isOpen && v2 && "bg-white border-[var(--gold)]/50 shadow-[0_0_15px_rgba(0,0,0,0.05)]",
-            error && "bg-[var(--form-error-bg)] border-[var(--form-error-border)]",
+            "flex items-center justify-between w-full appearance-none transition-none outline-none cursor-pointer font-bold",
+            v2 ? "h-[56px] rounded-2xl bg-white border-2 border-[var(--border)] px-6 text-[15px] tracking-tight shadow-sm" :
+               "h-[var(--form-h)] rounded-[var(--form-r)] border-2 border-[var(--form-border)] bg-white px-[var(--form-px)] text-[var(--form-fs)] focus:border-gray-900",
+            isOpen && "border-gray-900 bg-white shadow-sm",
+            error && "bg-red-50 border-red-500",
+            props.disabled && "cursor-not-allowed opacity-50",
             className
           )}
         >
           <span className={cn(
-            "truncate text-[15px] tracking-tight",
+            "truncate",
             !selectedLabel && "text-[var(--text3)]"
           )}>
             {selectedLabel || "Select..."}
           </span>
           <ChevronDownIcon className={cn(
-            "w-4 h-4 transition-all duration-250 ease-out text-[var(--text3)]",
-            isOpen && "rotate-180 text-[var(--gold)]"
+            "w-4 h-4 text-[var(--text3)]",
+            isOpen && "rotate-180 text-gray-900"
           )} />
         </div>
 
-        {/* Custom Dropdown Popover */}
         {isOpen && (
           <div className={cn(
-            "absolute left-0 right-0 z-[600] mt-2 overflow-hidden bg-white rounded-xl border border-[var(--border)] shadow-2xl animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-250",
+            "absolute left-0 right-0 z-[600] mt-2 overflow-hidden bg-white rounded-xl border-2 border-gray-900 shadow-2xl",
             v2 ? "py-2" : "py-1"
           )}>
-            <div className="max-h-[240px] overflow-y-auto custom-scrollbar">
+            <div className="max-h-[300px] overflow-y-auto">
               {options.length > 0 ? (
                 options.map((option: any, index: number) => {
-                  const isSelected = (props.value || props.defaultValue) === option.value || (!props.value && !props.defaultValue && index === 0);
+                  const isSelected = (props.value || props.defaultValue) === option.value;
                   return (
                     <div
                       key={index}
                       onClick={() => handleSelect(option)}
                       className={cn(
-                        "px-5 py-3 text-[14px] cursor-pointer transition-all duration-200 ease-out flex items-center justify-between group",
-                        isSelected ? "bg-[var(--gold-lt)] text-[var(--gold-dk)] font-medium" : "text-[var(--text2)] hover:bg-[var(--bg)] hover:text-[var(--gold)] hover:pl-6"
+                        "px-6 py-4 text-[15px] cursor-pointer font-bold flex items-center justify-between",
+                        isSelected ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       )}
                     >
-                      <span className="tracking-tight">{option.label}</span>
-                      {isSelected && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold)] shadow-[0_0_8px_var(--gold)] animate-in zoom-in duration-200"></div>
-                      )}
+                      <span>{option.label}</span>
                     </div>
                   );
                 })
               ) : (
-                <div className="px-5 py-3 text-[12px] text-[var(--text3)] italic">No options available</div>
+                <div className="px-6 py-4 text-[13px] text-[var(--text3)] italic">No options available</div>
               )}
             </div>
           </div>

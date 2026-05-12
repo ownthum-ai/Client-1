@@ -9,20 +9,20 @@ interface BadgeProps {
 }
 
 const variantMap: Record<BadgeVariant, string> = {
-  success: 'bg-[var(--green-lt)] text-[var(--green)] before:bg-[var(--green)]',
-  danger: 'bg-[var(--red-lt)] text-[var(--red)] before:bg-[var(--red)]',
-  destructive: 'bg-[var(--red-lt)] text-[var(--red)] before:bg-[var(--red)]',
-  warning: 'bg-[var(--amber-lt)] text-[var(--amber)] before:bg-[var(--amber)]',
-  info: 'bg-[var(--blue-lt)] text-[var(--blue)] before:bg-[var(--blue)]',
-  special: 'bg-[var(--purple-lt)] text-[var(--purple)] before:bg-[var(--purple)]',
-  neutral: 'bg-[#F4F4F2] text-[#666] before:bg-[#AAA]',
-  gold: 'bg-[var(--gold-lt)] text-[var(--gold-dk)] before:bg-[var(--gold)]',
-  outline: 'bg-transparent border border-white/10 text-white/40 before:hidden',
+  success: 'bg-green-50 text-green-600 border-green-100',
+  danger: 'bg-red-50 text-red-600 border-red-100',
+  destructive: 'bg-red-50 text-red-600 border-red-100',
+  warning: 'bg-amber-50 text-amber-600 border-amber-100',
+  info: 'bg-blue-50 text-blue-600 border-blue-100',
+  special: 'bg-purple-50 text-purple-600 border-purple-100',
+  neutral: 'bg-gray-50 text-gray-600 border-gray-100',
+  gold: 'bg-amber-50 text-amber-700 border-amber-100',
+  outline: 'bg-transparent border border-gray-200 text-gray-500',
 };
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', className = '' }) => {
   return (
-    <span className={`inline-flex items-center gap-1.5 p-[3px_9px] rounded-[5px] text-[11px] font-medium whitespace-nowrap transition-all duration-200 ease-out hover:scale-105 before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:shrink-0 ${variantMap[variant]} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase tracking-wider transition-none ${variantMap[variant]} ${className}`}>
       {children}
     </span>
   );

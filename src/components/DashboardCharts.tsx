@@ -10,7 +10,9 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  BarChart,
+  Bar
 } from 'recharts';
 
 export function FinanceTrendChart({ data }: { data: any[] }) {
@@ -40,23 +42,32 @@ export function FinanceTrendChart({ data }: { data: any[] }) {
   );
 }
 
-export function ExpenseDonutChart({ data }: { data: any[] }) {
+export function ConstructionBarChart({ data }: { data: any[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie 
-          data={data} 
-          innerRadius={60} 
-          outerRadius={84} 
-          paddingAngle={4} 
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip />
-      </PieChart>
+      <BarChart data={data} layout="vertical" margin={{ left: 30, right: 30, top: 20, bottom: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+        <XAxis type="number" domain={[0, 100]} hide />
+        <YAxis 
+          dataKey="site" 
+          type="category" 
+          axisLine={false} 
+          tickLine={false} 
+          tick={{fill: '#475569', fontSize: 11, fontWeight: 700}}
+          width={100}
+        />
+        <Tooltip 
+          cursor={{fill: '#f8fafc'}}
+          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}
+          formatter={(value: any) => [`${value}%`, 'Progress']}
+        />
+        <Bar 
+          dataKey="progress" 
+          fill="#f59e0b" 
+          radius={[0, 4, 4, 0]} 
+          barSize={12}
+        />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

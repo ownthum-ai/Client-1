@@ -1,3 +1,4 @@
+﻿"use client";
 import React, { useState, useEffect, useCallback, useRef, CSSProperties } from 'react';
 
 // --- Type Definitions ---
@@ -301,3 +302,4 @@ const ThreeDSlider: React.FC<ThreeDSliderProps> = ({
 };
 
 export default ThreeDSlider;
+

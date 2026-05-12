@@ -31,7 +31,7 @@ export const BentoGrid = ({
       {...props}
     >
       {cards.map((card, index) => {
-        const Icon = card.icon;
+        const Icon = card.icon as any;
         return (
           <div
             key={index}

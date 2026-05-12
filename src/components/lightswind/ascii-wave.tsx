@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import { useTheme } from "next-themes";
+
 
 interface AsciiWaveProps {
     className?: string;
@@ -16,7 +16,7 @@ const AsciiWave: React.FC<AsciiWaveProps> = ({
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const { theme } = useTheme();
+
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -119,7 +119,7 @@ const AsciiWave: React.FC<AsciiWaveProps> = ({
             observer.disconnect();
             cancelAnimationFrame(animationId);
         };
-    }, [color, speed, theme]);
+    }, [color, speed]);
 
     return (
         <div ref={containerRef} className={`w-full h-full overflow-hidden ${className}`}>

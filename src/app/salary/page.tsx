@@ -3,23 +3,18 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { ProfessionalPayslip } from '@/components/ProfessionalPayslip';
 import { exportToCSV } from '@/utils/export';
-import { 
+import {
   PlusIcon,
   MagnifyingGlassIcon,
   ArrowDownTrayIcon,
   XMarkIcon,
   DocumentTextIcon,
-  CurrencyRupeeIcon,
   UserIcon,
-  ScaleIcon,
-  ShieldCheckIcon,
-  ChevronRightIcon,
   ClockIcon,
-  CheckCircleIcon,
   BanknotesIcon,
   FolderOpenIcon,
   ChartBarIcon,
-  PlayIcon
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -27,6 +22,7 @@ import { Card } from '@/components/ui/Card';
 import { KPICard } from '@/components/ui/KPICard';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
 
 const formatCurrency = (amt: number) => {
   return new Intl.NumberFormat('en-IN', {
@@ -35,30 +31,6 @@ const formatCurrency = (amt: number) => {
     maximumFractionDigits: 0
   }).format(amt);
 };
-
-// Custom Select for Month Filters
-const MonthFilter = ({ 
-  months, 
-  value, 
-  onChange 
-}: { 
-  months: string[], 
-  value: string, 
-  onChange: (val: string) => void 
-}) => (
-  <div className="flex bg-[var(--bg)] border border-[var(--border)] p-1.5 rounded-xl mr-2 shadow-sm">
-    {months.slice(0, 3).map((month) => (
-      <button 
-        key={month}
-        onClick={() => onChange(month)}
-        className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[1.5px] transition-all leading-none
-          ${value === month ? 'bg-white text-[var(--text)] shadow-sm ring-1 ring-black/5' : 'text-[var(--text3)] hover:text-[var(--text)] opacity-40 hover:opacity-100'}`}
-      >
-        {month}
-      </button>
-    ))}
-  </div>
-);
 
 export default function StaffSalaryPage() {
   const { salaries, updateSalaryStatus, addSalary, processPayroll, addSalaryAdvance, salaryAdvances } = useStore();
@@ -85,24 +57,24 @@ export default function StaffSalaryPage() {
   const [newStaffForm, setNewStaffForm] = useState({ name: '', role: '', basic: '' });
 
   // Available months
-  const availableMonths = useMemo(() => 
-    Array.from(new Set(salaries.map(s => s.month))).sort((a,b) => new Date(b).getTime() - new Date(a).getTime())
-  , [salaries]);
-  
+  const availableMonths = useMemo(() =>
+    Array.from(new Set(salaries.map(s => s.month))).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    , [salaries]);
+
   // Filter for current month and search
-  const monthlySalaries = useMemo(() => 
+  const monthlySalaries = useMemo(() =>
     salaries.filter(s => s.month === currentMonth && s.employeeName.toLowerCase().includes(searchTerm.toLowerCase()))
-  , [salaries, currentMonth, searchTerm]);
+    , [salaries, currentMonth, searchTerm]);
 
   const selectedSalary = useMemo(() => salaries.find(s => s.id === selectedSalaryId), [salaries, selectedSalaryId]);
-  
+
   // History for comparison (last 3 months)
-  const salaryHistory = useMemo(() => selectedSalary 
+  const salaryHistory = useMemo(() => selectedSalary
     ? salaries.filter(s => s.employeeName === selectedSalary.employeeName && s.id !== selectedSalary.id && s.month !== currentMonth)
-        .sort((a, b) => new Date(b.month).getTime() - new Date(a.month).getTime())
-        .slice(0, 3)
+      .sort((a, b) => new Date(b.month).getTime() - new Date(a.month).getTime())
+      .slice(0, 3)
     : []
-  , [salaries, selectedSalary, currentMonth]);
+    , [salaries, selectedSalary, currentMonth]);
 
   const totalPayroll = monthlySalaries.reduce((acc, s) => acc + s.net, 0);
   const paidCount = monthlySalaries.filter(s => s.status === 'Paid').length;
@@ -125,7 +97,7 @@ export default function StaffSalaryPage() {
     });
     setIsAddStaffModalOpen(false);
     setNewStaffForm({ name: '', role: '', basic: '' });
-    showToast(`${newStaffForm.name} registered in payroll node.`, 'success');
+    showToast(`${newStaffForm.name} added to payroll.`, 'success');
   };
 
   const handleExportSalarySheet = () => {
@@ -142,7 +114,7 @@ export default function StaffSalaryPage() {
       'Status': s.status
     }));
     exportToCSV(dataToExport, `Salary_Sheet_${currentMonth.replace(' ', '_')}.csv`);
-    showToast("Salary sheet exported successfully.", 'success');
+    showToast("Sheet exported.", 'success');
   };
 
   const handleBulkAuthorize = () => {
@@ -150,7 +122,7 @@ export default function StaffSalaryPage() {
     pending.forEach(s => updateSalaryStatus(s.id, 'Paid'));
     processPayroll(currentMonth);
     setIsBulkModalOpen(false);
-    showToast(`Payroll processed for ${pending.length} nodes — ₹${totalPayroll.toLocaleString('en-IN')}`, 'success');
+    showToast(`Payroll processed for ${pending.length} staff.`, 'success');
   };
 
   const handleAddAdvance = (e: React.FormEvent) => {
@@ -165,104 +137,115 @@ export default function StaffSalaryPage() {
       month
     });
     setIsAdvanceModalOpen(false);
-    showToast(`Advance of ₹${advanceForm.amount.toLocaleString('en-IN')} recorded for ${advanceForm.employeeName}`, 'warning');
+    showToast(`Advance of ₹${advanceForm.amount.toLocaleString('en-IN')} for ${advanceForm.employeeName}`, 'warning');
     setAdvanceForm({ employeeName: '', amount: 0 });
   };
 
+  const [mounted, setMounted] = React.useState(false); React.useEffect(() => { setMounted(true); }, []); if (!mounted) return null;
+
   return (
     <>
-      <div className={`space-y-[var(--section-gap)] animate-in fade-in duration-150 pb-20 text-left transition-all duration-700 ease-in-out ${selectedSalaryId ? 'pr-[480px]' : ''}`} onClick={() => !selectedSalaryId && setSelectedSalaryId(null)}>
-        {/* V2 Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="space-y-[var(--section-gap)] pb-20 text-left">
+        {/* Toast */}
+        {toast && (
+          <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[1000] bg-gray-900 text-white px-10 py-5 rounded-2xl shadow-2xl border-2 border-white/10 flex items-center gap-5">
+            <div className={`w-3 h-3 rounded-full ${toast.type === 'warning' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+            <span className="text-[14px] font-bold tracking-tight uppercase">{toast.message}</span>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="text-left">
-            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2 uppercase">Staff Salary</h1>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 uppercase tracking-wider leading-none">
-                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5 animate-pulse"></span>
-                LIVE OPERATIONAL STREAM
-              </span>
-              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums uppercase tracking-tight opacity-50 underline decoration-dotted">Payroll management & itemized disbursement logs</span>
+            <h1 className="text-[var(--h1-fs)] font-bold text-[var(--text)] tracking-tight leading-tight mb-2">Payroll</h1>
+            <div className="flex items-center gap-3">
+              <Badge variant="success" className="px-3 py-1 text-[11px] font-bold shadow-sm">Live status</Badge>
+              <span className="text-[14px] text-[var(--text3)] font-bold tabular-nums tracking-tight opacity-80 uppercase">Manage staff payments and history</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <MonthFilter months={availableMonths} value={currentMonth} onChange={setCurrentMonth} />
-            <Button v2={true} variant="secondary" onClick={() => setIsAdvanceModalOpen(true)} className="px-6 rounded-lg bg-white border-[var(--border)] shadow-sm text-[10px] uppercase font-black tracking-widest">
-              <BanknotesIcon className="w-4 h-4 mr-2" /> Advance
+          <div className="flex items-center gap-4">
+            <div className="flex bg-gray-100 border-2 border-[var(--border)] p-1.5 rounded-2xl">
+              <Select
+                v2={true}
+                value={currentMonth}
+                onChange={e => setCurrentMonth(e.target.value)}
+                className="h-10 border-none bg-transparent shadow-none px-4 min-w-[160px]"
+              >
+                {availableMonths.map(m => <option key={m} value={m}>{m}</option>)}
+              </Select>
+            </div>
+            <Button variant="secondary" size="default" onClick={() => setIsAdvanceModalOpen(true)} className="px-8 shadow-md rounded-xl h-[52px]">
+              <BanknotesIcon className="w-5 h-5 mr-3" /> Advance
             </Button>
-            <Button v2={true} variant="secondary" onClick={handleExportSalarySheet} className="px-6 rounded-lg bg-white border-[var(--border)] shadow-sm text-[10px] uppercase font-black tracking-widest">
-              <ChartBarIcon className="w-4 h-4 mr-2" /> Salary Sheet
+            <Button variant="secondary" size="default" onClick={handleExportSalarySheet} className="px-8 shadow-md rounded-xl h-[52px]">
+              <ChartBarIcon className="w-5 h-5 mr-3" /> Export
             </Button>
-            <Button v2={true} onClick={() => setIsBulkModalOpen(true)} className="px-8 shadow-lg shadow-black/10 rounded-lg text-[10px] uppercase font-black tracking-widest">
-              <PlusIcon className="w-4 h-4 mr-2" /> Process Payroll
+            <div className="h-10 w-[2px] bg-[var(--border)] mx-2"></div>
+            <Button size="default" onClick={() => setIsBulkModalOpen(true)} className="px-10 shadow-lg rounded-xl h-[52px]">
+              <PlusIcon className="w-5 h-5 mr-3" /> Run payroll
             </Button>
           </div>
         </div>
 
-        {/* KPI Matrix */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <KPICard label="CUMULATIVE PAYROLL" value={formatCurrency(totalPayroll)} trend={{ value: "Current Month", type: "neutral" }} color="blue" />
-          <KPICard label="AUTHORIZED NODES" value={`${paidCount} Employees`} trend={{ value: `${monthlySalaries.length} Total`, type: "neutral" }} color="green" />
-          <KPICard label="ADVANCE RECOUP" value={formatCurrency(monthlySalaries.reduce((acc, s) => acc + s.advanceDeduction, 0))} trend={{ value: "Auto-Recovered", type: "neutral" }} color="amber" />
-          <KPICard label="IN-PIPELINE" value={formatCurrency(monthlySalaries.filter(s => s.status === 'Pending').reduce((acc, s) => acc + s.net, 0))} trend={{ value: "Pending Auth", type: pendingCount > 0 ? "down" : "up" }} color="red" />
+        {/* Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KPICard label="Total amount" value={totalPayroll} trend={{ value: "Current month", type: "neutral" }} />
+          <KPICard label="Paid staff" value={`${paidCount} staff`} trend={{ value: `${monthlySalaries.length} Total`, type: "neutral" }} />
+          <KPICard label="Advances" value={monthlySalaries.reduce((acc, s) => acc + s.advanceDeduction, 0)} trend={{ value: "Recovered", type: "neutral" }} />
+          <KPICard label="Pending pay" value={monthlySalaries.filter(s => s.status === 'Pending').reduce((acc, s) => acc + s.net, 0)} trend={{ value: "Awaiting", type: pendingCount > 0 ? "down" : "up" }} />
         </div>
 
-        {/* Payroll Ledger Table */}
-        <Card className="p-0 overflow-hidden border-[var(--border)] shadow-sm bg-white text-left">
-          <div className="p-8 border-b border-[var(--border)] bg-[#F8F7F4]/50 flex items-center justify-between">
-            <div>
-              <h2 className="text-[16px] font-bold text-[var(--text)] uppercase tracking-tight leading-none mb-1.5">Payroll Detail Journal</h2>
-              <p className="text-[9px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-40 leading-none">Cycle {currentMonth} engineering disbursements</p>
-            </div>
-            <div className="relative group w-72">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text3)] z-10 opacity-50" />
-              <Input placeholder="SEARCH STAFF..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} v2={true} className="pl-10 h-10 border-[var(--border)] rounded-lg shadow-sm font-black uppercase text-[10px] tracking-widest" />
-            </div>
+        {/* Staff List */}
+        <Card title="Staff list" subtitle={`Salary details for ${currentMonth}`} actions={
+          <div className="relative w-80">
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+            <Input placeholder="Search staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} v2={true} className="pl-12 h-12 border-2 rounded-xl shadow-sm" />
           </div>
-
+        } className="p-0 overflow-hidden shadow-lg border-2">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#F8F7F4] border-b border-[var(--border)]">
-                  <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Employee Identity</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Attendance Node</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Principal</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Allowances</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Deductions</th>
-                  <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Net Trajectory</th>
-                  <th className="p-[12px_24px] text-center text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1.5px]">Status</th>
+                <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
+                  <th className="p-[16px_32px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Employee</th>
+                  <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Days</th>
+                  <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Basic</th>
+                  <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Allowance</th>
+                  <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Deductions</th>
+                  <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Net pay</th>
+                  <th className="p-[16px_32px] text-center text-[11px] font-bold text-gray-500 tracking-widest uppercase">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border)]">
+              <tbody className="divide-y-2 divide-[var(--border)]">
                 {monthlySalaries.map(s => (
-                  <tr 
-                    key={s.id} 
+                  <tr
+                    key={s.id}
                     onClick={(e) => { e.stopPropagation(); setSelectedSalaryId(s.id); }}
-                    className={`group cursor-pointer hover:bg-[#F8F7F4] transition-all ${selectedSalaryId === s.id ? 'bg-[#F8F7F4]' : ''}`}
+                    className="hover:bg-gray-50 cursor-pointer transition-none"
                   >
-                    <td className="p-[12px_24px]">
-                      <div className="flex items-center gap-4">
-                        <div className="w-9 h-9 rounded-xl bg-[var(--gold-lt)] text-[var(--gold)] flex items-center justify-center text-[11px] font-black border border-[var(--border)] shadow-sm transform group-hover:scale-110 transition-transform">
+                    <td className="p-[16px_32px]">
+                      <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 text-amber-600 flex items-center justify-center text-[16px] font-bold border-2 border-white shadow-sm">
                           {s.employeeName[0]}
                         </div>
                         <div className="flex flex-col text-left">
-                          <span className="text-[14px] font-bold text-[var(--text)] uppercase tracking-tight leading-none group-hover:text-[var(--gold)] transition-colors mb-1.5">{s.employeeName}</span>
-                          <span className="text-[9px] text-[var(--text3)] font-black uppercase tracking-[1px] opacity-40 leading-none">{s.role}</span>
+                          <span className="text-[16px] font-bold text-gray-900 tracking-tight leading-none mb-2">{s.employeeName}</span>
+                          <span className="text-[12px] text-gray-400 font-bold uppercase tracking-wider opacity-80">{s.role}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="p-[12px_15px]">
-                      <div className="text-[12px] font-black text-[var(--text)] tabular-nums uppercase leading-none">{s.days}</div>
+                    <td className="p-[16px_20px]">
+                      <div className="text-[14px] font-bold text-gray-700 tabular-nums">{s.days}</div>
                     </td>
-                    <td className="p-[12px_15px] text-[14px] font-black text-[var(--text)] tabular-nums">{s.basic.toLocaleString()}</td>
-                    <td className="p-[12px_15px] text-[14px] font-black text-[var(--green)] tabular-nums">+{s.allowance.toLocaleString()}</td>
-                    <td className="p-[12px_15px] text-[14px] font-black text-[var(--red)] tabular-nums">
+                    <td className="p-[16px_20px] text-[15px] font-bold text-gray-900 tabular-nums">₹{s.basic.toLocaleString()}</td>
+                    <td className="p-[16px_20px] text-[15px] font-bold text-green-600 tabular-nums">+{s.allowance.toLocaleString()}</td>
+                    <td className="p-[16px_20px] text-[15px] font-bold text-red-600 tabular-nums">
                       -{(s.advanceDeduction + s.otherDeduction).toLocaleString()}
                     </td>
-                    <td className="p-[12px_15px]">
-                       <span className="text-[15px] font-black text-[var(--text)] tabular-nums">{formatCurrency(s.net)}</span>
+                    <td className="p-[16px_20px]">
+                      <span className="text-[16px] font-bold text-gray-900 tabular-nums">{formatCurrency(s.net)}</span>
                     </td>
-                    <td className="p-[12px_24px] text-center">
-                      <Badge variant={s.status === 'Paid' ? 'success' : 'warning'} className="text-[9px] font-black px-3 py-1 shadow-sm uppercase tracking-widest leading-none">
+                    <td className="p-[16px_32px] text-center">
+                      <Badge variant={s.status === 'Paid' ? 'success' : 'warning'} className="px-4 py-1 text-[10px] font-bold uppercase shadow-sm tracking-widest">
                         {s.status}
                       </Badge>
                     </td>
@@ -274,222 +257,211 @@ export default function StaffSalaryPage() {
         </Card>
       </div>
 
-      {/* Fixed elements outside the animated container */}
-      {/* Modals outside the animated container avoid the 'containing block' trap */}
-      {selectedSalaryId && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            {selectedSalary ? (
-              <>
-                <div className="modal-header">
-                   <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
-                         <UserIcon className="w-6 h-6" />
-                      </div>
-                      <div className="text-left">
-                         <h2 className="text-[18px] font-black text-[var(--text)] uppercase tracking-tight leading-none mb-1.5">{selectedSalary.employeeName}</h2>
-                         <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-40 leading-none">Functional Grade: {selectedSalary.role}</p>
-                      </div>
-                   </div>
-                   <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setSelectedSalaryId(null)}>✕</Button>
+      {/* Details Panel - Side drawer for better clarity */}
+      <div className={`fixed top-0 right-0 h-screen w-[560px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedSalaryId ? 'translate-x-0' : 'translate-x-full'}`}>
+        {selectedSalary ? (
+          <div className="flex-1 flex flex-col p-10 overflow-y-auto text-left">
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-amber-600 border-2 border-[var(--border)] shadow-md">
+                  <UserIcon className="w-8 h-8" />
                 </div>
-                <div className="modal-body space-y-10">
-                  <div className="grid grid-cols-2 gap-5">
-                    <Button
-                      variant="secondary" v2={true}
-                      className="!bg-[var(--gold-lt)] !border-[var(--gold)]/20 !text-[var(--gold-dk)] hover:!bg-[var(--gold)] hover:!text-white h-14 rounded-2xl flex items-center justify-center gap-4 transition-all shadow-sm"
-                      onClick={() => window.location.href = `tel:9988776655`}
-                    >
-                      <span className="text-xl">📞</span>
-                      <span className="text-[10px] font-black uppercase tracking-[2px]">Contact</span>
-                    </Button>
-                    <Button
-                      variant="secondary" v2={true}
-                      className="!bg-[#e8fbf0] !border-[#10b981]/20 !text-[#10b981] hover:!bg-[#10b981] hover:!text-white h-14 rounded-2xl flex items-center justify-center gap-4 transition-all shadow-sm"
-                      onClick={() => window.open(`https://wa.me/9988776655`, '_blank')}
-                    >
-                      <span className="text-xl">💬</span>
-                      <span className="text-[10px] font-black uppercase tracking-[2px]">Sync</span>
-                    </Button>
-                  </div>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-2">{selectedSalary.employeeName}</h2>
+                  <p className="text-[12px] text-gray-400 font-bold uppercase tracking-widest opacity-80">{selectedSalary.role}</p>
+                </div>
+              </div>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12" onClick={() => setSelectedSalaryId(null)}>✕</Button>
+            </div>
 
-                  <div className="grid grid-cols-3 gap-5">
-                    {[
-                      { label: 'Status', val: <Badge variant={selectedSalary.status === 'Paid' ? 'success' : 'warning'} className="text-[8px] font-black px-2">{selectedSalary.status}</Badge> },
-                      { label: 'Attendance', val: <span className="text-[13px] font-black text-[var(--text)] tabular-nums">{selectedSalary.days}</span> },
-                      { label: 'Cycle Node', val: <span className="text-[11px] font-black text-[var(--gold-dk)] tabular-nums">#{selectedSalary.id.slice(0, 4)}</span> }
-                    ].map((stat, i) => (
-                      <div key={i} className="p-5 bg-[#F8F7F4] rounded-2xl border border-[var(--border)] text-center shadow-inner group hover:bg-white hover:border-[var(--gold)]/30 transition-all">
-                        <span className="text-[8px] font-black text-[var(--text3)] uppercase block mb-3 opacity-40 tracking-[2px]">{stat.label}</span>
-                        {stat.val}
-                      </div>
-                    ))}
-                  </div>
+            <div className="space-y-12">
+              {/* Earnings Card */}
+              <div className="p-10 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <BanknotesIcon className="w-32 h-32" />
+                </div>
+                <div className="flex justify-between items-center mb-10 relative">
+                  <span className="text-[12px] font-bold text-white/40 tracking-[4px] uppercase">Net salary pay</span>
+                  <Badge variant="success" className="px-4 py-1 text-[11px] font-bold shadow-sm uppercase">{selectedSalary.status}</Badge>
+                </div>
+                <div className="relative">
+                  <p className="text-5xl font-bold tracking-tight text-amber-500 mb-4">{formatCurrency(selectedSalary.net)}</p>
+                  <p className="text-[14px] font-bold text-white/50 uppercase tracking-[2px]">{currentMonth} · {selectedSalary.days} Days</p>
+                </div>
+                <Button onClick={() => setIsPreviewModalOpen(true)} className="w-full h-16 mt-10 bg-white/10 hover:bg-white/20 border-none text-[12px] font-bold uppercase tracking-[4px] shadow-lg rounded-2xl">
+                  View digital payslip
+                </Button>
+              </div>
 
-                  <div className="space-y-5">
-                    <p className="text-[10px] font-black text-[var(--text3)] uppercase tracking-[4px] opacity-40 ml-1">Capital Disbursement Logic</p>
-                    <Card className="bg-[var(--sb)] rounded-[32px] p-10 text-white relative overflow-hidden group border border-white/5 shadow-2xl">
-                      <div className="absolute -right-16 -bottom-16 opacity-[0.05] group-hover:scale-125 transition-all duration-1000 rotate-12 pointer-events-none text-[var(--gold)]">
-                        <BanknotesIcon className="w-[200px] h-[200px]" />
-                      </div>
-                      <div className="flex justify-between items-start mb-12 relative z-10 text-left">
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-bold text-white/40 uppercase tracking-[4px]">Verified Net Yield</p>
-                           <p className="text-4xl font-black tracking-tighter leading-none font-serif text-[var(--gold)]">{formatCurrency(selectedSalary.net)}</p>
-                        </div>
-                        <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md">
-                           <p className="text-[10px] font-black tracking-[3px] uppercase leading-none">{currentMonth}</p>
-                        </div>
-                      </div>
-                      <Button v2={true} onClick={() => setIsPreviewModalOpen(true)} className="w-full !py-5 uppercase tracking-[4px] shadow-2xl text-[11px] font-black bg-[var(--gold)] hover:bg-[var(--gold-dk)] border-none">
-                        Generate Node Document
-                      </Button>
-                    </Card>
+              {/* Financial Breakdown */}
+              <div className="space-y-6">
+                <h3 className="text-[12px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+                  Financial Breakdown
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-8 bg-gray-50 rounded-2xl border-2 border-[var(--border)] space-y-6 shadow-inner">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Gross basic pay</span>
+                      <span className="text-[18px] font-bold text-gray-900 tabular-nums">₹{selectedSalary.basic.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Allowances</span>
+                      <span className="text-[18px] font-bold text-green-600 tabular-nums">+₹{selectedSalary.allowance.toLocaleString()}</span>
+                    </div>
                   </div>
-
-                  <div className="space-y-8">
-                     <div className="flex items-center justify-between border-b border-[var(--border)] pb-4 px-1">
-                       <h3 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[3px]">Itemized Registry</h3>
-                       <span className="text-[9px] font-black text-[var(--gold)] opacity-50 uppercase tracking-widest leading-none">Core Logic V2</span>
-                     </div>
-                     <div className="space-y-6">
-                        <div className="p-8 bg-[#F8F7F4] rounded-[32px] border border-[var(--border)] space-y-6 group hover:bg-white hover:border-[var(--gold)]/30 transition-all shadow-inner hover:shadow-lg">
-                          <p className="text-[9px] font-black text-[var(--text3)] uppercase tracking-[4px] opacity-40 mb-2 leading-none italic underline decoration-dotted decoration-black/10">I. Inflow Matrix</p>
-                          <div className="flex justify-between items-center text-[14px]">
-                            <span className="font-bold text-[var(--text3)] uppercase tracking-tight opacity-60">Principal Yield</span>
-                            <span className="font-black text-[var(--text)] tabular-nums">{formatCurrency(selectedSalary.basic)}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[14px]">
-                            <span className="font-bold text-[var(--text3)] uppercase tracking-tight opacity-60">Variable Allowance</span>
-                            <span className="font-black text-[var(--green)] tabular-nums">+{formatCurrency(selectedSalary.allowance)}</span>
-                          </div>
-                        </div>
-                        <div className="p-8 bg-[#F8F7F4] rounded-[32px] border border-[var(--border)] space-y-6 group hover:bg-white hover:border-[var(--gold)]/30 transition-all shadow-inner hover:shadow-lg">
-                          <p className="text-[9px] font-black text-[var(--text3)] uppercase tracking-[4px] opacity-40 mb-2 leading-none italic underline decoration-dotted decoration-black/10">II. Offset Protocols</p>
-                          <div className="flex justify-between items-center text-[14px]">
-                            <span className="font-bold text-[var(--text3)] uppercase tracking-tight opacity-60">Liquidity Recoup</span>
-                            <span className="font-black text-[var(--red)] tabular-nums">-{formatCurrency(selectedSalary.advanceDeduction)}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[14px]">
-                            <span className="font-bold text-[var(--text3)] uppercase tracking-tight opacity-60">Admin Offset</span>
-                            <span className="font-black text-[var(--red)] tabular-nums">-{formatCurrency(selectedSalary.otherDeduction)}</span>
-                          </div>
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="space-y-8 pb-10">
-                    <div className="flex items-center justify-between border-b border-[var(--border)] pb-4 px-1">
-                       <h3 className="text-[12px] font-black text-[var(--text)] uppercase tracking-[3px]">Audit Registry history</h3>
-                       <span className="text-[9px] font-black text-[var(--text3)] opacity-40 uppercase tracking-widest leading-none">Live Trace</span>
-                     </div>
-                    <div className="relative space-y-8 pl-8 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-0 before:w-1 before:bg-[#F8F7F4] before:rounded-full">
-                      {salaryHistory.map((h, i) => (
-                        <div key={i} className="relative group/node text-left">
-                          <div className="absolute -left-[29px] top-2 w-5 h-5 rounded-full border-4 border-white shadow-md bg-[var(--gold)] transition-transform group-hover/node:scale-125"></div>
-                          <div className="bg-[#F8F7F4] p-6 rounded-[28px] border border-[var(--border)] group-hover/node:bg-white group-hover/node:border-[var(--gold)]/30 group-hover/node:shadow-xl transition-all shadow-sm">
-                            <div className="flex justify-between items-start mb-3">
-                               <p className="text-[12px] font-black text-[var(--text)] uppercase tracking-[1.5px] leading-none">{h.month}</p>
-                               <Badge variant="success" className="text-[9px] font-black px-2 py-0 shadow-sm uppercase leading-none tracking-widest">VERIFIED</Badge>
-                            </div>
-                            <p className="text-[13px] font-black text-[var(--gold-dk)] tabular-nums leading-none italic opacity-80">{formatCurrency(h.net)} NET DISBURSEMENT</p>
-                          </div>
-                        </div>
-                      ))}
-                      {salaryHistory.length === 0 && (
-                        <div className="text-center py-16 bg-[#F8F7F4]/50 border-2 border-dashed border-[var(--border)] rounded-[32px] opacity-30 italic text-[11px] font-black uppercase tracking-[3px]">
-                          Zero Historical Trace Detected
-                        </div>
-                      )}
+                  <div className="p-8 bg-gray-50 rounded-2xl border-2 border-[var(--border)] space-y-6 shadow-inner">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Advance recovery</span>
+                      <span className="text-[18px] font-bold text-red-600 tabular-nums">-₹{selectedSalary.advanceDeduction.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Other deductions</span>
+                      <span className="text-[18px] font-bold text-red-600 tabular-nums">-₹{selectedSalary.otherDeduction.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
-                <div className="modal-footer flex gap-3">
-                  {selectedSalary.status !== 'Paid' && (
-                    <Button v2={true} onClick={() => { updateSalaryStatus(selectedSalary.id, 'Paid'); showToast(`${selectedSalary.employeeName} authorized.`); }} className="w-full !py-5 shadow-2xl shadow-black/20 text-[11px] font-black uppercase tracking-[4px] bg-[#1e2a4a] hover:bg-black border-none">
-                      AUTHORIZE DISBURSEMENT NODE
-                    </Button>
-                  )}
-                  <Button variant="secondary" onClick={() => setSelectedSalaryId(null)} className="flex-1">Dismiss Registry</Button>
-                </div>
-              </>
-            ) : (
-              <div className="p-20 text-center opacity-20 grayscale flex flex-col items-center">
-                  <FolderOpenIcon className="w-32 h-32 mb-10 text-[var(--text)]" />
-                  <h3 className="text-[20px] font-black text-[var(--text)] uppercase tracking-[8px]">Protocol Lock</h3>
-                  <p className="text-[12px] text-[var(--text3)] mt-6 leading-relaxed font-bold uppercase tracking-[2px] max-w-[280px]">Select a disbursement node from the ledger.</p>
-                  <Button variant="secondary" onClick={() => setSelectedSalaryId(null)} className="mt-8">Close</Button>
               </div>
-            )}
-          </div>
-        </div>
-      )}
 
+              {/* History Timeline */}
+              <div className="space-y-6">
+                <h3 className="text-[12px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+                  Recent history
+                </h3>
+                <div className="space-y-4">
+                  {salaryHistory.map((h, i) => (
+                    <div key={i} className="flex items-center justify-between p-6 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-[15px] font-bold text-gray-900 uppercase tracking-tight">{h.month}</span>
+                        <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mt-1">Allowed</span>
+                      </div>
+                      <span className="text-[16px] font-bold text-amber-600 tabular-nums">{formatCurrency(h.net)}</span>
+                    </div>
+                  ))}
+                  {salaryHistory.length === 0 && (
+                    <div className="p-12 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 opacity-40">
+                      <span className="text-[12px] font-bold uppercase tracking-[4px]">No history available</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-10 border-t-2 border-[var(--border)] flex gap-6">
+              <Button
+                variant="secondary" className="flex-1 h-[56px] font-bold uppercase tracking-widest shadow-md rounded-xl"
+                onClick={() => setSelectedSalaryId(null)}
+              >
+                Close
+              </Button>
+              {selectedSalary.status !== 'Paid' && (
+                <Button
+                  className="flex-[2] h-[56px] font-bold uppercase tracking-widest shadow-xl rounded-xl"
+                  onClick={() => { updateSalaryStatus(selectedSalary.id, 'Paid'); showToast(`${selectedSalary.employeeName} paid.`); }}
+                >
+                  Release payment
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-16 text-center opacity-40">
+            <div className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center mb-8 border-2 border-[var(--border)] shadow-md">
+              <FolderOpenIcon className="w-10 h-10 text-amber-600" />
+            </div>
+            <h3 className="text-[16px] font-bold text-gray-900 tracking-[4px] uppercase">No staff selected</h3>
+            <p className="text-[12px] text-gray-400 mt-4 leading-relaxed font-bold uppercase tracking-widest">Select an employee from the list.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
       {isAddStaffModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container max-w-xl animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)] leading-none">
-                  <UserIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <UserIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase leading-none mb-1.5">Employment Onboarding</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-60 leading-none">Register new nodal agent in payroll</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">New employee</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Enrollment into active payroll</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAddStaffModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddStaffModalOpen(false)}>✕</Button>
             </div>
-            <form onSubmit={handleAddStaff} className="modal-body space-y-8">
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Legal Identity Moniker</label>
-                <Input placeholder="FULL LEGAL NAME..." required v2={true} value={newStaffForm.name} onChange={e => setNewStaffForm({...newStaffForm, name: e.target.value})} className="h-12 shadow-sm font-black uppercase tracking-widest italic" />
-              </div>
-              <div className="grid grid-cols-2 gap-8">
+
+            <div className="modal-body space-y-10">
+              <form onSubmit={handleAddStaff} className="space-y-10 text-left">
                 <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Functional Grade</label>
-                  <Input placeholder="DESIGNATION..." required v2={true} value={newStaffForm.role} onChange={e => setNewStaffForm({...newStaffForm, role: e.target.value})} className="h-12 shadow-sm font-black uppercase tracking-widest italic" />
+                  <Label required>Full name</Label>
+                  <Input placeholder="e.g. Sameer Khanna" required v2={true} value={newStaffForm.name} onChange={e => setNewStaffForm({ ...newStaffForm, name: e.target.value })} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]" />
                 </div>
-                <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Base Capital Yield (₹)</label>
-                  <Input type="number" placeholder="00,000" required v2={true} value={newStaffForm.basic} onChange={e => setNewStaffForm({...newStaffForm, basic: e.target.value})} className="h-12 shadow-sm font-black tabular-nums" />
+
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <Label required>Role / Designation</Label>
+                    <Input placeholder="e.g. Site Manager" required v2={true} value={newStaffForm.role} onChange={e => setNewStaffForm({ ...newStaffForm, role: e.target.value })} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] uppercase" />
+                  </div>
+                  <div className="space-y-4">
+                    <Label required>Basic monthly salary (₹)</Label>
+                    <Input type="number" placeholder="0.00" required v2={true} value={newStaffForm.basic} onChange={e => setNewStaffForm({ ...newStaffForm, basic: e.target.value })} className="h-[56px] shadow-md rounded-2xl font-bold text-[18px] text-amber-600 font-price" />
+                  </div>
                 </div>
-              </div>
-              <div className="modal-footer flex gap-5 pt-4 px-0 border-none bg-transparent">
-                <Button type="button" variant="secondary" v2={true} className="flex-1 h-12" onClick={() => setIsAddStaffModalOpen(false)}>Abort Protocol</Button>
-                <Button type="submit" v2={true} className="flex-[2] h-12 shadow-xl shadow-gold-500/20">Initialize Agent</Button>
-              </div>
-            </form>
+
+                <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amber-500 border border-gray-100 shadow-sm">
+                    <InformationCircleIcon className="w-5 h-5" />
+                  </div>
+                  <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                    New employees are automatically enrolled in the active month&apos;s payroll cycle.
+                  </p>
+                </div>
+
+                <div className="pt-6 flex gap-6">
+                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsAddStaffModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Enroll employee</Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {isBulkModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container max-w-xl animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--green-lt)] rounded-xl flex items-center justify-center border border-[var(--green)]/20 shadow-sm text-[var(--green)] leading-none">
-                  <BanknotesIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-green-600 border-green-100 bg-green-50">
+                  <BanknotesIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase leading-none mb-1.5">Cycle Authorization</h2>
-                  <p className="text-[10px] text-[var(--green)] font-black uppercase tracking-[2.5px] leading-none opacity-60">Bulk disbursement finalization</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Run monthly payroll</h2>
+                  <p className="text-[12px] text-green-600 font-bold uppercase tracking-[2px] opacity-70 leading-none">Bulk authorization engine</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsBulkModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsBulkModalOpen(false)}>✕</Button>
             </div>
+
             <div className="modal-body space-y-10">
-              <div className="p-8 bg-[#F8F7F4] rounded-[32px] border border-dashed border-[var(--border)] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--green)]/5 rounded-bl-full blur-2xl"></div>
-                <p className="text-[15px] text-[var(--text2)] leading-relaxed font-bold uppercase tracking-tight relative z-10">
-                  You are authorizing <span className="text-[var(--green)] font-black underline decoration-dotted decoration-current">{monthlySalaries.filter(s => s.status === 'Pending').length} pending</span> spectral nodes for 
-                  the <span className="font-bold">{currentMonth}</span> cycle. This action marks all assets as <strong className="text-[var(--green)] font-black tracking-widest text-[13px] bg-white px-3 py-1 rounded-lg shadow-sm border border-[var(--green)]/10">VERIFIED</strong> in the ledger.
+              <div className="p-10 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden text-left">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <ChartBarIcon className="w-32 h-32" />
+                </div>
+                <p className="text-[18px] text-white/80 leading-relaxed font-bold tracking-tight relative z-10">
+                  You are about to approve payments for <span className="text-green-400 font-black">{monthlySalaries.filter(s => s.status === 'Pending').length} pending staff</span> for
+                  <span className="text-amber-500 font-black"> {currentMonth}</span>.
                 </p>
+                <div className="mt-8 flex items-center gap-4 text-[10px] font-bold text-white/40 tracking-[3px] uppercase relative z-10">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  System reconciliation active
+                </div>
               </div>
-              <div className="modal-footer flex gap-5 px-0 border-none bg-transparent">
-                <Button v2={true} variant="secondary" className="flex-1 h-14" onClick={() => setIsBulkModalOpen(false)}>Abort Phase</Button>
-                <Button v2={true} className="flex-[2] h-14 bg-[var(--green)] hover:bg-[var(--green-dk)] shadow-green-500/20" onClick={handleBulkAuthorize}>Authorize Cycle Nodes</Button>
+
+              <div className="pt-6 flex gap-6">
+                <Button variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsBulkModalOpen(false)}>Cancel</Button>
+                <Button variant="primary" className="flex-[2] h-[56px] bg-green-600 hover:bg-green-700 border-none rounded-2xl shadow-xl font-bold uppercase tracking-widest text-white" onClick={handleBulkAuthorize}>Approve & Pay</Button>
               </div>
             </div>
           </div>
@@ -497,99 +469,100 @@ export default function StaffSalaryPage() {
       )}
 
       {isAdvanceModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container max-w-xl animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100 shadow-sm text-amber-600 leading-none">
-                  <BanknotesIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <BanknotesIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase leading-none mb-1.5">Advance Protocol</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2.5px] leading-none opacity-60">Register liquidity disbursement node</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Advance payment</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Add cash advance</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsAdvanceModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAdvanceModalOpen(false)}>✕</Button>
             </div>
-            <form onSubmit={handleAddAdvance} className="modal-body space-y-8">
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Target Agent</label>
-                <select required value={advanceForm.employeeName} onChange={e => setAdvanceForm({ ...advanceForm, employeeName: e.target.value })} className="w-full h-12 px-5 rounded-xl border border-[var(--border)] bg-[#F8F7F4]/50 focus:border-[var(--gold)] outline-none font-black text-[13px] uppercase tracking-widest shadow-sm">
-                  <option value="">SELECT TARGET AGENT...</option>
-                  {salaries.filter(s => s.month === currentMonth).map(s => <option key={s.id} value={s.employeeName}>{s.employeeName} — {s.role}</option>)}
-                </select>
-              </div>
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Monetary Volume (₹)</label>
-                <Input required v2={true} type="number" placeholder="0.00" value={advanceForm.amount || ''} onChange={e => setAdvanceForm({ ...advanceForm, amount: Number(e.target.value) })} className="h-12 shadow-sm font-black text-amber-600 tabular-nums" />
-              </div>
-              {advanceForm.employeeName && advanceForm.amount > 0 && (
-                <div className="p-6 bg-amber-50 rounded-[28px] border border-amber-100 flex items-start gap-4 italic font-bold text-[10px] tracking-[1px] text-amber-700 animate-in slide-in-from-top-4 duration-500">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500 mt-1 shrink-0 animate-pulse"></div>
-                  <p className="uppercase leading-relaxed">PROTOCOL: LIQUIDITY WILL BE AUTO-RECOUPED FROM SUBSEQUENT PAYROLL CYCLE REGISTRY.</p>
+
+            <div className="modal-body space-y-10">
+              <form onSubmit={handleAddAdvance} className="space-y-10 text-left">
+                <div className="space-y-4">
+                  <Label required>Select employee</Label>
+                  <Select required value={advanceForm.employeeName} onChange={e => setAdvanceForm({ ...advanceForm, employeeName: e.target.value })} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]">
+                    <option value="">Select staff member...</option>
+                    {salaries.filter(s => s.month === currentMonth).map(s => <option key={s.id} value={s.employeeName}>{s.employeeName} · {s.role}</option>)}
+                  </Select>
                 </div>
-              )}
-              <div className="modal-footer flex gap-5 pt-4 px-0 border-none bg-transparent">
-                <Button type="button" variant="secondary" v2={true} className="flex-1 h-12" onClick={() => setIsAdvanceModalOpen(false)}>Abort</Button>
-                <Button type="submit" v2={true} className="flex-[2] h-12 bg-amber-600 hover:bg-amber-700 shadow-amber-500/20 font-black tracking-[4px]">Execute Advance</Button>
-              </div>
-            </form>
+
+                <div className="space-y-4">
+                  <Label required>Advance amount (₹)</Label>
+                  <Input required v2={true} type="number" placeholder="0.00" value={advanceForm.amount || ''} onChange={e => setAdvanceForm({ ...advanceForm, amount: Number(e.target.value) })} className="h-[56px] shadow-md rounded-2xl font-bold text-amber-600 text-[20px] font-price" />
+                </div>
+
+                <div className="flex items-center gap-5 p-8 bg-amber-50 rounded-2xl border-2 border-dashed border-amber-200">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amber-600 border border-amber-100 shadow-sm">
+                    <ClockIcon className="w-5 h-5" />
+                  </div>
+                  <p className="text-[13px] text-amber-700 font-bold leading-relaxed uppercase tracking-wide">
+                    This advance will be automatically deducted from the employee&apos;s next salary release.
+                  </p>
+                </div>
+
+                <div className="pt-6 flex gap-6">
+                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsAdvanceModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Commit advance</Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {isPreviewModalOpen && selectedSalary && (
         <div className="modal-overlay">
-          <div className="modal-container max-w-4xl">
+          <div className="modal-container max-w-5xl shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-2xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)] leading-none">
-                   <DocumentTextIcon className="w-6 h-6" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <DocumentTextIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[20px] font-black text-[var(--text)] tracking-tight uppercase leading-none mb-2">Disbursement Document</h2>
-                  <p className="text-[10px] font-black text-[var(--gold)] uppercase tracking-[4px] leading-none opacity-80 underline decoration-dotted decoration-[var(--gold)]/30">Nodal Status: Finalized Registry</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Digital Payslip</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Verified financial document</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsPreviewModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsPreviewModalOpen(false)}>✕</Button>
             </div>
-            <div className="modal-body overflow-y-auto">
-              <div className="bg-white shadow-[0_30px_70px_rgba(0,0,0,0.1)] transform origin-top scale-[0.8] -my-16 mx-auto rounded-[32px] overflow-hidden border border-black/5 ring-1 ring-black/5">
+
+            <div className="modal-body bg-gray-50 p-12 overflow-y-auto max-h-[70vh]">
+              <div className="bg-white rounded-[48px] overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border-2 border-gray-100 max-w-[800px] mx-auto">
                 <ProfessionalPayslip salary={selectedSalary} />
               </div>
             </div>
-            <div className="modal-footer flex justify-between items-center text-left px-0 border-none bg-transparent pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-3 h-3 rounded-full bg-[var(--green)] shadow-[0_0_10px_var(--green)]"></div>
-                <span className="text-[10px] font-black text-[var(--text3)] uppercase tracking-[3px] opacity-60">Verified Financial Token Authorized</span>
-              </div>
-              <div className="flex gap-5">
-                <Button variant="secondary" v2={true} className="h-12 px-8" onClick={() => setIsPreviewModalOpen(false)}>Dismiss</Button>
-                <Button v2={true} onClick={() => { window.print(); setIsPreviewModalOpen(false); }} className="h-12 px-10 bg-[#1e2a4a] text-white flex items-center gap-4 text-[11px] border-none shadow-2xl">
-                  <ArrowDownTrayIcon className="w-5 h-5" /> Dispatch Node
-                </Button>
+
+            <div className="modal-footer bg-white border-t-2 border-[var(--border)] p-10">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-4">
+                  <Badge variant="success" className="px-5 py-1.5 text-[11px] font-bold uppercase tracking-widest shadow-sm">Verified & Allowed</Badge>
+                </div>
+                <div className="flex gap-6">
+                  <Button variant="secondary" className="h-[56px] px-12 rounded-2xl border-2 font-bold uppercase tracking-widest shadow-md bg-white" onClick={() => setIsPreviewModalOpen(false)}>Close</Button>
+                  <Button variant="primary" className="h-[56px] px-12 rounded-2xl shadow-xl font-bold uppercase tracking-widest flex items-center gap-4" onClick={() => { window.print(); }}>
+                    <ArrowDownTrayIcon className="w-6 h-6" /> Download PDF
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Floating Add Agent Button */}
-      {!selectedSalaryId && (
-        <div className="fixed bottom-12 right-12 z-[400] animate-in slide-in-from-bottom-10 duration-700">
-          <Button v2={true} className="h-20 w-20 !p-0 rounded-full shadow-[0_20px_50px_rgba(196,160,82,0.4)] flex items-center justify-center bg-[var(--gold)] text-white hover:scale-110 active:scale-95 transition-all border-none ring-4 ring-white/20 group">
-            <PlusIcon className="w-10 h-10 group-hover:rotate-90 transition-transform duration-500" onClick={() => setIsAddStaffModalOpen(true)} />
-          </Button>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[1000] text-white px-10 py-5 rounded-[24px] shadow-[0_30px_60px_rgba(0,0,0,0.3)] flex items-center gap-5 animate-in fade-in slide-in-from-bottom-8 transition-all ring-1 ring-white/10 ${toast.type === 'warning' ? 'bg-amber-600' : 'bg-[#1e2a4a]'}`}>
-          <div className={`w-3 h-3 rounded-full ${toast.type === 'warning' ? 'bg-white animate-pulse shadow-[0_0_10px_white]' : 'bg-[var(--gold)] shadow-[0_0_10px_var(--gold)]'}`}></div>
-          <span className="text-[11px] font-black uppercase tracking-[4px] whitespace-nowrap">{toast.message}</span>
-        </div>
-      )}
+      {/* Floating Action Button */}
+      <div className="fixed bottom-12 right-12 z-[400]">
+        <Button className="h-20 w-20 !p-0 rounded-[28px] shadow-2xl flex items-center justify-center bg-gray-900 text-white border-none ring-[12px] ring-black/5 hover:scale-110 transition-transform" onClick={() => setIsAddStaffModalOpen(true)}>
+          <PlusIcon className="w-10 h-10" />
+        </Button>
+      </div>
     </>
   );
 }

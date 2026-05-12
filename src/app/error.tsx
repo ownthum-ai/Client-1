@@ -22,7 +22,7 @@ export default function Error({
       </div>
       
       <h1 className="text-4xl font-serif text-white mb-4 tracking-tight uppercase">
-        Protocol Interrupted
+        Something went wrong
       </h1>
       
       <p className="text-[13px] text-[var(--text-dim)] max-w-md mx-auto mb-10 leading-relaxed uppercase tracking-[2px] font-medium opacity-60">
@@ -36,14 +36,14 @@ export default function Error({
           className="w-full h-14 !rounded-2xl tracking-[3px] font-bold"
           icon={<ArrowPathIcon className="w-4 h-4" />}
         >
-          Initialize Reset
+          Try Again
         </Button>
         <Button 
           variant="secondary" 
           onClick={() => window.location.href = '/'}
           className="w-full h-14 !rounded-2xl tracking-[3px] font-bold border-white/5 hover:bg-white/5"
         >
-          Return to Dashboard
+          Go to Home
         </Button>
       </div>
 

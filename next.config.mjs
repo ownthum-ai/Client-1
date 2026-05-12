@@ -1,16 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
-  trailingSlash: true,
-  images: {
-    unoptimized: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {                                                                                                                                                                                                                        
-    ignoreBuildErrors: true,
+  webpack: (config, { isServer }) => {
+    if (isServer && config.output) {
+      config.output.chunkFilename = 'chunks/[name].js';
+    }
+
+    return config;
   },
 };
 

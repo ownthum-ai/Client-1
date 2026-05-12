@@ -8,15 +8,11 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
-import { Textarea } from '@/components/ui/Textarea';
 import {
   MegaphoneIcon,
   PlusIcon,
-  DevicePhoneMobileIcon,
-  MapPinIcon,
   ShieldCheckIcon,
   ArrowDownTrayIcon,
-  XMarkIcon,
   PaperAirplaneIcon,
   CheckCircleIcon,
   UserIcon,
@@ -24,10 +20,7 @@ import {
   IdentificationIcon,
   ChatBubbleLeftRightIcon,
   PhoneIcon,
-  ClipboardDocumentIcon,
-  ClockIcon,
-  CalendarDaysIcon,
-  ArrowRightIcon
+  ClipboardDocumentIcon
 } from '@heroicons/react/24/outline';
 
 const formatCurrency = (amount: number) => {
@@ -67,7 +60,7 @@ export default function BrokersPage() {
     });
     setIsModalOpen(false);
     setNewName(''); setNewFirm(''); setNewPhone(''); setNewArea(''); setNewRate('1.5%');
-    showToast("Partner authorized.");
+    showToast("Partner added.");
   };
 
   const handleSendWeekendPost = () => {
@@ -78,7 +71,7 @@ export default function BrokersPage() {
       image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=800'
     });
     setIsPostModalOpen(false);
-    showToast("Broadcast dispatched.");
+    showToast("Message sent.");
   };
 
   const initiateCall = (phone: string) => {
@@ -89,7 +82,7 @@ export default function BrokersPage() {
     window.open(`https://wa.me/${phone.replace(/\s+/g, '')}`, '_blank');
   };
 
-  // Metrics
+  // Numbers
   const activeCount = brokers.filter(b => b.status === 'Active').length;
   const totalLeads = brokers.reduce((acc, curr) => acc + curr.leadsSent, 0);
   const totalEarned = brokers.reduce((acc, curr) => acc + curr.totalCommissionEarned, 0);
@@ -102,77 +95,77 @@ export default function BrokersPage() {
 
   return (
     <>
-      <div className="space-y-[var(--section-gap)] animate-in fade-in duration-150 pb-20 text-left">
-        {/* V2 Header */}
+      <div className="space-y-[var(--section-gap)] pb-20 text-left">
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="text-left">
-            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2 uppercase">Broker Management</h1>
+            <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2">Partners</h1>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 uppercase tracking-wider">
-                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5 animate-pulse"></span>
-                LIVE OPERATIONAL STREAM
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/20 tracking-wider">
+                <span className="w-1 h-1 rounded-full bg-[var(--green)] mr-1.5"></span>
+                Live status
               </span>
-              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums uppercase tracking-tight opacity-50">Channel partner network, referrals and commission tracking</span>
+              <span className="text-[11px] text-[var(--text3)] font-medium tabular-nums tracking-tight opacity-70">Partners and earnings tracking</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button
               v2={true}
               size="default"
-              className="px-8 shadow-lg shadow-black/10 rounded-lg"
+              className="px-8 shadow-sm rounded-lg"
               onClick={() => setIsModalOpen(true)}
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              Add Broker Entry
+              Add partner
             </Button>
           </div>
         </div>
 
-        {/* KPI Matrix */}
+        {/* Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <KPICard
-            label="ACTIVE PARTNERS"
+            label="Active partners"
             value={activeCount}
-            trend={{ value: "Institutional", type: "neutral" }}
+            trend={{ value: "Current", type: "neutral" }}
           />
           <KPICard
-            label="LEADS RECEIVED"
+            label="Leads"
             value={totalLeads}
-            trend={{ value: "Total Input", type: "up" }}
+            trend={{ value: "Total", type: "up" }}
           />
           <KPICard
-            label="TOTAL EARNINGS"
+            label="Total earnings"
             value={formatCurrency(totalEarned)}
-            trend={{ value: "Settled", type: "up" }}
+            trend={{ value: "Paid out", type: "up" }}
           />
           <KPICard
-            label="PENDING PAYOUT"
+            label="Pending payout"
             value={formatCurrency(totalPending)}
-            trend={{ value: totalPending > 0 ? "ACTION REQ" : "CLEARED", type: totalPending > 0 ? "down" : "up" }}
+            trend={{ value: "Awaiting pay", type: totalPending > 0 ? "down" : "up" }}
           />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-[var(--section-gap)]">
-          {/* Main List Container */}
+          {/* Main List */}
           <div className="lg:col-span-2 space-y-8">
-            <Card className="p-0 overflow-hidden min-h-[600px]">
-              <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
-                <div>
-                  <h2 className="text-[12px] font-bold text-[var(--text)] uppercase tracking-[2px]">Institutional Partner Registry</h2>
-                  <p className="text-[10px] font-medium text-[var(--text3)] uppercase tracking-[1px] mt-1 opacity-60">Ahmedabad Zonal Operations</p>
+            <Card className="p-0 overflow-hidden min-h-[600px] shadow-sm">
+              <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-gray-50/30">
+                <div className="text-left">
+                  <h2 className="text-[12px] font-bold text-[var(--text)] tracking-[1px]">Partner list</h2>
+                  <p className="text-[10px] font-medium text-[var(--text3)] mt-1 opacity-70">Active channel partners</p>
                 </div>
-                <Badge variant="neutral">SYNC: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Badge>
+                <Badge variant="neutral" className="shadow-sm">Live</Badge>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[var(--bg)] border-b border-[var(--border)]">
-                      <th className="p-[12px_24px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Partner Identity</th>
-                      <th className="p-[12px_15px] text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Zonal Rate</th>
-                      <th className="p-[12px_15px] text-center text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Yield</th>
-                      <th className="p-[12px_15px] text-right text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">Earnings</th>
-                      <th className="p-[12px_24px] text-right text-[10px] font-bold text-[var(--text3)] uppercase tracking-[1px]">State</th>
+                    <tr className="bg-gray-50 border-b border-[var(--border)]">
+                      <th className="p-[12px_24px] text-[10px] font-semibold text-[var(--text3)] tracking-[1px]">Partner</th>
+                      <th className="p-[12px_15px] text-[10px] font-semibold text-[var(--text3)] tracking-[1px]">Area</th>
+                      <th className="p-[12px_15px] text-center text-[10px] font-semibold text-[var(--text3)] tracking-[1px]">Leads</th>
+                      <th className="p-[12px_15px] text-right text-[10px] font-semibold text-[var(--text3)] tracking-[1px]">Earnings</th>
+                      <th className="p-[12px_24px] text-right text-[10px] font-semibold text-[var(--text3)] tracking-[1px]">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
@@ -180,40 +173,40 @@ export default function BrokersPage() {
                       <tr
                         key={b.id}
                         onClick={() => setSelectedBrokerId(b.id)}
-                        className="group hover:bg-[var(--bg)] transition-all cursor-pointer"
+                        className="hover:bg-gray-50 cursor-pointer"
                       >
                         <td className="p-[12px_24px]">
-                          <div className="flex items-center gap-4">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--bg)] border border-[var(--border)] text-[var(--gold)] group-hover:bg-[var(--gold)] group-hover:text-white transition-all flex items-center justify-center text-[13px] font-black leading-none">
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="w-8 h-8 rounded-lg bg-gray-100 border border-[var(--border)] text-[var(--gold)] flex items-center justify-center text-[13px] font-semibold shadow-sm">
                               {b.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-[13px] font-bold text-[var(--text)] tracking-tight leading-none uppercase group-hover:text-[var(--gold)] transition-colors mb-1">{b.name}</span>
-                              <span className="text-[10px] text-[var(--text3)] font-bold uppercase tracking-[1px] opacity-40 leading-none">{b.firm}</span>
+                              <span className="text-[13px] font-semibold text-[var(--text)] tracking-tight leading-none mb-1">{b.name}</span>
+                              <span className="text-[10px] text-[var(--text3)] font-medium tracking-[0.5px] opacity-70 leading-none">{b.firm}</span>
                             </div>
                           </div>
                         </td>
                         <td className="p-[12px_15px]">
-                          <div className="flex flex-col">
-                            <span className="text-[12px] font-bold text-[var(--text2)] uppercase tracking-tight leading-none">{b.area}</span>
-                            <span className="text-[9px] font-bold text-[var(--gold)] uppercase tracking-widest mt-1 opacity-60">{b.commissionRate} Node</span>
+                          <div className="flex flex-col text-left">
+                            <span className="text-[12px] font-semibold text-[var(--text2)] tracking-tight leading-none">{b.area}</span>
+                            <span className="text-[9px] font-medium text-[var(--gold)] tracking-widest mt-1 opacity-70">{b.commissionRate} rate</span>
                           </div>
                         </td>
                         <td className="p-[12px_15px] text-center">
                           <div className="flex flex-col items-center">
-                            <span className="text-[13px] font-bold text-[var(--text)] tracking-tight">{b.conversions} / {b.leadsSent}</span>
-                            <span className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] mt-1 opacity-40">CONV.</span>
+                            <span className="text-[13px] font-semibold text-[var(--text)] tracking-tight">{b.conversions} / {b.leadsSent}</span>
+                            <span className="text-[9px] font-medium text-[var(--text3)] tracking-[0.5px] mt-1 opacity-70">Conv.</span>
                           </div>
                         </td>
                         <td className="p-[12px_15px] text-right">
-                          <div className="flex flex-col items-end">
-                            <span className="text-[14px] font-bold text-[var(--green)] tracking-tight leading-none font-price">{formatCurrency(b.totalCommissionEarned)}</span>
-                            <span className="text-[9px] font-bold text-[var(--red)] uppercase tracking-tighter mt-1 opacity-60 font-price">DUE: {formatCurrency(b.pendingCommission)}</span>
+                          <div className="flex flex-col items-end text-right">
+                            <span className="text-[14px] font-bold text-[var(--green)] tracking-tight leading-none tabular-nums">{formatCurrency(b.totalCommissionEarned)}</span>
+                            <span className="text-[9px] font-medium text-[var(--red)] tracking-tight mt-1 opacity-70 tabular-nums">Due: {formatCurrency(b.pendingCommission)}</span>
                           </div>
                         </td>
                         <td className="p-[12px_24px] text-right">
-                          <Badge variant={b.status === 'Active' ? 'success' : 'neutral'}>
-                            {b.status.toUpperCase()}
+                          <Badge variant={b.status === 'Active' ? 'success' : 'neutral'} className="shadow-sm">
+                            {b.status}
                           </Badge>
                         </td>
                       </tr>
@@ -226,68 +219,34 @@ export default function BrokersPage() {
 
           {/* Action Widgets */}
           <div className="space-y-10">
-            {/* Weekend Broadcast Widget */}
-            <Card className="p-10 bg-[var(--sb)] relative overflow-hidden group text-left border-none shadow-2xl">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-125 transition-transform text-white">
-                <MegaphoneIcon className="w-20 h-20" />
-              </div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[4px] mb-2 leading-none">Administrative Node</p>
-              <h3 className="text-[20px] font-bold text-white tracking-tight uppercase leading-none mb-10">Engagement Automation</h3>
-
-              <div className="space-y-6 mb-12 relative z-10">
-                <div className="bg-white/5 p-5 rounded-[24px] border border-white/10 flex justify-between items-center group-hover:bg-white/10 transition-all">
-                  <div>
-                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-[3px] mb-1.5 leading-none">Last Transmission</p>
-                    <p className="text-[12px] font-bold text-white uppercase tracking-wider leading-none">{lastPost?.date || 'SYS-IDLE'}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-[3px] mb-1.5 leading-none">Status</p>
-                    <p className="text-[12px] font-bold text-[var(--gold)] uppercase tracking-wider leading-none">{lastPost?.status || 'READY'}</p>
-                  </div>
-                </div>
-                <div className="p-6 bg-[var(--gold)]/10 border border-[var(--gold)]/20 rounded-[28px]">
-                  <p className="text-[11px] font-medium text-[var(--gold)] leading-relaxed uppercase tracking-widest opacity-80">
-                    &quot;Partner Exclusive: Sunrise Greens site update. New yields approaching.&quot;
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                variant="primary" className="w-full !py-6 !rounded-[24px] tracking-[3px] gap-2 shadow-lg shadow-black/20"
-                onClick={() => setIsPostModalOpen(true)}
-              >
-                Finalize Dispatch <PaperAirplaneIcon className="w-5 h-5 shadow-sm" />
-              </Button>
-            </Card>
-
-            {/* Network Health Widget */}
-            <Card className="p-10 text-left">
-              <h3 className="text-[10px] font-bold text-[var(--text3)] uppercase tracking-[4px] mb-10 leading-none opacity-50">Network Health Node</h3>
+            {/* Summary Widget */}
+            <Card className="p-10 text-left shadow-sm border border-[var(--border)]">
+              <h3 className="text-[10px] font-bold text-[var(--text3)] tracking-[2px] mb-10 leading-none opacity-50 uppercase">Summary</h3>
               <div className="space-y-10">
                 <div className="space-y-4">
-                  <div className="flex justify-between text-[11px] font-bold uppercase tracking-[2px] leading-none">
-                    <span className="text-[var(--text2)]">Referral Priority</span>
+                  <div className="flex justify-between text-[11px] font-bold tracking-[1px] leading-none uppercase">
+                    <span className="text-[var(--text2)]">Quality</span>
                     <span className="text-[var(--gold)]">
-                      {totalLeads > 0 ? (totalEarned > 0 ? 'High Node' : 'Emerging') : 'SYS-IDLE'}
+                      {totalLeads > 0 ? (totalEarned > 0 ? 'High' : 'Normal') : 'Idle'}
                     </span>
                   </div>
-                  <div className="h-1.5 bg-[var(--bg)] rounded-full border border-[var(--border)] overflow-hidden p-0.5">
+                  <div className="h-1.5 bg-gray-50 rounded-full border border-[var(--border)] overflow-hidden">
                     <div
-                      className="h-full bg-[var(--gold)] rounded-full transition-all duration-1000"
+                      className="h-full bg-[var(--gold)]"
                       style={{ width: `${totalLeads > 0 ? Math.min(100, Math.round((brokers.reduce((acc, b) => acc + b.conversions, 0) / totalLeads) * 100 * 5)) : 0}%` }}
                     ></div>
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex justify-between text-[11px] font-bold uppercase tracking-[2px] leading-none">
-                    <span className="text-[var(--text2)]">Global Engagement</span>
+                  <div className="flex justify-between text-[11px] font-bold tracking-[1px] leading-none uppercase">
+                    <span className="text-[var(--text2)]">Active rate</span>
                     <span className="text-[var(--green)]">
                       {brokers.length > 0 ? Math.round((activeCount / brokers.length) * 100) : 0}%
                     </span>
                   </div>
-                  <div className="h-1.5 bg-[var(--bg)] rounded-full border border-[var(--border)] overflow-hidden p-0.5">
+                  <div className="h-1.5 bg-gray-50 rounded-full border border-[var(--border)] overflow-hidden">
                     <div
-                      className="h-full bg-[var(--green)] rounded-full transition-all duration-1000"
+                      className="h-full bg-[var(--green)]"
                       style={{ width: `${brokers.length > 0 ? (activeCount / brokers.length) * 100 : 0}%` }}
                     ></div>
                   </div>
@@ -298,234 +257,259 @@ export default function BrokersPage() {
         </div>
       </div>
 
-      {/* Fixed elements outside the animated container to avoid the 'contained' trap */}
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[1000] bg-[var(--sb)] text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[1000] bg-gray-900 text-white px-8 py-4 rounded-xl shadow-2xl flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-[var(--gold)]"></div>
-          <span className="text-[10px] font-bold uppercase tracking-[2.5px] whitespace-nowrap">{toast.message}</span>
+          <span className="text-[10px] font-bold tracking-[2.5px] whitespace-nowrap uppercase">{toast.message}</span>
         </div>
       )}
 
-      {/* Partner Profile Modal */}
+      {/* Details Modal */}
       {selectedBroker && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center text-[var(--gold)] border border-[var(--gold)]/20 shadow-sm leading-none">
-                  <IdentificationIcon className="w-7 h-7" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <IdentificationIcon className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-2">{selectedBroker.name}</h2>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold bg-[var(--green-lt)] text-[var(--green)] border border-[var(--green)]/10 uppercase tracking-widest leading-none">
-                      {selectedBroker.status.toUpperCase()} NODE
-                    </span>
-                    <p className="text-[10px] text-[var(--gold)] font-bold uppercase tracking-[2px] opacity-80 leading-none">ID: {selectedBroker.id.substring(0, 8)}</p>
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedBroker.name}</h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Badge variant={selectedBroker.status === 'Active' ? 'success' : 'neutral'} className="px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest leading-none shadow-sm">
+                      {selectedBroker.status}
+                    </Badge>
+                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-[2px] opacity-60 tabular-nums">Broker ID: {selectedBroker.id.substring(0, 8).toUpperCase()}</p>
                   </div>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setSelectedBrokerId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedBrokerId(null)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-8">
-              {/* Action Blueprint */}
-              <div className="grid grid-cols-2 gap-4">
+            <div className="modal-body space-y-10 text-left">
+              {/* Communication Layer */}
+              <div className="grid grid-cols-2 gap-8">
                 <Button
                   v2={true}
                   variant="secondary"
-                  className="h-14 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px] gap-3 bg-[var(--gold-lt)]/30 transition-all hover:bg-[var(--gold-lt)]/50"
+                  className="h-[64px] rounded-[24px] border-2 text-[12px] font-bold tracking-[2px] gap-4 bg-gray-50 shadow-md uppercase hover:bg-gray-100 transition-all duration-300"
                   onClick={() => initiateCall(selectedBroker.phone)}
                 >
-                  <PhoneIcon className="w-4 h-4" /> Initiate Voice
+                  <PhoneIcon className="w-6 h-6 text-amber-600" /> Call Now
                 </Button>
                 <Button
                   v2={true}
                   variant="secondary"
-                  className="h-14 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px] gap-3 bg-[#e8fbf0]/30 text-[#10b981] transition-all hover:bg-[#e8fbf0]/50"
+                  className="h-[64px] rounded-[24px] border-2 text-[12px] font-bold tracking-[2px] gap-4 bg-green-50 text-green-700 shadow-md border-green-100 uppercase hover:bg-green-100 transition-all duration-300"
                   onClick={() => initiateWhatsApp(selectedBroker.phone)}
                 >
-                  <ChatBubbleLeftRightIcon className="w-4 h-4" /> WhatsApp Sync
+                  <ChatBubbleLeftRightIcon className="w-6 h-6" /> WhatsApp Now
                 </Button>
               </div>
 
-              {/* Performance Analytics Grid */}
-              <div className="grid grid-cols-3 gap-4">
+              {/* Performance Metrics */}
+              <div className="grid grid-cols-3 gap-8">
                 {[
-                  { label: 'Yield Index', value: `${selectedBroker.leadsSent > 0 ? Math.round((selectedBroker.conversions / selectedBroker.leadsSent) * 100) : 0}%`, sub: 'Efficiency' },
-                  { label: 'Life Leads', value: selectedBroker.leadsSent, sub: 'Total Input' },
-                  { label: 'Commission', value: selectedBroker.commissionRate, sub: 'Node Rate' },
+                  { label: 'Success Rate', value: `${selectedBroker.leadsSent > 0 ? Math.round((selectedBroker.conversions / selectedBroker.leadsSent) * 100) : 0}%`, sub: 'Result index' },
+                  { label: 'Total Leads', value: selectedBroker.leadsSent, sub: 'Traffic' },
+                  { label: 'Commission Rate', value: selectedBroker.commissionRate, sub: 'Broker share' },
                 ].map((stat, idx) => (
-                  <div key={idx} className="p-6 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all text-center">
-                    <p className="text-[9px] font-black text-[var(--text3)] uppercase tracking-[1px] mb-2 opacity-50">{stat.label}</p>
-                    <p className="text-[18px] font-black text-[var(--text)] tracking-tighter tabular-nums leading-none">{stat.value}</p>
-                    <p className="text-[8px] font-bold text-[var(--gold)] uppercase tracking-[1px] mt-2 opacity-40">{stat.sub}</p>
+                  <div key={idx} className="p-10 bg-gray-50 rounded-[32px] border-2 border-gray-100 text-center shadow-sm">
+                    <p className="text-[10px] font-bold text-gray-400 tracking-[2px] mb-4 opacity-70 uppercase">{stat.label}</p>
+                    <p className="text-[28px] font-bold text-gray-900 tracking-tight tabular-nums leading-none mb-4">{stat.value}</p>
+                    <p className="text-[10px] font-bold text-amber-600 tracking-[1.5px] uppercase">{stat.sub}</p>
                   </div>
                 ))}
               </div>
 
-              {/* Commission Settlement Timeline */}
-              <div className="space-y-6 text-left">
-                <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
-                  <h3 className="text-[11px] font-black text-[var(--text3)] uppercase tracking-[2px] flex items-center gap-2">
-                    <ClipboardDocumentIcon className="w-4 h-4 opacity-50" />
-                    Settlement Ledger
-                  </h3>
-                  <Badge variant="neutral" className="font-black px-3 py-1 text-[9px] border-none shadow-sm text-[var(--gold)] bg-[var(--gold-lt)]/20">
-                    {formatCurrency(selectedBroker.pendingCommission)} PENDING
-                  </Badge>
+              {/* Ledger Section */}
+              <div className="space-y-8">
+                <div className="flex items-center justify-between border-b-2 border-gray-100 pb-5">
+                   <h3 className="text-[11px] font-bold text-gray-400 tracking-[3px] uppercase">
+                      Payments History
+                   </h3>
+                   <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Balance due:</span>
+                      <span className="text-[18px] font-bold text-amber-600 tabular-nums">{formatCurrency(selectedBroker.pendingCommission)}</span>
+                   </div>
                 </div>
 
-                <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-[2px] before:bg-[var(--border)]">
+                <div className="space-y-5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {selectedBroker.commissions.length > 0 ? (
-                    selectedBroker.commissions.map((c, idx) => (
-                      <div key={c.id} className="relative pl-10 group">
-                        <div className={`absolute left-0 top-1.5 w-[24px] h-[24px] rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10
-                                              ${c.status === 'Paid' ? 'bg-[var(--green)]' : 'bg-[var(--red)]'}`}>
-                          <CheckCircleIcon className="w-2.5 h-2.5 text-white" />
-                        </div>
-                        <div className="bg-white p-6 rounded-xl border border-[var(--border)] group-hover:border-[var(--gold)]/30 transition-all shadow-sm">
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="text-left">
-                              <span className="text-[11px] font-black text-[var(--text)] uppercase tracking-[0.5px] block">{c.plotNumber} · {c.customerName}</span>
-                              <span className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] opacity-40 mt-1 block">{c.date}</span>
-                            </div>
-                            <span className={`text-[14px] font-black tracking-tight font-price ${c.status === 'Paid' ? 'text-[var(--green)]' : 'text-[var(--red)]'}`}>{formatCurrency(c.amount)}</span>
+                    selectedBroker.commissions.map((c) => (
+                      <div key={c.id} className="bg-white p-8 rounded-[32px] border-2 border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex justify-between items-center">
+                          <div className="text-left space-y-2">
+                            <span className="text-[16px] font-bold text-gray-900 tracking-tight block uppercase">{c.plotNumber} — {c.customerName}</span>
+                            <span className="text-[11px] font-bold text-gray-400 tracking-[2px] block uppercase tabular-nums opacity-60">{c.date}</span>
                           </div>
-
-                          {c.status === 'Due' && (
-                            <Button
-                              v2={true}
-                              className="w-full h-10 rounded-lg text-[9px] font-bold uppercase tracking-[2px] shadow-[var(--gold)]/10"
-                              onClick={() => { markCommissionPaid(selectedBroker.id, c.id); showToast("Brokerage settled."); }}
-                            >
-                              Authorize Settlement
-                            </Button>
-                          )}
+                          <div className="flex flex-col items-end gap-4">
+                            <span className={`text-[20px] font-bold tracking-tight tabular-nums ${c.status === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>{formatCurrency(c.amount)}</span>
+                            {c.status === 'Due' && (
+                              <Button
+                                v2={true}
+                                className="h-10 px-8 rounded-2xl text-[10px] font-bold tracking-[2px] shadow-lg uppercase"
+                                onClick={() => { markCommissionPaid(selectedBroker.id, c.id); showToast("Payment approved."); }}
+                              >
+                                Approve Payment
+                              </Button>
+                            )}
+                            {c.status === 'Paid' && (
+                              <Badge variant="success" className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest shadow-sm">settled</Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-10 text-center opacity-30 select-none">
-                      <p className="text-[10px] font-bold uppercase tracking-[2px]">No active commission records found.</p>
+                    <div className="p-20 text-center border-2 border-dashed border-gray-100 rounded-[32px]">
+                      <ClipboardDocumentIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                      <p className="text-[11px] font-bold tracking-[2px] text-gray-400 uppercase">No historical records found</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Registry Details */}
-              <div className="space-y-4">
-                <h3 className="text-[11px] font-black text-[var(--text3)] uppercase tracking-[2px] border-b border-[var(--border)] pb-3 flex items-center gap-2 opacity-60">
-                  <ShieldCheckIcon className="w-4 h-4" />
-                  Security Matrix
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-5 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all">
-                    <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] mb-2 opacity-50">Authorized Comm.</p>
-                    <p className="text-[13px] font-bold text-[var(--text)] tabular-nums">{selectedBroker.phone}</p>
-                  </div>
-                  <div className="p-5 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all">
-                    <p className="text-[9px] font-bold text-[var(--text3)] uppercase tracking-[1px] mb-2 opacity-50">Zonal Territory</p>
-                    <p className="text-[13px] font-bold text-[var(--text)] uppercase tracking-tight">{selectedBroker.area}</p>
-                  </div>
+              {/* Physical Identity */}
+               <div className="grid grid-cols-2 gap-8">
+                <div className="p-10 bg-gray-50 rounded-[32px] border-2 border-gray-100 shadow-sm">
+                   <Label className="mb-3 block">Phone Number</Label>
+                   <span className="text-[18px] font-bold text-gray-900 tabular-nums">{selectedBroker.phone}</span>
+                </div>
+                <div className="p-10 bg-gray-50 rounded-[32px] border-2 border-gray-100 shadow-sm">
+                   <Label className="mb-3 block">Working Area</Label>
+                   <span className="text-[18px] font-bold text-gray-900 uppercase tracking-tight">{selectedBroker.area}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="modal-footer flex flex-col gap-3">
-              <Button
-                v2={true}
-                className="w-full h-14 rounded-xl shadow-lg shadow-gold-500/10 text-[10px] font-bold uppercase tracking-[3px] gap-3"
-                onClick={() => window.print()}
-              >
-                Export Registry Audit <ArrowDownTrayIcon className="w-5 h-5" />
-              </Button>
-              <Button
-                v2={true}
-                variant="secondary"
-                className="w-full h-12 rounded-xl border-[var(--border)] text-[10px] font-bold uppercase tracking-[2px]"
-                onClick={() => { updateBrokerStatus(selectedBroker.id, selectedBroker.status === 'Active' ? 'Inactive' : 'Active'); setSelectedBrokerId(null); showToast("Status overridden."); }}
-              >
-                {selectedBroker.status === 'Active' ? 'Terminate Node' : 'Initialize Node'}
-              </Button>
+              <div className="pt-6 flex gap-8">
+                <Button
+                  v2={true}
+                  className="flex-[2] h-[64px] rounded-[24px] shadow-xl font-bold tracking-[2px] text-[12px] uppercase gap-4"
+                  onClick={() => window.print()}
+                >
+                  Download report <ArrowDownTrayIcon className="w-6 h-6" />
+                </Button>
+                <Button
+                  v2={true}
+                  variant="secondary"
+                  className="flex-1 h-[64px] rounded-[24px] border-2 font-bold tracking-[1px] text-[12px] bg-white shadow-md uppercase transition-all duration-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100"
+                  onClick={() => { updateBrokerStatus(selectedBroker.id, selectedBroker.status === 'Active' ? 'Inactive' : 'Active'); setSelectedBrokerId(null); showToast("Status modified."); }}
+                >
+                  {selectedBroker.status === 'Active' ? 'Deactivate' : 'Activate'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Partner Onboarding Protocol */}
+      {/* Add Broker Modal */}
       {isModalOpen && (
-        <div className="modal-overlay animate-in fade-in duration-300">
-          <div className="modal-container animate-in zoom-in-95 duration-300">
+        <div className="modal-overlay">
+          <div className="modal-container shadow-2xl">
             <div className="modal-header">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                  <UserIcon className="w-5 h-5" />
+              <div className="flex items-center gap-6 text-left">
+                <div className="modal-header-icon text-amber-600">
+                  <UserIcon className="w-8 h-8" />
                 </div>
-                <div>
-                  <h2 className="text-[17px] font-black text-[var(--text)] tracking-tight uppercase font-serif leading-none mb-1.5">Partner Onboarding</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] opacity-60 leading-none">Authorize new channel partner node</p>
+                <div className="text-left">
+                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Add Partner</h2>
+                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Add new broker details</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)] h-8 w-8" onClick={() => setIsModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsModalOpen(false)}>✕</Button>
             </div>
 
-            <form onSubmit={handleAddSubmit} className="modal-body space-y-5">
-              <div className="grid grid-cols-2 gap-6">
+            <form onSubmit={handleAddSubmit} className="modal-body space-y-10 text-left">
+              <div className="grid grid-cols-2 gap-10">
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Entity Name</label>
-                    <Input required v2={true} value={newName} onChange={e => setNewName(e.target.value)} type="text" placeholder="IDENTITY KEY" className="h-12 text-[12px]" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Firm / Agency</label>
-                    <Input v2={true} value={newFirm} onChange={e => setNewFirm(e.target.value)} type="text" placeholder="INSTITUTIONAL NAME" className="h-12 text-[12px]" />
-                  </div>
+                  <Label required>Broker Name</Label>
+                  <Input 
+                    required 
+                    v2={true} 
+                    value={newName} 
+                    onChange={e => setNewName(e.target.value)} 
+                    type="text" 
+                    placeholder="Enter name" 
+                    className="h-[56px] text-[15px] shadow-md rounded-2xl font-bold uppercase" 
+                  />
                 </div>
-
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Authorized WhatsApp</label>
-                    <Input required v2={true} value={newPhone} onChange={e => setNewPhone(e.target.value)} type="tel" placeholder="+91 XXXX XXXX" className="h-12 text-[12px]" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Yield Rate</label>
-                    <Input required v2={true} value={newRate} onChange={e => setNewRate(e.target.value)} type="text" placeholder="E.G. 1.5%" className="h-12 text-[12px]" />
-                  </div>
+                  <Label required>Phone Number</Label>
+                  <Input 
+                    required 
+                    v2={true} 
+                    value={newPhone} 
+                    onChange={e => setNewPhone(e.target.value)} 
+                    type="tel" 
+                    placeholder="+91 XXXX XXX XXX" 
+                    className="h-[56px] text-[15px] shadow-md rounded-2xl font-bold tabular-nums" 
+                  />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-[var(--text3)] uppercase tracking-[2.5px] px-1">Zonal Operations</label>
-                <Input required v2={true} value={newArea} onChange={e => setNewArea(e.target.value)} type="text" placeholder="GEO-ZONING DATA" className="h-12 text-[12px]" />
+              <div className="grid grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <Label>Firm Name</Label>
+                  <Input 
+                    v2={true} 
+                    value={newFirm} 
+                    onChange={e => setNewFirm(e.target.value)} 
+                    type="text" 
+                    placeholder="e.g. Skyline Realty" 
+                    className="h-[56px] text-[15px] shadow-md rounded-2xl font-bold uppercase" 
+                  />
+                </div>
+                <div className="space-y-4">
+                  <Label required>Commission Rate (%)</Label>
+                  <Input 
+                    required 
+                    v2={true} 
+                    value={newRate} 
+                    onChange={e => setNewRate(e.target.value)} 
+                    type="text" 
+                    placeholder="e.g. 2.0%" 
+                    className="h-[56px] text-[15px] shadow-md rounded-2xl font-bold tabular-nums" 
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center gap-4 p-5 bg-[var(--bg)]/50 rounded-xl border border-dashed border-[var(--border)]">
-                <div className="w-9 h-9 shrink-0 rounded-full bg-white flex items-center justify-center text-[var(--gold)] border border-[var(--border)] shadow-sm">
-                  <ShieldCheckIcon className="w-4.5 h-4.5" />
-                </div>
-                <p className="text-[10px] text-[var(--text3)] font-bold italic leading-relaxed uppercase tracking-[1.5px] opacity-60">
-                  Partner authorization requires valid institutional credentials and zonal territory clearance before node initialization.
+              <div className="space-y-4">
+                <Label required>Working Area</Label>
+                <Input 
+                  required 
+                  v2={true} 
+                  value={newArea} 
+                  onChange={e => setNewArea(e.target.value)} 
+                  type="text" 
+                  placeholder="Primary location" 
+                  className="h-[56px] text-[15px] shadow-md rounded-2xl font-bold uppercase" 
+                />
+              </div>
+
+              <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                <ShieldCheckIcon className="w-10 h-10 text-amber-500 shrink-0" />
+                <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                  Broker details are saved in the marketing list.
                 </p>
               </div>
 
-              <div className="pt-2 flex gap-4">
+              <div className="pt-6 flex gap-6">
                 <Button
                   type="button"
                   variant="secondary"
-                  v2={true}
-                  className="flex-1 h-12 rounded-xl border-[var(--border)] font-bold uppercase tracking-[2px] text-[10px] bg-white shadow-sm"
+                  className="flex-1 h-[56px] rounded-2xl border-2 font-bold tracking-[2px] text-[12px] bg-white shadow-md uppercase hover:bg-gray-50 transition-all duration-300"
                   onClick={() => setIsModalOpen(false)}
                 >
-                  Abort Protocol
+                  Cancel
                 </Button>
                 <Button
                   type="submit"
-                  v2={true}
-                  className="flex-[2] h-12 rounded-xl shadow-lg shadow-[var(--gold)]/10 font-bold uppercase tracking-[3px] text-[10px]"
+                  className="flex-[2] h-[56px] rounded-2xl shadow-xl font-bold tracking-[2px] text-[12px] uppercase"
                 >
-                  Commit Registry
+                  Confirm registration
                 </Button>
               </div>
             </form>
@@ -533,60 +517,7 @@ export default function BrokersPage() {
         </div>
       )}
 
-      {/* Post Confirmation Modal */}
-      {isPostModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl p-0 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 border border-[var(--border)] overflow-hidden">
-            <div className="p-8 border-b border-[var(--border)] bg-[var(--bg)] flex justify-between items-center text-left">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--gold-lt)] rounded-xl flex items-center justify-center border border-[var(--gold)]/20 shadow-sm text-[var(--gold)]">
-                  <MegaphoneIcon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-[18px] font-black text-[var(--text)] tracking-tight uppercase font-serif">Initialize Broadcast</h2>
-                  <p className="text-[10px] text-[var(--text3)] font-black uppercase tracking-[2px] mt-1 opacity-60">Mass communication protocol node</p>
-                </div>
-              </div>
-              <Button variant="secondary" size="icon" className="rounded-lg border-[var(--border)]" onClick={() => setIsPostModalOpen(false)}>✕</Button>
-            </div>
-
-            <div className="p-8 space-y-8 text-left">
-              <div className="p-8 bg-[var(--gold)]/5 rounded-xl border border-[var(--border)] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--gold)]/10 rounded-bl-full blur-xl"></div>
-                <p className="text-[9px] font-black text-[var(--gold)] uppercase tracking-[3px] mb-6 flex items-center gap-2">
-                  <SignalIcon className="w-4 h-4" /> Finalized Transmission
-                </p>
-                <p className="text-[14px] font-bold text-[var(--text)] leading-relaxed uppercase italic opacity-80 border-l-2 border-[var(--gold)]/30 pl-4">
-                  &quot;Partner Exclusive: Sunrise Greens site update. New yields approaching. Access authorized.&quot;
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between p-5 bg-[var(--bg)]/50 rounded-xl border border-[var(--border)]">
-                <span className="text-[10px] font-black text-[var(--text3)] uppercase tracking-[2px]">Target Nodes:</span>
-                <span className="text-[12px] font-black text-[var(--gold)] uppercase tracking-wider tabular-nums">{activeCount} AUTHORIZED PARTNERS</span>
-              </div>
-
-              <div className="pt-4 flex gap-4">
-                <Button
-                  variant="secondary"
-                  v2={true}
-                  className="flex-1 h-12 rounded-xl border-[var(--border)] font-bold uppercase tracking-[2px] text-[10px]"
-                  onClick={() => setIsPostModalOpen(false)}
-                >
-                  Abort
-                </Button>
-                <Button
-                  v2={true}
-                  className="flex-[2] h-12 rounded-xl shadow-lg shadow-[var(--gold)]/10 font-bold uppercase tracking-[3px] text-[10px] gap-2"
-                  onClick={handleSendWeekendPost}
-                >
-                  Submit Dispatch <PaperAirplaneIcon className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Send Modal Removed */}
     </>
   );
 }

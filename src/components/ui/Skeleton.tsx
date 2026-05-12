@@ -11,7 +11,7 @@ interface SkeletonProps {
 export const Skeleton = ({ className = '', width, height, borderRadius }: SkeletonProps) => {
   return (
     <div
-      className={`skeleton-pulse bg-[var(--border)] opacity-20 ${className}`}
+      className={`bg-gray-100 ${className}`}
       style={{
         width: width || '100%',
         height: height || '1rem',

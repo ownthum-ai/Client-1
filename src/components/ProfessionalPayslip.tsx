@@ -42,7 +42,7 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
               <div className="w-12 h-12 bg-[var(--gold)] flex items-center justify-center text-white text-2xl font-black rounded-sm">O</div>
               <h1 className="text-5xl font-black tracking-tighter uppercase font-serif">OWNTHUM</h1>
             </div>
-            <p className="text-[12px] font-bold text-[var(--gold-dk)] uppercase tracking-[6px] ml-1">Executive Asset Management Protocol</p>
+            <p className="text-[12px] font-bold text-[var(--gold-dk)] uppercase tracking-[6px] ml-1">Ownthum Account Record</p>
           </div>
           <div className="text-right space-y-2">
             <h2 className="text-2xl font-black uppercase tracking-[3px] font-serif text-[var(--gold-dk)]">Official Payslip</h2>
@@ -56,11 +56,11 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
         <div className="grid grid-cols-[1fr_300px] gap-16">
           <div className="space-y-10">
             <div>
-              <p className="text-[10px] font-bold text-black/40 uppercase tracking-[3px] mb-4">I. Recipient Identity</p>
+              <p className="text-[10px] font-bold text-black/40 uppercase tracking-[3px] mb-4">I. Staff Details</p>
               <h3 className="text-3xl font-black uppercase font-serif tracking-tight leading-none mb-3">{salary.employeeName}</h3>
               <p className="text-[13px] font-bold text-black/60 tracking-[1px] uppercase mb-4">{salary.role}</p>
               <p className="text-[12px] font-medium text-black/60 leading-relaxed max-w-md italic border-l-2 border-[var(--gold)] pl-4">
-                &quot;The recipient is classified as an authorized internal agent within the Ownthum Executive Framework. 
+                &quot;This person is listed as staff in the Ownthum system. 
                 Disbursement of funds is tied to the successful execution of contractual duties.&quot;
               </p>
             </div>
@@ -71,8 +71,8 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
               <p className="text-[10px] font-bold text-black/40 uppercase tracking-[3px] mb-2">II. Dispatch Metadata</p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase opacity-30">Audit Node ID</label>
-                  <span className="text-md font-bold tabular-nums">NODE-{salary.id.slice(0, 8).toUpperCase()}</span>
+                  <label className="block text-[9px] font-bold uppercase opacity-30">Record ID</label>
+                  <span className="text-md font-bold tabular-nums">ID-{salary.id.slice(0, 8).toUpperCase()}</span>
                 </div>
                 <div>
                   <label className="block text-[9px] font-bold uppercase opacity-30">Settlement Code</label>
@@ -84,7 +84,7 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
                 </div>
                 <div>
                   <label className="block text-[9px] font-bold uppercase opacity-30">Attendance Metric</label>
-                  <span className="text-md font-bold">{salary.days} Nodes</span>
+                  <span className="text-md font-bold">{salary.days}s</span>
                 </div>
               </div>
             </div>
@@ -101,7 +101,7 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
                 <span className="text-[14px] font-black font-price">{formatCurrency(salary.basic)}</span>
               </div>
               <div className="py-4 flex justify-between items-center">
-                <span className="text-[11px] font-bold uppercase tracking-[1px]">Operational Variable (Allow.)</span>
+                <span className="text-[11px] font-bold uppercase tracking-[1px]">Extra Allowance</span>
                 <span className="text-[14px] font-black font-price text-[var(--green)]">+{formatCurrency(salary.allowance)}</span>
               </div>
               <div className="py-4 flex justify-between items-center bg-gray-50 px-2 font-black">
@@ -130,11 +130,11 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
           </div>
         </div>
 
-        {/* Final Net Yield Summary */}
+        {/* Final Net Pay Summary */}
         <div className="pt-6">
             <div className="bg-black text-white p-8 rounded-sm flex justify-between items-center">
               <div>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[4px] mb-1">Total Verified Net Yield</p>
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[4px] mb-1">Total Net Pay</p>
                 <p className="text-[11px] font-medium text-white/60 mb-1">Disbursed via authorized treasury node</p>
               </div>
               <div className="text-right">
@@ -146,14 +146,14 @@ export const ProfessionalPayslip = ({ salary }: ProfessionalPayslipProps) => {
         {/* Signature Block */}
         <div className="pt-20 flex justify-between items-end border-t border-gray-100">
           <div className="space-y-4">
-            <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/40">Audit Authorization</p>
+            <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/40">Checked By</p>
             <div className="h-12 w-48 border-b border-black flex items-end pb-1 overflow-hidden">
                <span className="text-[10px] text-gray-400 font-serif italic">Electronic Signature - OW-77421</span>
             </div>
           </div>
           <div className="text-right space-y-1">
-            <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[3px]">Secure Document • Proprietary Protocol</p>
-            <p className="text-[9px] text-gray-200">Generated by Ownthum Intelligence System v2.0</p>
+            <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[3px]">Secure Document • Proprietary Method</p>
+            <p className="text-[9px] text-gray-200">Generated by Ownthum System v2.0</p>
           </div>
         </div>
       </div>

@@ -23,7 +23,7 @@ export default function Topbar() {
     weekend: 'Weekend Posts', website: 'Website', sitevisit: 'Site Visits', 
     followup: 'Follow-Up', query: 'New Queries', broker: 'Brokers', 
     payments: 'Payments', propertyholder: 'Property Holder', salary: 'Staff Salary', 
-    material: 'Running Material', assets: 'Fixed Assets'
+    material: 'Running Material', assets: 'Company Items'
   };
 
   const displayName = labels[activeModule] || 'Dashboard';
@@ -72,7 +72,7 @@ export default function Topbar() {
         {/* Search Refined */}
         <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-100 rounded-lg transition-all duration-250 ease-out group cursor-text hover:shadow-sm">
           <MagnifyingGlassIcon className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-900 transition-colors duration-200" />
-          <span className="text-[11px] font-bold text-gray-400 group-hover:text-gray-600 tracking-tight">Intelligence Search...</span>
+          <span className="text-[11px] font-bold text-gray-400 group-hover:text-gray-600 tracking-tight">Search...</span>
         </div>
         
         {/* Date Refined */}
@@ -96,15 +96,15 @@ export default function Topbar() {
           )}
         </div>
 
-        {/* Intelligence Dropdown - Professional Refinement */}
+        {/* Help Dropdown - Professional Refinement */}
         {showNotifications && (
           <div className="absolute top-14 right-[-10px] w-[380px] bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.15)] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 zoom-in-95 duration-350 ease-out">
             {/* Header refined */}
             <div className="p-8 pb-4 flex items-center justify-between border-b border-gray-50">
               <div>
-                <h4 className="font-accent text-[22px] italic text-gray-900 leading-none mb-1 lowercase">Intelligence Feed</h4>
+                <h4 className="font-accent text-[22px] italic text-gray-900 leading-none mb-1 lowercase">Updates</h4>
                 <p className="text-[8px] font-black text-gray-300 uppercase tracking-[2px]">
-                   {unreadCount > 0 ? `${unreadCount} Anomalies Synchronized` : 'System Architecture Intact'}
+                   {unreadCount > 0 ? `${unreadCount} new updates` : 'No new updates'}
                 </p>
               </div>
               <div className="flex gap-4">
@@ -147,7 +147,7 @@ export default function Topbar() {
                         {notif.message}
                       </div>
                       <div className="text-[8px] text-gray-300 mt-2.5 font-black uppercase tracking-[2px] italic opacity-40">
-                         Node: {notif.type.replace('_', ' ')}
+                         Type: {notif.type.replace('_', ' ')}
                       </div>
                     </div>
                   </div>

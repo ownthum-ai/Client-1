@@ -1,3 +1,4 @@
+﻿"use client";
 'use client'
 import { ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -336,3 +337,4 @@ export const ThreeDImageCarousel: React.FC<ThreeDImageCarouselProps> = ({
 };
 
 export default ThreeDImageCarousel;
+

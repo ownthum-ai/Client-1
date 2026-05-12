@@ -1,3 +1,4 @@
+﻿"use client";
 import React from "react";
 
 interface ShineButtonProps {
@@ -65,3 +66,4 @@ export const ShineButton: React.FC<ShineButtonProps> = ({
     </button>
   );
 };
+

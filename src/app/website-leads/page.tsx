@@ -7,11 +7,9 @@ import { Card } from '@/components/ui/Card';
 import { KPICard } from '@/components/ui/KPICard';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
 import {
    MagnifyingGlassIcon,
    ArrowPathIcon,
-   PlusIcon,
    DevicePhoneMobileIcon,
    CalendarDaysIcon,
    PaperAirplaneIcon,
@@ -20,37 +18,36 @@ import {
    AdjustmentsHorizontalIcon,
    DocumentChartBarIcon,
    CheckCircleIcon,
-   SignalIcon,
-   BoltIcon,
    IdentificationIcon,
-   ClipboardDocumentIcon
+   EnvelopeIcon,
+   ChatBubbleLeftRightIcon,
+   GlobeAltIcon
 } from '@heroicons/react/24/outline';
 
-export default function NewQueries() {
-   const { queries, updateQueryStatus, addQuery, deleteQuery, updateQuery, brokers } = useStore();
+export default function WebsiteLeads() {
+   const { queries, updateQueryStatus, deleteQuery, updateQuery } = useStore();
    const [selectedQueryId, setSelectedQueryId] = useState<string | null>(null);
-   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-   const [selectedQueryIdForEdit, setSelectedQueryIdForEdit] = useState<string | null>(null);
    const [isSyncing, setIsSyncing] = useState(false);
    const [isFilterOpen, setIsFilterOpen] = useState(false);
    const [isExporting, setIsExporting] = useState(false);
    const [filterStatus, setFilterStatus] = useState<string>('All');
    const [filterSearch, setFilterSearch] = useState<string>('');
 
-   const selectedQuery = queries.find(q => q.id === selectedQueryId);
+   const websiteLeads = queries.filter(q => q.source === 'Website');
+   const selectedQuery = websiteLeads.find(q => q.id === selectedQueryId);
 
    // Numbers
-   const totalQueries = queries.length;
-   const newQueries = queries.filter(q => q.status === 'New').length;
-   const inProgress = queries.filter(q => q.status === 'In Progress').length;
-   const convertedCount = queries.filter(q => q.status === 'Converted').length;
-   const conversionRate = totalQueries > 0 ? Math.round((convertedCount / totalQueries) * 100) : 0;
+   const totalLeads = websiteLeads.length;
+   const newLeads = websiteLeads.filter(q => q.status === 'New').length;
+   const inProgress = websiteLeads.filter(q => q.status === 'In Progress').length;
+   const convertedCount = websiteLeads.filter(q => q.status === 'Converted').length;
 
    // Filtering Logic
-   const filteredQueries = queries.filter(q => {
+   const filteredLeads = websiteLeads.filter(q => {
       const matchesStatus = filterStatus === 'All' || q.status === filterStatus;
       const matchesSearch = q.name.toLowerCase().includes(filterSearch.toLowerCase()) ||
-         q.phone.includes(filterSearch);
+         q.phone.includes(filterSearch) ||
+         (q.email && q.email.toLowerCase().includes(filterSearch.toLowerCase()));
       return matchesStatus && matchesSearch;
    });
 
@@ -63,11 +60,12 @@ export default function NewQueries() {
       setIsExporting(true);
       setTimeout(() => {
          setIsExporting(false);
-         alert("Queries exported.");
       }, 2000);
    };
 
-   const [mounted, setMounted] = React.useState(false); React.useEffect(() => { setMounted(true); }, []); if (!mounted) return null;
+   const [mounted, setMounted] = React.useState(false); 
+   React.useEffect(() => { setMounted(true); }, []); 
+   if (!mounted) return null;
 
    return (
       <>
@@ -75,53 +73,53 @@ export default function NewQueries() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                <div className="text-left">
-                  <h1 className="text-[var(--h1-fs)] font-bold text-[var(--text)] tracking-tight leading-tight mb-2">Customer Enquiries</h1>
+                  <h1 className="text-[var(--h1-fs)] font-bold text-[var(--text)] tracking-tight leading-tight mb-2">Website Leads</h1>
                   <div className="flex items-center gap-3">
-                     <Badge variant="success" className="px-3 py-1 text-[11px] font-bold shadow-sm">Live</Badge>
-                     <span className="text-[14px] text-[var(--text3)] font-bold tracking-tight opacity-80 uppercase">People who contacted us</span>
+                     <Badge variant="success" className="px-3 py-1 text-[11px] font-bold shadow-sm border border-green-200">Online Channel</Badge>
+                     <span className="text-[14px] text-[var(--text3)] font-bold tabular-nums tracking-tight opacity-80 uppercase">Leads captured from the official portal</span>
                   </div>
                </div>
                <div className="flex items-center gap-4">
+                  <Button
+                     variant="secondary"
+                     size="default"
+                     className="px-8 h-[56px] flex items-center gap-3 shadow-md rounded-xl border-2"
+                     onClick={handleSync}
+                     disabled={isSyncing}
+                  >
+                     <ArrowPathIcon className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
+                     Refresh Portal
+                  </Button>
                </div>
             </div>
 
             {/* Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                <KPICard
-                  label="Total Enquiries"
-                  value={totalQueries}
-                  trend={{ value: "All customers", type: "neutral" }}
+                  label="Total Web Leads"
+                  value={totalLeads}
+                  trend={{ value: "Portal Source", type: "neutral" }}
                />
                <KPICard
-                  label="New Enquiries"
-                  value={newQueries}
-                  trend={{ value: "Waiting", type: "neutral" }}
+                  label="Unprocessed"
+                  value={newLeads}
+                  trend={{ value: "Awaiting Action", type: "neutral" }}
                />
                <KPICard
-                  label="In progress"
+                  label="Active"
                   value={inProgress}
-                  trend={{ value: "Active", type: "up" }}
+                  trend={{ value: "In Pipeline", type: "up" }}
                />
                <KPICard
-                  label="Conversion"
-                  value={`${conversionRate}%`}
-                  trend={{ value: "Lead success", type: "up" }}
+                  label="Converted"
+                  value={convertedCount}
+                  trend={{ value: "Success", type: "up" }}
                />
             </div>
 
-            {/* Query List */}
-            <Card title="Query list" subtitle="Manage leads and status" actions={
+            {/* Lead List */}
+            <Card title="Portal Submissions" subtitle="Direct website enquiries" actions={
                <div className="flex items-center gap-4">
-                  <Button
-                     variant="secondary"
-                     size="sm"
-                     className="h-[44px] px-5 gap-2 border-2 rounded-xl shadow-sm"
-                     onClick={handleSync}
-                     disabled={isSyncing}
-                  >
-                     <ArrowPathIcon className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                     Sync
-                  </Button>
                   <Button
                      variant="secondary"
                      size="sm"
@@ -139,7 +137,7 @@ export default function NewQueries() {
                      onClick={handleExport}
                   >
                      <DocumentChartBarIcon className="w-4 h-4" />
-                     Export
+                     Export CSV
                   </Button>
                </div>
             } className="p-0 overflow-hidden shadow-lg border-2">
@@ -148,67 +146,61 @@ export default function NewQueries() {
                      <thead>
                         <tr className="bg-gray-100 border-b-2 border-[var(--border)]">
                            <th className="p-[16px_32px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Customer</th>
-                           <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Source</th>
+                           <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Contact</th>
                            <th className="p-[16px_20px] text-[11px] font-bold text-gray-500 tracking-widest uppercase">Interest</th>
                            <th className="p-[16px_20px] text-right text-[11px] font-bold text-gray-500 tracking-widest uppercase">Status</th>
-                           <th className="p-[16px_20px] text-center text-[11px] font-bold text-gray-500 tracking-widest uppercase">Actions</th>
                            <th className="p-[16px_32px] text-right text-[11px] font-bold text-gray-500 tracking-widest uppercase">Date</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y-2 divide-[var(--border)]">
-                        {filteredQueries.map(query => (
+                        {filteredLeads.map(lead => (
                            <tr
-                              key={query.id}
-                              onClick={() => setSelectedQueryId(query.id)}
-                              className="hover:bg-gray-50 cursor-pointer"
+                              key={lead.id}
+                              onClick={() => setSelectedQueryId(lead.id)}
+                              className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
                            >
                               <td className="p-[16px_32px]">
                                  <div className="flex flex-col text-left">
-                                    <span className="text-[15px] font-bold text-gray-900 tracking-tight leading-none">{query.name}</span>
-                                    <span className="text-[12px] text-gray-400 font-bold mt-2 uppercase tracking-wider opacity-80 tabular-nums">{query.phone}</span>
+                                    <span className="text-[15px] font-bold text-gray-900 tracking-tight leading-none">{lead.name}</span>
+                                    <span className="text-[12px] text-gray-400 font-bold mt-2 uppercase tracking-wider opacity-80">{lead.email || 'NO EMAIL'}</span>
                                  </div>
                               </td>
                               <td className="p-[16px_20px]">
-                                 <Badge variant="neutral" className="px-3 py-1 text-[10px] font-bold shadow-sm uppercase">{query.source}</Badge>
+                                 <div className="flex flex-col text-left">
+                                    <span className="text-[14px] font-bold text-gray-700 tracking-tight tabular-nums">{lead.phone}</span>
+                                    <Badge variant="neutral" className="mt-2 w-fit px-2 py-0.5 text-[9px] font-bold shadow-sm uppercase tracking-tighter">Direct Web</Badge>
+                                 </div>
                               </td>
                               <td className="p-[16px_20px]">
                                  <div className="flex flex-col text-left">
-                                    <span className="text-[14px] font-bold text-gray-700 tracking-tight leading-none">{query.interest}</span>
-                                    <span className="text-[12px] font-bold text-amber-600 mt-2 font-price">{query.budget}</span>
+                                    <span className="text-[14px] font-bold text-gray-700 tracking-tight leading-none uppercase">{lead.interest}</span>
+                                    <span className="text-[12px] font-bold text-amber-600 mt-2 font-price">{lead.budget}</span>
                                  </div>
                               </td>
                               <td className="p-[16px_20px] text-right">
                                  <Badge variant={
-                                    query.status === 'Converted' ? 'success' :
-                                       query.status === 'New' ? 'info' :
-                                          query.status === 'Lost' ? 'danger' : 'warning'
+                                    lead.status === 'Converted' ? 'success' :
+                                       lead.status === 'New' ? 'info' :
+                                          lead.status === 'Lost' ? 'danger' : 'warning'
                                  } className="px-3 py-1 text-[10px] font-bold shadow-sm uppercase">
-                                    {query.status}
+                                    {lead.status}
                                  </Badge>
-                              </td>
-                              <td className="p-[16px_20px] text-center" onClick={(e) => e.stopPropagation()}>
-                                 <div className="flex items-center justify-center gap-3">
-                                    <Button
-                                       variant="ghost"
-                                       size="icon"
-                                       className="h-10 w-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-100"
-                                       onClick={() => {
-                                          if (confirm("Delete this lead?")) {
-                                             deleteQuery(query.id);
-                                          }
-                                       }}
-                                    >
-                                       <TrashIcon className="w-4 h-4" />
-                                    </Button>
-                                 </div>
                               </td>
                               <td className="p-[16px_32px] text-right">
                                  <div className="flex flex-col items-end">
-                                    <span className="text-[14px] font-bold text-gray-500 tracking-tight tabular-nums opacity-80">{query.date}</span>
+                                    <span className="text-[14px] font-bold text-gray-500 tracking-tight tabular-nums opacity-80">{lead.date}</span>
                                  </div>
                               </td>
                            </tr>
                         ))}
+                        {filteredLeads.length === 0 && (
+                           <tr>
+                              <td colSpan={5} className="p-20 text-center opacity-40">
+                                 <GlobeAltIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                                 <p className="text-[13px] font-bold uppercase tracking-widest">No website leads found</p>
+                              </td>
+                           </tr>
+                        )}
                      </tbody>
                   </table>
                </div>
@@ -216,102 +208,98 @@ export default function NewQueries() {
          </div>
 
          {/* Detail Panel */}
-         <div className={`fixed top-0 right-0 h-screen w-[520px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedQueryId ? 'translate-x-0' : 'translate-x-full'}`}>
+         <div className={`fixed top-0 right-0 h-screen w-[560px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out ${selectedQueryId ? 'translate-x-0' : 'translate-x-full'}`}>
             {selectedQuery ? (
                <div className="flex-1 flex flex-col p-10 overflow-y-auto text-left">
                   <div className="flex items-center justify-between mb-10">
                      <div className="flex items-center gap-6">
-                        <div className="modal-header-icon text-amber-600">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 border-2 border-amber-100 shadow-sm">
                            <IdentificationIcon className="w-8 h-8" />
                         </div>
                         <div className="text-left">
                            <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-2">{selectedQuery.name}</h2>
                            <div className="flex items-center gap-3 mt-1">
-                              <Badge variant="success" className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest">Verified</Badge>
-                              <p className="text-[11px] text-amber-600 font-bold uppercase tracking-widest opacity-80">{selectedQuery.source}</p>
+                              <Badge variant="success" className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-sm">Verified Web Lead</Badge>
+                              <p className="text-[11px] text-amber-600 font-bold uppercase tracking-widest opacity-80 tabular-nums">ID: {selectedQuery.id}</p>
                            </div>
                         </div>
                      </div>
-                     <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedQueryId(null)}>✕</Button>
+                     <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm hover:bg-gray-100 transition-all" onClick={() => setSelectedQueryId(null)}>✕</Button>
                   </div>
 
                   <div className="space-y-10">
-                     {/* Lead Details */}
-                     <div className="p-8 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                           <BoltIcon className="w-24 h-24" />
-                        </div>
-                        <div className="flex justify-between items-center mb-8 relative">
-                           <span className="text-[11px] font-bold text-white/40 tracking-[3px] uppercase">Requirement</span>
-                           <Badge variant={selectedQuery.status === 'Converted' ? 'success' : 'info'} className="px-3 py-1 text-[10px] font-bold uppercase shadow-sm">
-                              {selectedQuery.status}
-                           </Badge>
-                        </div>
-                        <div className="relative">
-                           <p className="text-3xl font-bold tracking-tight text-amber-500 mb-2 uppercase">{selectedQuery.interest}</p>
-                           <p className="text-[14px] font-bold text-white/60 uppercase tracking-[2px]">Budget: {selectedQuery.budget}</p>
+                     {/* Web Content / Message */}
+                     <div className="space-y-4">
+                        <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase flex items-center gap-3">
+                           Portal Content
+                        </h3>
+                        <div className="p-8 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                              <ChatBubbleLeftRightIcon className="w-32 h-32" />
+                           </div>
+                           <div className="relative">
+                              <p className="text-[12px] font-bold text-amber-400/60 uppercase tracking-[3px] mb-4">Submission Message:</p>
+                              <p className="text-[18px] font-medium leading-relaxed italic text-white/90">
+                                 &quot;{selectedQuery.message || "No content provided by the customer."}&quot;
+                              </p>
+                           </div>
                         </div>
                      </div>
 
-                     {/* Contact Info */}
+                     {/* Lead Info Grid */}
+                     <div className="grid grid-cols-2 gap-6">
+                        <div className="p-6 bg-amber-50 rounded-2xl border-2 border-amber-100">
+                           <p className="text-[10px] font-bold text-amber-800/50 uppercase tracking-[2px] mb-2">Requirement</p>
+                           <p className="text-[18px] font-bold text-amber-900 uppercase tracking-tight">{selectedQuery.interest}</p>
+                        </div>
+                        <div className="p-6 bg-amber-50 rounded-2xl border-2 border-amber-100">
+                           <p className="text-[10px] font-bold text-amber-800/50 uppercase tracking-[2px] mb-2">Budget Cap</p>
+                           <p className="text-[18px] font-bold text-amber-900 tabular-nums">{selectedQuery.budget}</p>
+                        </div>
+                     </div>
+
+                     {/* Contact Details */}
                      <div className="space-y-6">
                         <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
-                           Contact information
+                           Contact metadata
                         </h3>
                         <div className="grid grid-cols-1 gap-4">
                            {[
-                              { label: 'Phone No.', value: selectedQuery.phone, icon: <DevicePhoneMobileIcon className="w-5 h-5" /> },
-                              { label: 'Source', value: selectedQuery.source, icon: <CalendarDaysIcon className="w-5 h-5" /> },
-                              { label: 'Date', value: selectedQuery.date, icon: <CalendarDaysIcon className="w-5 h-5" /> },
+                              { label: 'Phone Line', value: selectedQuery.phone, icon: <DevicePhoneMobileIcon className="w-5 h-5" /> },
+                              { label: 'Email ID', value: selectedQuery.email || 'N/A', icon: <EnvelopeIcon className="w-5 h-5" /> },
+                              { label: 'Capture Date', value: selectedQuery.date, icon: <CalendarDaysIcon className="w-5 h-5" /> },
                            ].map((item, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm hover:bg-gray-50 transition-none">
+                              <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm hover:bg-gray-50 transition-colors">
                                  <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-amber-600 border-2 border-white shadow-sm">
                                        {item.icon}
                                     </div>
                                     <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
                                  </div>
-                                 <span className="text-[15px] font-bold text-gray-900 tracking-tight uppercase">{item.value}</span>
+                                 <span className="text-[15px] font-bold text-gray-900 tracking-tight">{item.value}</span>
                               </div>
                            ))}
                         </div>
                      </div>
 
-                     {/* Notes */}
-                     <div className="space-y-4">
-                        <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase flex items-center gap-3">
-                           Notes
-                        </h3>
-                        <div className="p-8 bg-amber-50 border-2 border-amber-200 rounded-2xl shadow-sm text-[15px] text-amber-900 leading-relaxed font-medium italic border-l-[8px] !border-l-amber-500 uppercase">
-                           &quot;Customer is interested in premium plots. Requires site visit scheduling for next weekend.&quot;
-                        </div>
-                     </div>
                   </div>
 
                   <div className="mt-auto pt-10 border-t-2 border-[var(--border)] flex gap-6">
                      <Button
-                        variant="secondary" className="flex-1 h-[56px] font-bold uppercase tracking-widest shadow-md rounded-xl"
+                        variant="secondary" className="flex-1 h-[60px] font-bold uppercase tracking-widest shadow-md rounded-xl border-2"
                         onClick={() => setSelectedQueryId(null)}
                      >
-                        Close
+                        Archive View
                      </Button>
                      <Button
-                        variant="primary" className="flex-[2] h-[56px] font-bold uppercase tracking-widest shadow-xl rounded-xl gap-3"
+                        variant="primary" className="flex-[2] h-[60px] font-bold uppercase tracking-widest shadow-xl rounded-xl gap-3"
                         onClick={() => { updateQueryStatus(selectedQuery.id, 'In Progress'); setSelectedQueryId(null); }}
                      >
-                        Process lead <PaperAirplaneIcon className="w-6 h-6" />
+                        Process Entry <PaperAirplaneIcon className="w-6 h-6" />
                      </Button>
                   </div>
                </div>
-            ) : (
-               <div className="flex-1 flex flex-col items-center justify-center p-16 text-center opacity-40">
-                  <div className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center mb-8 border-2 border-[var(--border)] shadow-md">
-                     <MagnifyingGlassIcon className="w-10 h-10 text-amber-600" />
-                  </div>
-                  <h3 className="text-[16px] font-bold text-gray-900 tracking-[4px] uppercase">No selection</h3>
-                  <p className="text-[12px] text-gray-400 mt-4 leading-relaxed font-bold uppercase tracking-widest">Select a lead from the list to view profile.</p>
-               </div>
-            )}
+            ) : null}
          </div>
 
          {/* Filter Modal */}
@@ -324,8 +312,8 @@ export default function NewQueries() {
                            <AdjustmentsHorizontalIcon className="w-8 h-8" />
                         </div>
                         <div className="text-left">
-                           <h2 className="text-[22px] font-bold text-gray-900 tracking-tight uppercase leading-none mb-1.5">Search Filters</h2>
-                           <p className="text-[12px] text-gray-500 font-bold tracking-[2px] uppercase opacity-70 leading-none">Refine lead distribution matrix</p>
+                           <h2 className="text-[22px] font-bold text-gray-900 tracking-tight uppercase leading-none mb-1.5">Portal Filters</h2>
+                           <p className="text-[12px] text-gray-500 font-bold tracking-[2px] uppercase opacity-70 leading-none">Refine website leads matrix</p>
                         </div>
                      </div>
                      <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsFilterOpen(false)}>✕</Button>
@@ -333,12 +321,12 @@ export default function NewQueries() {
 
                   <div className="modal-body space-y-10 text-left">
                      <div className="space-y-4">
-                        <Label>Search customer record</Label>
+                        <Label>Search records</Label>
                         <div className="relative">
                            <MagnifyingGlassIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
                            <input
                               type="text"
-                              placeholder="Name or phone..."
+                              placeholder="Name, phone or email..."
                               value={filterSearch}
                               onChange={(e) => setFilterSearch(e.target.value)}
                               className="w-full pl-16 pr-8 h-[64px] rounded-[24px] border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-amber-500 outline-none font-bold text-[16px] shadow-inner transition-all uppercase tracking-tight"
@@ -347,7 +335,7 @@ export default function NewQueries() {
                      </div>
 
                      <div className="space-y-4">
-                        <Label>Lifecycle classification</Label>
+                        <Label>Status classification</Label>
                         <div className="grid grid-cols-1 gap-4">
                            {['All', 'New', 'In Progress', 'Converted', 'Lost'].map((status) => (
                               <button
@@ -358,7 +346,7 @@ export default function NewQueries() {
                                     : 'border-gray-100 bg-white text-gray-400 hover:border-amber-200 hover:bg-amber-50/30 hover:text-amber-600'
                                     }`}
                               >
-                                 <span className="text-[13px] font-bold tracking-[2px] uppercase">{status} leads</span>
+                                 <span className="text-[13px] font-bold tracking-[2px] uppercase">{status} submissions</span>
                                  {filterStatus === status && <CheckCircleIcon className="w-6 h-6 text-amber-500" />}
                               </button>
                            ))}
@@ -382,15 +370,12 @@ export default function NewQueries() {
                         className="flex-1 h-[60px] font-bold uppercase tracking-widest shadow-xl rounded-[20px]"
                         onClick={() => setIsFilterOpen(false)}
                      >
-                        Apply matrix
+                        Apply Filter
                      </Button>
                   </div>
                </div>
             </div>
          )}
-
-         {/* Filter Modal removed */}
-
       </>
    );
 }

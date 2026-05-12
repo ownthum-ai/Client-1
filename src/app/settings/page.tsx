@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { LockClosedIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 
 export default function Settings() {
   const [currentPin, setCurrentPin] = useState(['', '', '', '']);
@@ -37,18 +39,22 @@ export default function Settings() {
   const renderPinInputs = (state: string[], setter: React.Dispatch<React.SetStateAction<string[]>>, idPrefix: string) => (
     <div className="flex gap-3">
       {[0, 1, 2, 3].map(i => (
-        <input 
+        <input
           key={`${idPrefix}-${i}`}
           type="password"
           maxLength={1}
-          className="w-[50px] h-[55px] text-center text-[22px] font-bold border border-[var(--border)] rounded-[9px] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[rgba(201,150,59,0.2)] bg-[#FAFAF8] transition-colors"
+          className="w-[50px] h-[55px] text-center text-[22px] font-bold border border-[var(--border)] rounded-[9px] focus:outline-none bg-gray-50"
           value={state[i]}
           onChange={(e) => {
             const val = [...state];
             val[i] = e.target.value.replace(/[^0-9]/g, '');
             setter(val);
             if (e.target.value && i < 3) {
-              document.getElementById(`${idPrefix}-${i+1}`)?.focus();
+              // Use refs instead of direct DOM access in a real implementation
+              // For now, we'll keep it but note this is not ideal in React
+              setTimeout(() => {
+                document.getElementById(`${idPrefix}-${i + 1}`)?.focus();
+              }, 0);
             }
           }}
           id={`${idPrefix}-${i}`}
@@ -58,110 +64,111 @@ export default function Settings() {
   );
 
   return (
-    <div className="animate-in fade-in duration-200">
-      <div className="flex items-start justify-between mb-6 gap-3">
-        <div>
-          <div className="font-[family-name:var(--font-instrument)] text-[24px] text-[var(--text)] leading-tight">Settings</div>
-          <div className="text-[12.5px] text-[var(--text3)] mt-[2px]">Manage your account security and preferences</div>
+    <div className="text-left">
+      <div className="flex items-start justify-between mb-10 gap-3">
+        <div className="text-left">
+          <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-tight leading-tight mb-2">Settings</h1>
+          <p className="text-[12.5px] text-[var(--text3)] font-medium">Change security and app settings</p>
         </div>
       </div>
 
-      <div className="w-full max-w-[600px]">
-        
-        {/* Profile Section */}
-        <div className="bg-white border border-[var(--border)] rounded-[var(--r-lg)] p-6 shadow-[var(--sh)] mb-5">
-          <div className="flex items-start gap-4 mb-2">
+      <div className="w-full max-w-[600px] space-y-6">
+
+        {/* Details */}
+        <Card className="p-6 bg-white border-[var(--border)] shadow-sm">
+          <div className="flex items-start gap-4 mb-2 text-left">
             <div className="w-[50px] h-[50px] rounded-lg bg-[var(--gold)] flex items-center justify-center text-white text-[16px] font-bold shrink-0 shadow-sm">
               OM
             </div>
-            <div>
-              <div className="text-[16px] font-bold text-[var(--text)]">Owner Management</div>
-              <div className="text-[12px] text-[var(--text3)] mb-1">Super Admin Account</div>
-              <button className="text-[11.5px] font-medium text-[var(--gold)] hover:underline mt-1">Edit Profile</button>
+            <div className="text-left">
+              <h3 className="text-[16px] font-bold text-[var(--text)]">Owner</h3>
+              <p className="text-[12px] text-[var(--text3)] mb-1">Admin account</p>
+              <button className="text-[11.5px] font-bold text-[var(--gold)] hover:underline mt-1">Edit profile</button>
             </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Security Section */}
-        <div className="bg-white border border-[var(--border)] rounded-[var(--r-lg)] shadow-[var(--sh)] overflow-hidden">
-          <div className="p-[18px_24px] border-b border-[var(--border)] bg-[#FAFAF8]">
-            <h2 className="text-[14px] font-semibold text-[var(--text)]">Change Secret PIN</h2>
-            <p className="text-[12.5px] text-[var(--text3)] mt-1">Update the 4-digit PIN used to unlock the entire system and private administration features.</p>
+        {/* Security */}
+        <Card className="bg-white border-[var(--border)] shadow-sm overflow-hidden">
+          <div className="p-[18px_24px] border-b border-[var(--border)] bg-gray-50/30 text-left">
+            <h2 className="text-[14px] font-bold text-[var(--text)] uppercase tracking-wider">Change pin</h2>
+            <p className="text-[12.5px] text-[var(--text3)] mt-1 font-medium">Update the 4-digit pin to secure the system.</p>
           </div>
-          
-          <div className="p-6">
-            <form onSubmit={handleSave} className="flex flex-col gap-6">
-              
-              <div>
-                <label className="block text-[11.5px] font-semibold text-[var(--text2)] mb-2 uppercase tracking-[1px]">Current PIN</label>
+
+          <div className="p-8 text-left">
+            <form onSubmit={handleSave} className="flex flex-col gap-8">
+              <div className="text-left">
+                <label className="block text-[10px] font-bold text-[var(--text3)] mb-3 uppercase tracking-[2px]">Current pin</label>
                 {renderPinInputs(currentPin, setCurrentPin, 'cp')}
               </div>
 
-              <div className="h-[1px] bg-[var(--border)] w-full block my-1"></div>
+              <div className="h-[1px] bg-[var(--border)] w-full"></div>
 
-              <div>
-                <label className="block text-[11.5px] font-semibold text-[var(--text2)] mb-2 uppercase tracking-[1px]">New PIN</label>
+              <div className="text-left">
+                <label className="block text-[10px] font-bold text-[var(--text3)] mb-3 uppercase tracking-[2px]">New pin</label>
                 {renderPinInputs(newPin, setNewPin, 'np')}
               </div>
 
-              <div>
-                <label className="block text-[11.5px] font-semibold text-[var(--text2)] mb-2 uppercase tracking-[1px]">Confirm New PIN</label>
+              <div className="text-left">
+                <label className="block text-[10px] font-bold text-[var(--text3)] mb-3 uppercase tracking-[2px]">Confirm new pin</label>
                 {renderPinInputs(confirmPin, setConfirmPin, 'cnp')}
               </div>
 
               <div className="flex items-center gap-4 mt-2">
-                <button 
-                  type="submit" 
+                <Button
+                  type="submit"
+                  v2={true}
                   disabled={currentPin.join('').length < 4 || newPin.join('').length < 4 || confirmPin.join('').length < 4}
-                  className="px-[20px] py-[10px] rounded-[7px] border-none bg-[var(--gold)] text-white font-semibold text-[13px] transition-all hover:bg-[var(--gold-dk)] hover:-translate-y-[1px] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-[var(--gold)] shadow-sm"
+                  className="px-10 h-12 shadow-sm rounded-xl font-bold uppercase text-[11px] tracking-wider"
                 >
-                  Save New PIN
-                </button>
+                  Save
+                </Button>
                 {saved && (
-                  <span className="text-[13px] font-medium text-black animate-in fade-in slide-in-from-left-2 flex items-center gap-1.5">
-                    <span className="bg-[#FAFAF8] px-1.5 py-0.5 rounded-[4px] text-[11px]">✓</span> PIN Successfully Updated
+                  <span className="text-[11px] font-bold text-green-600 flex items-center gap-1.5 uppercase tracking-wider">
+                    Pin updated
                   </span>
                 )}
               </div>
             </form>
           </div>
-        </div>
+        </Card>
 
-        {/* System Controls Section */}
-        <div className="bg-white border border-[var(--border)] rounded-[var(--r-lg)] shadow-[var(--sh)] overflow-hidden mt-5">
-          <div className="p-[18px_24px] border-b border-[var(--border)] bg-[#FAFAF8] flex items-center justify-between">
-            <div>
-              <h2 className="text-[14px] font-semibold text-[var(--text)] uppercase tracking-tight">System Controls</h2>
-              <p className="text-[12px] text-[var(--text3)] mt-1">Manage system access and data persistence.</p>
-            </div>
+        {/* System Controls */}
+        <Card className="bg-white border-[var(--border)] shadow-sm overflow-hidden mt-6">
+          <div className="p-[18px_24px] border-b border-[var(--border)] bg-gray-50/30 text-left">
+            <h2 className="text-[14px] font-bold text-[var(--text)] uppercase tracking-wider">System settings</h2>
+            <p className="text-[12px] text-[var(--text3)] mt-1 font-medium">Control app access and data.</p>
           </div>
-          <div className="p-8 flex flex-col md:flex-row gap-5">
-            <div className="flex-1 p-5 rounded-2xl bg-[var(--bg)] border border-[var(--border)] group hover:border-[var(--gold)]/30 transition-all">
-              <h3 className="text-[11px] font-black text-[var(--text)] uppercase tracking-[2.5px] mb-2 opacity-70">Security Protocol</h3>
-              <p className="text-[10px] font-medium text-[var(--text3)] mb-5 leading-relaxed italic uppercase">Locks the private ledger and institutional stream. No data loss.</p>
-              <button 
+          <div className="p-8 flex flex-col md:flex-row gap-6 text-left">
+            <div className="flex-1 p-6 rounded-2xl bg-gray-50 border border-[var(--border)] text-left shadow-inner">
+              <h3 className="text-[10px] font-bold text-[var(--text)] uppercase tracking-[2px] mb-2 opacity-70">Lock system</h3>
+              <p className="text-[10px] font-bold text-[var(--text3)] mb-6 leading-relaxed uppercase opacity-60">Locks the system. No data is lost.</p>
+              <Button
                 type="button"
+                v2={true}
+                variant="secondary"
                 onClick={handleCloseSystem}
-                className="w-full px-[20px] py-[12px] rounded-xl border-2 border-[var(--border)] bg-white text-[var(--text)] font-bold text-[12px] uppercase tracking-widest transition-all hover:bg-[var(--gold)] hover:border-[var(--gold)] hover:text-white shadow-sm flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-xl border-[var(--border)] bg-white font-bold text-[10px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-2"
               >
                 <LockClosedIcon className="w-4 h-4" />
-                Close System
-              </button>
+                Lock system
+              </Button>
             </div>
-            <div className="flex-1 p-5 rounded-2xl bg-red-50/10 border border-red-100 group hover:border-red-300 transition-all">
-              <h3 className="text-[11px] font-black text-red-900 uppercase tracking-[2.5px] mb-2 opacity-70">Factory Protocol</h3>
-              <p className="text-[10px] font-medium text-red-700/60 mb-5 leading-relaxed italic uppercase">Total state erasure. Returns system to zero identifier registry.</p>
-              <button 
+            <div className="flex-1 p-6 rounded-2xl bg-red-50 border border-red-100 text-left shadow-inner">
+              <h3 className="text-[10px] font-bold text-red-900 uppercase tracking-[2px] mb-2 opacity-70">Reset system</h3>
+              <p className="text-[10px] font-bold text-red-600/60 mb-6 leading-relaxed uppercase opacity-60">Deletes all data and resets the system.</p>
+              <Button
                 type="button"
+                v2={true}
                 onClick={handleRestartSystem}
-                className="w-full px-[20px] py-[12px] rounded-xl border-none bg-red-600 text-white font-bold text-[12px] uppercase tracking-widest transition-all hover:bg-red-700 shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-xl bg-red-600 text-white font-bold text-[10px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-2"
               >
                 <ArrowPathIcon className="w-4 h-4" />
-                Restart System
-              </button>
+                Reset system
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
       </div>
     </div>

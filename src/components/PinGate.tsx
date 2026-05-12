@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { LockClosedIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
 import { Card } from './ui/Card';
@@ -12,7 +12,7 @@ export const PinGate = () => {
   const [error, setError] = useState(false);
   const { unlockPin } = useStore();
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (unlockPin(pin)) {
       setError(false);
@@ -21,7 +21,7 @@ export const PinGate = () => {
       setPin('');
       setTimeout(() => setError(false), 2000);
     }
-  };
+  }, [pin, unlockPin]);
 
   // Auto-submit when 4 digits are entered
   useEffect(() => {
@@ -29,7 +29,7 @@ export const PinGate = () => {
       const timer = setTimeout(() => handleSubmit(), 200);
       return () => clearTimeout(timer);
     }
-  }, [pin]);
+  }, [pin, handleSubmit]);
 
   return (
     <div className="min-h-screen w-full bg-[#fbfaf8] flex items-center justify-center p-6 selection:bg-[var(--gold)] selection:text-white overflow-hidden">
@@ -69,7 +69,7 @@ export const PinGate = () => {
               </div>
               {error && (
                 <p className="text-red-600 text-[11px] font-black text-center mt-4 animate-in fade-in slide-in-from-top-2 tracking-widest uppercase">
-                  Authorization Error
+                  Wrong PIN
                 </p>
               )}
             </div>
