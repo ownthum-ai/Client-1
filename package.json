@@ -18,6 +18,7 @@
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
     "@types/papaparse": "^5.5.2",
+    "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "cobe": "^2.0.1",
     "date-fns": "^4.1.0",
@@ -38,6 +39,7 @@
     "react-flip-toolkit": "^7.2.4",
     "react-hook-form": "^7.75.0",
     "react-resizable-panels": "^4.11.0",
+    "react-syntax-highlighter": "^16.1.1",
     "recharts": "^3.8.0",
     "simplex-noise": "^4.0.3",
     "tailwind-merge": "^3.5.0",
@@ -45,9 +47,11 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/three": "^0.183.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.4",
