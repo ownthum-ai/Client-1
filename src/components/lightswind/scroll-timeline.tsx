@@ -361,7 +361,7 @@ export const ScrollTimeline = ({
                     initial="initial"
                     whileInView="whileInView"
                     viewport={{ once: false, margin: "-100px" }}
-                    style={parallaxIntensity > 0 ? { y: yOffset } : undefined}
+                    style={undefined}
                   >
                     <Card className="bg-background border">
                       <CardContent className="p-6">

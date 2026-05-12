@@ -134,7 +134,7 @@ const Globe: React.FC<GlobeProps> = ({
           state.phi = phiRef.current;
           state.theta = thetaRef.current; // Ensure cobe uses the updated thetaRef
         },
-      });
+      } as any);
     };
 
     // --- Mouse Interaction Handlers ---

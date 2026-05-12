@@ -183,11 +183,11 @@ export const CanvasConfettiCursor: React.FC<CanvasConfettiCursorProps> = ({
     }
     // Listen on canvas for local, window for full
     const target = fillParent && parentRef.current ? parentRef.current : window;
-    target.addEventListener("mousemove", moveHandler);
-    target.addEventListener("touchmove", moveHandler);
+    target.addEventListener("mousemove", moveHandler as any);
+    target.addEventListener("touchmove", moveHandler as any);
     return () => {
-      target.removeEventListener("mousemove", moveHandler);
-      target.removeEventListener("touchmove", moveHandler);
+      target.removeEventListener("mousemove", moveHandler as any);
+      target.removeEventListener("touchmove", moveHandler as any);
     };
   }, [fillParent, enabled]);
 

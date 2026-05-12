@@ -293,7 +293,7 @@ export default function LiquidFluid({
         // Interaction
         const isAuto = autoDemo && Date.now() - lastInputTime.current > autoResumeDelay;
         const currentPos = isAuto ? new Vec2(autoPos.current.x, autoPos.current.y) : mouse.current;
-        const diff = new Vec2().subVectors(currentPos, lastMouse.current);
+        const diff = new Vec2(currentPos.x - lastMouse.current.x, currentPos.y - lastMouse.current.y);
         lastMouse.current.copy(currentPos);
         velocity.current.lerp(diff, 0.2);
 
@@ -307,7 +307,7 @@ export default function LiquidFluid({
 
         // 2. Splat
         const force = isAuto ? autoIntensity * 0.01 : mouseForce;
-        if (velocity.current.len() > 0.0001) {
+        if ((velocity.current.x ** 2 + velocity.current.y ** 2) > 0.000001) {
             progs.splat.uniforms.tVelocity.value = targets.vel1.texture;
             progs.splat.uniforms.center.value.copy(currentPos);
             progs.splat.uniforms.force.value.set(velocity.current.x * force, velocity.current.y * force);

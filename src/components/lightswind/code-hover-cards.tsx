@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { cn } from "@/lib/utils";
 import {
-  Github,
+  GitBranch,
   Code,
   Dices,
   Terminal,
@@ -44,12 +44,12 @@ export interface CodeHoverCardsProps {
 }
 
 const DEFAULT_CARDS: CardData[] = [
-  { id: '1', icon: Github, title: 'GitHub', description: 'Code repository' },
+  { id: '1', icon: GitBranch, title: 'GitHub', description: 'Code repository' },
   { id: '2', icon: Code, title: 'Code', description: 'Development tools' },
   { id: '3', icon: Dices, title: 'Games', description: 'Interactive projects' },
 ];
 
-const DEFAULT_ICONS = [Github, Code, Dices, Terminal, Settings, Heart, Star, Zap, Trophy, Shield];
+const DEFAULT_ICONS = [GitBranch, Code, Dices, Terminal, Settings, Heart, Star, Zap, Trophy, Shield];
 
 const CodeHoverCards: React.FC<CodeHoverCardsProps> = ({
   cards = DEFAULT_CARDS,
