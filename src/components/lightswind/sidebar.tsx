@@ -2,11 +2,8 @@
 import * as React from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
-function cn(...inputs: clsx.ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface SidebarContextType {
   expanded: boolean;

@@ -10,9 +10,14 @@ import {
   useVelocity,
   useAnimationFrame,
   useMotionValue,
-} from 'motion/react';
-import { wrap } from '@motionone/utils';
+} from 'framer-motion';
 import { cn } from "@/lib/utils";
+
+const wrap = (min: number, max: number, v: number) => {
+  const rangeSize = max - min;
+  return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
+};
+
 
 interface TextScrollMarqueeProps {
   children: string;
