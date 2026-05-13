@@ -12,7 +12,7 @@ export interface KPICardProps {
     type: 'up' | 'down' | 'neutral';
   };
   color?: string | 'gold' | 'green' | 'red' | 'blue' | 'amber' | 'purple';
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
   variant?: 'default' | 'premium';
   onClick?: () => void;
   isCurrency?: boolean;
