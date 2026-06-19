@@ -85,7 +85,7 @@ export const PinGate = () => {
           </form>
 
           <div className="mt-12 pt-10 border-t border-[#E5E4DF] flex justify-between items-center text-[10px] text-[#9A9A97] font-black uppercase tracking-[2.5px]">
-            <span className="opacity-40">Key: <strong className="text-[#111110] opacity-100 italic ml-1">1234</strong></span>
+            <span className="opacity-40">Contact your administrator for access credentials</span>
             <span className="cursor-not-allowed opacity-20 hover:opacity-100 transition-opacity">Technical Support</span>
           </div>
         </Card>

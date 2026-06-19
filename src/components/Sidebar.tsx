@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -7,12 +8,8 @@ import { motion } from 'framer-motion';
 import { BorderBeam } from './lightswind/border-beam';
 import {
   Squares2X2Icon,
-  MapIcon,
-  TableCellsIcon,
   BuildingOfficeIcon,
-  DocumentTextIcon,
   CalendarIcon,
-  GlobeAltIcon,
   UserGroupIcon,
   ArrowPathIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -22,6 +19,7 @@ import {
   UsersIcon,
   Square3Stack3DIcon,
   TruckIcon,
+  WrenchScrewdriverIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
@@ -41,19 +39,20 @@ export default function Sidebar() {
     },
     {
       section: 'CRM', items: [
+        { id: 'query', label: 'New Enquiries', icon: ChatBubbleBottomCenterTextIcon, path: '/query', badge: unreadQueries },
+        { id: 'pipeline', label: 'Deals Pipeline', icon: Squares2X2Icon, path: '/pipeline' },
         { id: 'sitevisit', label: 'Site Visits', icon: HandRaisedIcon, path: '/sitevisit' },
         { id: 'followup', label: 'Follow-ups', icon: ArrowPathIcon, path: '/followup', badge: unreadFollowUps },
-        { id: 'query', label: 'New Queries', icon: ChatBubbleBottomCenterTextIcon, path: '/query', badge: unreadQueries },
-        { id: 'website-leads', label: 'Website Leads', icon: GlobeAltIcon, path: '/website-leads' },
+        { id: 'customer', label: 'Customers', icon: UserGroupIcon, path: '/customer' },
         { id: 'broker', label: 'Brokers', icon: UsersIcon, path: '/broker' }
       ]
     },
     {
       section: 'Marketing', items: [
-        { id: 'brochure', label: 'Brochure', icon: DocumentTextIcon, path: '/brochure' },
         { id: 'weekend', label: 'Weekend Posts', icon: CalendarIcon, path: '/weekend' }
       ]
     },
+    /*
     {
       section: 'Finance', items: [
         { id: 'payments', label: 'Payments', icon: CurrencyRupeeIcon, path: '/payments' },
@@ -61,15 +60,12 @@ export default function Sidebar() {
         { id: 'salary', label: 'Staff Salary', icon: UserGroupIcon, path: '/salary' }
       ]
     },
-    {
-      section: 'Project', items: [
-        { id: 'land', label: 'Land Purchase', icon: MapIcon, path: '/land' },
-        { id: 'layout', label: 'Planning Layout', icon: TableCellsIcon, path: '/layout' },
-        { id: 'construction', label: 'Structure Layout', icon: BuildingOfficeIcon, path: '/construction' }
-      ]
-    },
+    */
+
     {
       section: 'Operations', items: [
+        { id: 'property', label: 'Property', icon: HomeIcon, path: '/property' },
+        { id: 'labour', label: 'Labour', icon: WrenchScrewdriverIcon, path: '/labour' },
         { id: 'material', label: 'Running Material', icon: Square3Stack3DIcon, path: '/material' },
         { id: 'assets', label: 'Company Asset', icon: TruckIcon, path: '/assets' }
       ]
@@ -77,7 +73,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-[var(--sb-w-collapsed)] lg:w-[var(--sb-w)] bg-[#0A0A0A] flex flex-col h-screen shrink-0 overflow-y-auto custom-scrollbar-dark transition-[width] duration-200 overflow-x-hidden border-r border-white/[0.05] relative">
+    <div className="w-[var(--sb-w-collapsed)] lg:w-[var(--sb-w)] bg-[#0A0A0A] flex flex-col h-screen shrink-0 overflow-y-auto custom-scrollbar-dark transition-[width] duration-200 overflow-x-hidden border-r border-white/[0.05] relative z-[600]">
       {/* Background Glow Effect */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[var(--gold)]/5 to-transparent pointer-events-none opacity-20"></div>
 

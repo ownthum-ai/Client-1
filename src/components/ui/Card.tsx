@@ -12,7 +12,7 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className = '', title, subtitle, actions, onClick, variant = 'default' }) => {
-  const defaultClasses = "rounded-2xl p-6 shadow-sm border border-[var(--border)] bg-white";
+  const defaultClasses = "rounded-md p-5 shadow-sm border border-[var(--border)] bg-white";
 
   return (
     <div

@@ -96,19 +96,19 @@
   --sh-md: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
   --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
 
-  /* V2 Form Protocol (UPSCALED) */
-  --form-h: 56px; /* Increased from 48px */
-  --form-px: 20px;
-  --form-fs: 16px;
-  --form-r: 14px;
+  /* V2 Form Protocol (COMPACT & BOXY) */
+  --form-h: 40px; /* Reduced from 56px */
+  --form-px: 12px;
+  --form-fs: 13px; /* Reduced from 16px */
+  --form-r: 6px; /* Reduced from 14px */
   --form-border: #D0CFCA;
   --form-border-focus: #111110;
   --form-ring: rgba(17, 17, 16, 0.05);
   --form-error-bg: #FFF5F5;
   --form-error-border: #C42B2B;
-  --form-label-fs: 13px;
+  --form-label-fs: 12px;
   --form-label-fw: 700;
-  --form-helper-fs: 11px;
+  --form-helper-fs: 10px;
 }
 
 /* Global Typography Protocol */
@@ -227,35 +227,35 @@ form.modal-body input:not([type="file"]):not([type="checkbox"]):not([type="radio
 form.modal-body select,
 .modal-body .form-control,
 form.modal-body .form-control {
-  min-height: 56px !important;
-  border: 2px solid var(--border) !important;
-  border-radius: 1rem !important;
+  min-height: 40px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
   background: #fff !important;
-  padding-left: 1.5rem !important;
-  padding-right: 1.5rem !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
   color: #111827 !important;
-  font-size: 15px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   line-height: 1.2 !important;
   letter-spacing: 0.01em !important;
-  box-shadow: var(--sh-md) !important;
+  box-shadow: var(--sh) !important;
   outline: none !important;
 }
 
 .modal-body textarea,
 form.modal-body textarea {
   width: 100%;
-  min-height: 128px !important;
-  border: 2px solid var(--border) !important;
-  border-radius: 1rem !important;
+  min-height: 80px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
   background: #fff !important;
-  padding: 1.5rem !important;
+  padding: 1rem !important;
   color: #111827 !important;
-  font-size: 15px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
-  line-height: 1.55 !important;
+  line-height: 1.4 !important;
   letter-spacing: 0.01em !important;
-  box-shadow: var(--sh-md) !important;
+  box-shadow: var(--sh) !important;
   outline: none !important;
   resize: vertical;
 }
@@ -355,7 +355,7 @@ form.modal-body .grid.grid-cols-2 {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: none;
   z-index: 500;
   display: flex;
@@ -367,19 +367,19 @@ form.modal-body .grid.grid-cols-2 {
 
 .modal-container {
   background-color: white;
-  border-radius: 2rem;
+  border-radius: 6px;
   width: 100%;
-  max-width: 52rem;
+  max-width: 44rem;
   max-height: calc(100vh - 4rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.25);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
   border: 1px solid rgba(0,0,0,0.1);
 }
 
 .modal-header {
-  padding: 2.5rem 3rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid rgba(0,0,0,0.05);
   background-color: #F9F9F7;
   flex-shrink: 0;
@@ -389,7 +389,7 @@ form.modal-body .grid.grid-cols-2 {
 }
 
 .modal-body {
-  padding: 3rem;
+  padding: 1.5rem;
   overflow-y: auto;
   flex: 1 1 auto;
   -ms-overflow-style: none;
@@ -401,21 +401,21 @@ form.modal-body .grid.grid-cols-2 {
 }
 
 .modal-footer {
-  padding: 1.5rem 2rem;
-  border-top: 2px solid var(--border);
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .modal-header-icon {
-  width: 4rem;
-  height: 4rem;
+  width: 2.5rem;
+  height: 2.5rem;
   background-color: white;
-  border-radius: 1.25rem;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--border);
-  box-shadow: var(--sh-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh);
   flex-shrink: 0;
 }
 
@@ -552,3 +552,63 @@ form.modal-body .grid.grid-cols-2 {
 footer.print-footer {
   display: none;
 }
+
+/* ─── Property Page Animation Utilities ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  50%       { box-shadow: 0 0 0 4px currentColor; opacity: 0.6; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-scale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-float {
+  animation: float 2.8s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.4) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-scale {
+  animation: fade-scale 0.28s ease-out both;
+}
+
+/* Property grid card hover glow */
+.property-card-available:hover { box-shadow: 0 8px 24px rgba(16, 185, 129, 0.18); }
+.property-card-booked:hover    { box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18); }
+.property-card-sold:hover      { box-shadow: 0 8px 24px rgba(245, 158, 11, 0.18); }
+.property-card-hold:hover      { box-shadow: 0 8px 24px rgba(239, 68, 68, 0.18); }
+
+/* Inventory progress bar track */
+.inventory-bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #F0EFEA;
+  overflow: hidden;
+  display: flex;
+}
+

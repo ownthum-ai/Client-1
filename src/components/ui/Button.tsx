@@ -29,11 +29,11 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const sizeStyles = {
-    lg: "h-[60px] px-8 text-[16px] rounded-[14px]",
-    default: "h-[52px] px-6 text-[15px] rounded-[12px]",
-    sm: "h-[44px] px-5 text-[14px] rounded-[10px]",
-    inline: "h-[36px] px-4 text-[12px] rounded-[8px]",
-    icon: "w-[52px] h-[52px] p-0 rounded-[12px]"
+    lg: "h-[44px] px-6 text-[14px] rounded-md",
+    default: "h-[38px] px-4 text-[13px] rounded-md",
+    sm: "h-[32px] px-3.5 text-[12px] rounded-md",
+    inline: "h-[28px] px-3 text-[11px] rounded",
+    icon: "w-[36px] h-[36px] p-0 rounded-md"
   };
 
   return (

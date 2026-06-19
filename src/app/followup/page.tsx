@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore, InterestLevel, InteractionType, InteractionOutcome } from '@/store/useStore';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -26,6 +27,7 @@ import { KPICard } from '@/components/ui/KPICard';
 
 
 export default function FollowUp() {
+  const router = useRouter();
   const { followUps, addFollowUpInteraction, updateFollowUpStatus, addFollowUp } = useStore();
   const [filter, setFilter] = useState<InterestLevel | 'All'>('All');
   const [selectedFollowUpId, setSelectedFollowUpId] = useState<string | null>(null);
@@ -107,7 +109,7 @@ export default function FollowUp() {
       phone: newPhone,
       interest: newInterest,
       status: newStatus,
-      lastContact: 'Just now',
+      lastContact: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }),
       nextDue: 'Tomorrow',
       createdAt: new Date().toISOString()
     });
@@ -165,22 +167,22 @@ export default function FollowUp() {
           if (dormantCount === 0) return null;
 
           return (
-            <div className="p-8 bg-gray-50 border-2 border-[var(--border)] rounded-[32px] flex items-center justify-between shadow-lg">
-              <div className="flex items-center gap-6">
-                <div className="w-14 h-14 rounded-2xl bg-white border-2 border-white flex items-center justify-center text-amber-600 shadow-xl">
-                  <ClockIcon className="w-7 h-7" />
+            <div className="p-6 md:p-8 bg-gray-50 border-2 border-[var(--border)] rounded-2xl md:rounded-[32px] flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-lg">
+              <div className="flex items-start md:items-center gap-4 md:gap-6 flex-1">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white border-2 border-white flex items-center justify-center text-amber-600 shadow-xl shrink-0">
+                  <ClockIcon className="w-6 md:w-7 h-6 md:h-7" />
                 </div>
-                <div className="text-left">
-                  <p className="text-[16px] font-bold text-gray-900 uppercase tracking-tight mb-2">
+                <div className="text-left flex-1">
+                  <p className="text-[14px] md:text-[16px] font-bold text-gray-900 uppercase tracking-tight mb-1 md:mb-2">
                     Lead Update: <span className="text-amber-600">{dormantCount} Old Leads</span>
                   </p>
-                  <p className="text-[12px] text-gray-400 font-bold uppercase tracking-[2px] opacity-70">
+                  <p className="text-[11px] md:text-[12px] text-gray-400 font-bold uppercase tracking-[1.5px] md:tracking-[2px] opacity-70">
                     Leads older than 21 days can be sent weekend messages.
                   </p>
                 </div>
               </div>
-              <Button variant="secondary" className="h-[56px] px-8 rounded-xl border-2 font-bold uppercase tracking-widest text-[11px] gap-4">
-                Check Leads <ArrowRightIcon className="w-5 h-5" />
+              <Button variant="secondary" className="h-[48px] md:h-[56px] px-6 md:px-8 rounded-xl border-2 font-bold uppercase tracking-widest text-[10px] md:text-[11px] gap-3 md:gap-4 w-full md:w-auto flex items-center justify-center" onClick={() => router.push('/old-leads')}>
+                Check Leads <ArrowRightIcon className="w-4 md:w-5 h-4 md:h-5" />
               </Button>
             </div>
           );
@@ -372,132 +374,132 @@ export default function FollowUp() {
       )}
 
       {/* Detail Drawer */}
-      <div className={`fixed top-0 right-0 h-screen w-[560px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedFollowUpId ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedFollowUpId ? 'translate-x-0' : 'translate-x-full'}`}>
         {selectedFollowUp ? (
-          <div className="flex-1 flex flex-col p-12 overflow-y-auto text-left">
-            <div className="flex items-center justify-between mb-12">
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center text-amber-600 border-2 border-[var(--border)] shadow-md font-bold text-[32px]">
+          <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm font-bold text-[18px] shrink-0">
                   {selectedFollowUp.customerName.charAt(0).toUpperCase()}
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[24px] font-bold text-gray-900 tracking-tight leading-none mb-3 uppercase">{selectedFollowUp.customerName}</h2>
-                  <div className="flex items-center gap-4">
-                    <Badge variant={selectedFollowUp.status === 'Hot' ? 'destructive' : 'neutral'} className="px-4 py-1 text-[11px] font-bold uppercase shadow-sm">{selectedFollowUp.status} LEVEL</Badge>
-                    <span className="text-[12px] text-gray-400 font-bold uppercase tracking-widest opacity-60">ID: {selectedFollowUp.id.slice(-8)}</span>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase truncate max-w-[200px]">{selectedFollowUp.customerName}</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge variant={selectedFollowUp.status === 'Hot' ? 'destructive' : 'neutral'} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">{selectedFollowUp.status} LEVEL</Badge>
+                    <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider opacity-75 font-mono">ID: {selectedFollowUp.id.slice(-6)}</span>
                   </div>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12" onClick={() => setSelectedFollowUpId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedFollowUpId(null)}>✕</Button>
             </div>
 
-            <div className="space-y-12">
+            <div className="space-y-6">
               {/* Action Panel */}
-              <div className="grid grid-cols-2 gap-6">
-                <Button variant="secondary" className="h-[64px] rounded-2xl border-2 font-bold uppercase tracking-[2px] text-[12px] gap-4" onClick={() => initiateCall(selectedFollowUp.phone)}>
-                  <PhoneIcon className="w-5 h-5" /> Call Now
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="secondary" className="h-[46px] rounded border font-bold uppercase tracking-wider text-[12px] gap-1.5 flex items-center justify-center" onClick={() => initiateCall(selectedFollowUp.phone)}>
+                  <PhoneIcon className="w-4 h-4" /> Call Now
                 </Button>
-                <Button variant="secondary" className="h-[64px] rounded-2xl border-2 bg-green-50 text-green-700 font-bold uppercase tracking-[2px] text-[12px] gap-4" onClick={() => initiateWhatsApp(selectedFollowUp.phone)}>
-                  <ChatBubbleLeftRightIcon className="w-5 h-5" /> WhatsApp
+                <Button variant="secondary" className="h-[46px] rounded border bg-green-50 text-green-700 border-green-150 font-bold uppercase tracking-wider text-[12px] gap-1.5 flex items-center justify-center" onClick={() => initiateWhatsApp(selectedFollowUp.phone)}>
+                  <ChatBubbleLeftRightIcon className="w-4 h-4" /> WhatsApp
                 </Button>
               </div>
 
               {/* Matrix Dashboard */}
-              <div className="p-10 bg-gray-900 rounded-[40px] shadow-2xl relative overflow-hidden text-left border-none">
-                <div className="flex justify-between items-center mb-10 border-b-2 border-white/5 pb-8">
-                  <span className="text-[11px] font-bold text-white/40 tracking-[4px] uppercase">Lead Details</span>
-                  <Badge variant="success" className="bg-amber-500/10 text-amber-500 border-none px-4 py-1.5 text-[11px] font-bold uppercase">PROBABILITY 92%</Badge>
+              <div className="p-5 bg-gray-900 rounded text-white shadow-2xl relative overflow-hidden text-left border-none">
+                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+                  <span className="text-[11px] font-bold text-white/45 tracking-[1.5px] uppercase">Lead Details</span>
+                  <Badge variant="success" className="bg-amber-500/10 text-amber-500 border-none px-2.5 py-1 text-[10px] font-bold uppercase">PROBABILITY 92%</Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-10">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-[3px] mb-4">Core Interest</p>
-                    <p className="text-[20px] font-bold text-white uppercase tracking-tight">{selectedFollowUp.interest}</p>
+                    <p className="text-[11px] font-bold text-white/35 uppercase tracking-[1.5px] mb-1">Core Interest</p>
+                    <p className="text-[16px] font-bold text-white uppercase tracking-tight">{selectedFollowUp.interest}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-[3px] mb-4">Lead Score</p>
-                    <p className="text-4xl font-bold text-amber-500 tabular-nums">9.8</p>
+                    <p className="text-[11px] font-bold text-white/35 uppercase tracking-[1.5px] mb-1">Lead Score</p>
+                    <p className="text-2xl font-bold text-amber-500 tabular-nums leading-none">9.8</p>
                   </div>
                 </div>
               </div>
 
-              {/* In Use Coordinates */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 border-b-2 border-gray-50 pb-6">
-                  <ClipboardDocumentIcon className="w-6 h-6 text-amber-600" />
-                  <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-[4px]">Contact Details</h3>
+              {/* Contacts Details */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-gray-50 pb-2">
+                  <ClipboardDocumentIcon className="w-4 h-4 text-amber-600" />
+                  <h3 className="text-[12.5px] font-bold text-gray-900 uppercase tracking-[1.5px]">Contact Details</h3>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   {[
-                    { label: 'Phone Number', value: selectedFollowUp.phone, icon: <DevicePhoneMobileIcon className="w-5 h-5" /> },
-                    { label: 'Last Contact', value: selectedFollowUp.lastContact, icon: <ClockIcon className="w-5 h-5" /> },
-                    { label: 'Next Follow-up', value: selectedFollowUp.nextDue, icon: <CalendarDaysIcon className="w-5 h-5" /> },
+                    { label: 'Phone Number', value: selectedFollowUp.phone, icon: <DevicePhoneMobileIcon className="w-4 h-4" /> },
+                    { label: 'Last Contact', value: selectedFollowUp.lastContact, icon: <ClockIcon className="w-4 h-4" /> },
+                    { label: 'Next Follow-up', value: selectedFollowUp.nextDue, icon: <CalendarDaysIcon className="w-4 h-4" /> },
                   ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-8 bg-gray-50 rounded-3xl border-2 border-white shadow-inner">
-                      <div className="flex items-center gap-5">
+                    <div key={idx} className="flex items-center justify-between p-3.5 bg-gray-50 rounded border border-white shadow-inner">
+                      <div className="flex items-center gap-3">
                         <span className="text-amber-600">{item.icon}</span>
-                        <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">{item.label}</span>
+                        <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-widest">{item.label}</span>
                       </div>
-                      <span className="text-[16px] font-bold text-gray-900 tabular-nums uppercase">{item.value}</span>
+                      <span className="text-[14.5px] font-bold text-gray-900 tabular-nums uppercase">{item.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Historical Timeline */}
-              <div className="space-y-8">
-                <div className="flex items-center justify-between border-b-2 border-gray-50 pb-6">
-                  <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-[4px] flex items-center gap-4">
-                    <ChatBubbleLeftRightIcon className="w-6 h-6 text-amber-600" />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                  <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase flex items-center gap-2">
+                    <ChatBubbleLeftRightIcon className="w-4 h-4 text-amber-600" />
                     Historical Ledger
                   </h3>
-                  <Button variant="secondary" size="icon" className="h-10 w-10 border-2 rounded-xl" onClick={() => handleOpenLogModal(selectedFollowUp.id)}>
-                    <PlusIcon className="w-6 h-6" />
+                  <Button variant="secondary" size="icon" className="h-9 w-9 border rounded flex items-center justify-center" onClick={() => handleOpenLogModal(selectedFollowUp.id)}>
+                    <PlusIcon className="w-4 h-4" />
                   </Button>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-3">
                   {selectedFollowUp.interactions.length > 0 ? (
                     selectedFollowUp.interactions.map((interaction) => (
-                      <div key={interaction.id} className="bg-white p-8 rounded-3xl border-2 border-[var(--border)] shadow-sm group transition-none">
-                        <div className="flex justify-between items-start mb-6">
+                      <div key={interaction.id} className="bg-white p-4 rounded border border-[var(--border)] shadow-sm group transition-none">
+                        <div className="flex justify-between items-start mb-3">
                           <div className="text-left">
-                            <span className="text-[16px] font-bold text-gray-900 uppercase tracking-tight block mb-2">{interaction.type}</span>
-                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block opacity-70 tabular-nums">{interaction.date}</span>
+                            <span className="text-[14.5px] font-bold text-gray-900 uppercase tracking-tight block mb-0.5">{interaction.type}</span>
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block opacity-75 tabular-nums">{interaction.date}</span>
                           </div>
-                          <Badge variant={interaction.outcome === 'Interested' ? 'success' : 'destructive'} className="px-3 py-1 text-[10px] font-bold uppercase shadow-sm">
+                          <Badge variant={interaction.outcome === 'Interested' ? 'success' : 'destructive'} className="px-2.5 py-1 text-[10px] font-bold uppercase shadow-sm">
                             {interaction.outcome}
                           </Badge>
                         </div>
-                        <p className="text-[14px] font-bold text-gray-500 leading-relaxed border-l-4 border-amber-500/30 pl-6 py-1 italic uppercase tracking-tight">
+                        <p className="text-[13px] font-bold text-gray-500 leading-relaxed border-l-4 border-amber-500/30 pl-3 py-0.5 italic uppercase tracking-tight">
                           &quot;{interaction.notes}&quot;
                         </p>
-                        <div className="mt-8 flex items-center gap-4 border-t-2 border-gray-50 pt-6">
-                          <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-amber-600 border-2 border-white shadow-md font-bold">
+                        <div className="mt-3 flex items-center gap-2.5 border-t border-gray-50 pt-3">
+                          <div className="w-6 h-6 rounded bg-gray-50 flex items-center justify-center text-amber-600 border border-white shadow font-bold text-[10px]">
                             {interaction.loggedBy.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Checkor: {interaction.loggedBy}</span>
+                          <span className="text-[10.5px] font-bold text-gray-400 uppercase tracking-widest">Checker: {interaction.loggedBy}</span>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-16 text-center border-2 border-dashed border-gray-100 rounded-[32px] opacity-20 italic">
-                      <p className="text-[12px] font-bold uppercase tracking-[3px]">Awaiting First Interaction</p>
+                    <div className="p-8 text-center border border-dashed border-gray-100 rounded opacity-20 italic">
+                      <p className="text-[12.5px] font-bold uppercase tracking-[1.5px]">Awaiting First Interaction</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="mt-auto pt-12 border-t-2 border-[var(--border)] flex flex-col gap-4">
+            <div className="mt-auto pt-6 border-t border-[var(--border)] flex flex-col gap-3">
               <Button
-                className="w-full h-[64px] rounded-2xl shadow-xl text-[12px] font-bold tracking-[4px] uppercase flex items-center justify-center gap-4"
+                className="w-full h-[46px] rounded shadow-md text-[12px] font-bold tracking-wider uppercase flex items-center justify-center gap-2"
                 onClick={() => { updateFollowUpStatus(selectedFollowUp.id, 'Booked'); setSelectedFollowUpId(null); showToast("Success! Lead converted."); }}
               >
-                Convert to Customer <CheckCircleIcon className="w-6 h-6" />
+                Convert to Customer <CheckCircleIcon className="w-4 h-4" />
               </Button>
               <Button
                 variant="secondary"
-                className="w-full h-[56px] rounded-2xl border-2 font-bold uppercase tracking-[2px] text-[11px] shadow-md bg-white"
+                className="w-full h-[46px] rounded border font-bold uppercase tracking-wider text-[12px] shadow bg-white"
                 onClick={() => { updateFollowUpStatus(selectedFollowUp.id, 'Lost'); setSelectedFollowUpId(null); showToast("Lead archived."); }}
               >
                 Mark as Lost

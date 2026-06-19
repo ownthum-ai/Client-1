@@ -40,15 +40,8 @@ export default function SiteVisit() {
     updateSiteVisit,
     globalModal,
     setGlobalModal,
-    layouts,
-    brokers,
-    constructionPhases
+    brokers
   } = useStore();
-
-  const uniqueSites = useMemo(() => {
-    const sites = new Set(constructionPhases.map(p => p.siteName));
-    return Array.from(sites).filter(Boolean);
-  }, [constructionPhases]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
@@ -71,7 +64,7 @@ export default function SiteVisit() {
   const [phone, setPhone] = useState('');
   const [source, setSource] = useState('Walk-in');
   const [budget, setBudget] = useState('');
-  const [preference, setPreference] = useState(layouts[0]?.name || 'Plot 150sqyd');
+  const [preference, setPreference] = useState('Plot 150sqyd');
   const [interest, setInterest] = useState<InterestLevel>('Warm');
   const [notes, setNotes] = useState('');
 
@@ -105,7 +98,7 @@ export default function SiteVisit() {
     });
 
     setIsModalOpen(false);
-    setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference(layouts[0]?.name || 'Plot 150sqyd'); setInterest('Warm'); setNotes('');
+    setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference('Plot 150sqyd'); setInterest('Warm'); setNotes('');
     setSelectedVisitIdForEdit(null);
   };
 
@@ -124,7 +117,7 @@ export default function SiteVisit() {
     });
 
     setIsModalOpen(false);
-    setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference(layouts[0]?.name || 'Plot 150sqyd'); setInterest('Warm'); setNotes('');
+    setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference('Plot 150sqyd'); setInterest('Warm'); setNotes('');
     setSelectedVisitIdForEdit(null);
   };
 
@@ -189,7 +182,7 @@ export default function SiteVisit() {
               className="px-10 h-[56px] flex items-center gap-3 shadow-lg rounded-xl"
               onClick={() => {
                 setSelectedVisitIdForEdit(null);
-                setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference(layouts[0]?.name || 'Plot 150sqyd'); setInterest('Warm'); setNotes('');
+                setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference('Plot 150sqyd'); setInterest('Warm'); setNotes('');
                 setIsModalOpen(true);
               }}
             >
@@ -200,7 +193,7 @@ export default function SiteVisit() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             label="Total Visits"
             value={totalVisits}
@@ -210,11 +203,6 @@ export default function SiteVisit() {
             label="Interested"
             value={hotLeads}
             trend={{ value: "Hot", type: "up" }}
-          />
-          <KPICard
-            label="Total Projects"
-            value={uniqueSites.length}
-            trend={{ value: "Working sites", type: "neutral" }}
           />
           <KPICard
             label="Pending Work"
@@ -227,20 +215,6 @@ export default function SiteVisit() {
             trend={{ value: "Visit result", type: "up" }}
           />
         </div>
-
-        {/* Project List / Site Selector */}
-        <Card title="Projects List" subtitle="Sites where work is going on" className="p-6">
-          <div className="flex flex-wrap gap-3 text-left">
-            {uniqueSites.map(site => (
-              <Badge key={site} variant="info" className="px-4 py-2 text-[12px] font-bold shadow-md uppercase tracking-wider bg-[#002B49] text-white">
-                {site}
-              </Badge>
-            ))}
-            {uniqueSites.length === 0 && (
-              <p className="text-[12px] text-gray-400 font-bold uppercase italic">No active projects detected in construction phases.</p>
-            )}
-          </div>
-        </Card>
 
         {/* Navigation Tabs */}
         <div className="flex items-center gap-2 border-b-2 border-[var(--border)] pb-0">
@@ -452,7 +426,7 @@ export default function SiteVisit() {
               <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12" onClick={() => {
                 setIsModalOpen(false);
                 setSelectedVisitIdForEdit(null);
-                setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference(layouts[0]?.name || 'Plot 150sqyd'); setInterest('Warm'); setNotes('');
+                setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference('Plot 150sqyd'); setInterest('Warm'); setNotes('');
               }}>✕</Button>
             </div>
 
@@ -494,12 +468,7 @@ export default function SiteVisit() {
               <div className="grid grid-cols-2 gap-10">
                 <div className="space-y-4">
                   <Label required>Property preference</Label>
-                  <Select v2={true} value={preference} onChange={e => setPreference(e.target.value)} className="shadow-md rounded-2xl h-[56px]">
-                    {layouts.map(l => (
-                      <option key={l.id} value={l.name}>{l.name}</option>
-                    ))}
-                    {layouts.length === 0 && <option value="Plot 150sqyd">Plot 150sqyd</option>}
-                  </Select>
+                  <Input required v2={true} value={budget} onChange={e => setBudget(e.target.value)} type="text" placeholder="e.g. 3 BHK Apartment" className="shadow-md rounded-2xl h-[56px] text-amber-600 font-price" />
                 </div>
                 <div className="space-y-4">
                   <Label required>Estimated budget (₹)</Label>
@@ -532,7 +501,7 @@ export default function SiteVisit() {
                   onClick={() => {
                     setIsModalOpen(false);
                     setSelectedVisitIdForEdit(null);
-                    setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference(layouts[0]?.name || 'Plot 150sqyd'); setInterest('Warm'); setNotes('');
+                    setCustomerName(''); setPhone(''); setSource('Walk-in'); setBudget(''); setPreference('Plot 150sqyd'); setInterest('Warm'); setNotes('');
                   }}
                 >
                   Cancel
@@ -550,85 +519,82 @@ export default function SiteVisit() {
       )}
 
       {/* Details Panel - Side drawer */}
-      <div className={`fixed top-0 right-0 h-screen w-[520px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedVisitId ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedVisitId ? 'translate-x-0' : 'translate-x-full'}`}>
         {selectedVisit ? (
-          <div className="flex-1 flex flex-col p-10 overflow-y-auto text-left">
-            <div className="flex items-center justify-between mb-10">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-amber-600 border-2 border-[var(--border)] shadow-md">
-                  <IdentificationIcon className="w-8 h-8" />
+          <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm font-bold shrink-0">
+                  <IdentificationIcon className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-2">{selectedVisit.customerName}</h2>
-                  <p className="text-[12px] text-gray-400 font-bold uppercase tracking-widest opacity-80">{selectedVisit.source}</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedVisit.customerName}</h2>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80 leading-none">{selectedVisit.source}</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12" onClick={() => setSelectedVisitId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedVisitId(null)}>✕</Button>
             </div>
 
-            <div className="space-y-12">
+            <div className="space-y-6">
               {/* Status Banner */}
-              <div className="p-8 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <BoltIcon className="w-24 h-24" />
+              <div className="p-5 bg-gray-900 rounded border border-gray-800 flex flex-col shadow-2xl relative overflow-hidden text-white">
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[11px] font-bold text-white/40 tracking-wider uppercase">Visitor interest</span>
+                  <Badge variant={selectedVisit.interest === 'Hot' ? 'danger' : 'info'} className="px-2.5 py-1 text-[10px] font-bold uppercase shadow-sm">{selectedVisit.interest}</Badge>
                 </div>
-                <div className="flex justify-between items-center mb-8 relative">
-                  <span className="text-[11px] font-bold text-white/40 tracking-[3px] uppercase">Visitor interest</span>
-                  <Badge variant={selectedVisit.interest === 'Hot' ? 'danger' : 'info'} className="px-3 py-1 text-[10px] font-bold uppercase shadow-sm">{selectedVisit.interest}</Badge>
-                </div>
-                <div className="relative">
-                  <p className="text-3xl font-bold tracking-tight text-amber-500 mb-2">{selectedVisit.preference}</p>
-                  <p className="text-[14px] font-bold text-white/60 uppercase tracking-[2px]">Budget: {selectedVisit.budget}</p>
+                <div className="relative z-10">
+                  <p className="text-xl font-bold tracking-tight text-amber-500 mb-1.5 leading-tight">{selectedVisit.preference}</p>
+                  <p className="text-[13.5px] font-bold text-white/60 uppercase tracking-wide">Budget: {selectedVisit.budget}</p>
                 </div>
               </div>
 
               {/* Details Info */}
-              <div className="space-y-6">
-                <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+              <div className="space-y-3">
+                <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2 flex items-center gap-2">
                   Visit documentation
                 </h3>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   {[
-                    { label: 'Source', value: selectedVisit.source, icon: <IdentificationIcon className="w-5 h-5" /> },
-                    { label: 'Phone', value: selectedVisit.phone, icon: <DevicePhoneMobileIcon className="w-5 h-5" /> },
-                    { label: 'Visit date', value: selectedVisit.visitDate, icon: <ClockIcon className="w-5 h-5" /> },
+                    { label: 'Source', value: selectedVisit.source, icon: <IdentificationIcon className="w-4 h-4" /> },
+                    { label: 'Phone', value: selectedVisit.phone, icon: <DevicePhoneMobileIcon className="w-4 h-4" /> },
+                    { label: 'Visit date', value: selectedVisit.visitDate, icon: <ClockIcon className="w-4 h-4" /> },
                   ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm hover:bg-gray-50 transition-none">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-amber-600 border-2 border-white shadow-sm">
+                    <div key={idx} className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded bg-gray-50 flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-inner">
                           {item.icon}
                         </div>
-                        <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
+                        <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">{item.label}</span>
                       </div>
-                      <span className="text-[15px] font-bold text-gray-900 tracking-tight uppercase">{item.value}</span>
+                      <span className="text-[14.5px] font-bold text-gray-900 tracking-tight uppercase">{item.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Remarks */}
-              <div className="space-y-4">
-                <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase flex items-center gap-3">
+              <div className="space-y-3">
+                <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase">
                   Observation notes
                 </h3>
-                <div className="p-8 bg-amber-50 border-2 border-amber-200 rounded-2xl shadow-sm text-[15px] text-amber-900 leading-relaxed font-medium italic border-l-[8px] !border-l-amber-500 uppercase">
+                <div className="p-4 bg-amber-50 border border-amber-100 rounded shadow-sm text-[13px] text-amber-800 font-bold uppercase tracking-wide opacity-80 leading-relaxed italic border-l-4 !border-l-amber-500">
                   &quot;{selectedVisit.notes || 'No specific remarks recorded.'}&quot;
                 </div>
               </div>
             </div>
 
-            <div className="mt-auto pt-10 border-t-2 border-[var(--border)] flex gap-6">
+            <div className="mt-auto pt-6 border-t border-[var(--border)] flex gap-4">
               <Button
-                variant="secondary" className="flex-1 h-[56px] font-bold uppercase tracking-widest shadow-md rounded-xl"
+                variant="secondary" className="flex-1 h-[46px] font-bold uppercase tracking-wider shadow-sm rounded text-[12px] bg-white border"
                 onClick={() => setSelectedVisitId(null)}
               >
                 Close
               </Button>
               <Button
-                variant="primary" className="flex-[2] h-[56px] font-bold uppercase tracking-widest shadow-xl rounded-xl gap-3"
+                variant="primary" className="flex-[2] h-[46px] font-bold uppercase tracking-wider shadow-md rounded text-[12px] gap-1.5 flex items-center justify-center"
                 onClick={() => { updateSiteVisitStatus(selectedVisit.id, 'Visited'); setSelectedVisitId(null); }}
               >
-                Confirm visit <CheckCircleIcon className="w-6 h-6" />
+                Confirm visit <CheckCircleIcon className="w-4 h-4" />
               </Button>
             </div>
           </div>

@@ -240,70 +240,70 @@ export default function FixedItemPage() {
          </Card>
 
          {/* Side Drawer for Details */}
-         <div className={`fixed top-0 right-0 h-screen w-[520px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedAssetId && !activeMenuId && !isAddModalOpen && !isConditionModalOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+         <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedAssetId && !activeMenuId && !isAddModalOpen && !isConditionModalOpen ? 'translate-x-0' : 'translate-x-full'}`}>
             {selectedAsset ? (
-               <div className="flex-1 flex flex-col p-12 overflow-y-auto text-left">
-                  <div className="flex items-center justify-between mb-12">
-                     <div className="flex items-center gap-6">
-                        <div className="modal-header-icon text-amber-600">
-                           {selectedAsset.category === 'Heavy Equipment' ? <TruckIcon className="w-8 h-8" /> :
-                              selectedAsset.category === 'IT Equipment' ? <ComputerDesktopIcon className="w-8 h-8" /> :
-                                 <BriefcaseIcon className="w-8 h-8" />}
+               <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+                  <div className="flex items-center justify-between mb-6">
+                     <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm shrink-0">
+                           {selectedAsset.category === 'Heavy Equipment' ? <TruckIcon className="w-6 h-6" /> :
+                              selectedAsset.category === 'IT Equipment' ? <ComputerDesktopIcon className="w-6 h-6" /> :
+                                 <BriefcaseIcon className="w-6 h-6" />}
                         </div>
                         <div className="text-left">
-                           <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedAsset.name}</h2>
-                           <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">{selectedAsset.category}</p>
+                           <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedAsset.name}</h2>
+                           <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80 leading-none">{selectedAsset.category}</p>
                         </div>
                      </div>
-                     <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedAssetId(null)}>✕</Button>
+                     <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedAssetId(null)}>✕</Button>
                   </div>
 
-                  <div className="space-y-12">
+                  <div className="space-y-6">
                      {/* Details Grid */}
-                     <div className="grid grid-cols-2 gap-8">
-                        <div className="p-10 bg-gray-50 rounded-[16px] border-2 border-gray-100 text-left shadow-sm">
-                           <Label className="mb-3 block">Supplier</Label>
-                           <span className="text-[16px] font-bold text-gray-900 uppercase tracking-tight">{selectedAsset.vendor || 'Supplier'}</span>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3.5 bg-gray-50 rounded border border-[var(--border)] text-left shadow-inner">
+                           <span className="text-[11px] font-bold text-gray-400 tracking-wider uppercase mb-1.5 block">Supplier</span>
+                           <span className="text-[14.5px] font-bold text-gray-900 uppercase tracking-tight block truncate">{selectedAsset.vendor || 'Supplier'}</span>
                         </div>
-                        <div className="p-10 bg-gray-50 rounded-[16px] border-2 border-gray-100 text-left shadow-sm">
-                           <Label className="mb-3 block">Use Time</Label>
-                           <span className="text-[16px] font-bold text-gray-900 uppercase tracking-tight">{selectedAsset.usefulLife} years</span>
+                        <div className="p-3.5 bg-gray-50 rounded border border-[var(--border)] text-left shadow-inner">
+                           <span className="text-[11px] font-bold text-gray-400 tracking-wider uppercase mb-1.5 block">Use Time</span>
+                           <span className="text-[14.5px] font-bold text-gray-900 uppercase tracking-tight block">{selectedAsset.usefulLife} years</span>
                         </div>
                      </div>
 
                      {/* Item Metadata */}
-                     <div className="space-y-8">
-                        <h3 className="text-[11px] font-bold text-gray-400 tracking-[3px] uppercase border-b-2 border-gray-100 pb-5">
+                     <div className="space-y-3">
+                        <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2">
                           Item Details
                         </h3>
-                        <div className="space-y-5">
-                           <div className="flex items-center justify-between p-8 bg-white rounded-xl border-2 border-gray-100 shadow-sm">
-                              <Label>Item ID</Label>
-                              <span className="text-[15px] font-bold text-gray-900 tabular-nums">#AST-{selectedAsset.id.slice(-8).toUpperCase()}</span>
+                        <div className="space-y-3">
+                           <div className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm">
+                              <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Item ID</span>
+                              <span className="text-[13.5px] font-bold text-gray-900 tabular-nums">#AST-{selectedAsset.id.slice(-8).toUpperCase()}</span>
                            </div>
-                           <div className="flex items-center justify-between p-8 bg-white rounded-xl border-2 border-gray-100 shadow-sm">
-                              <Label>Location</Label>
-                              <span className="text-[15px] font-bold text-gray-900 uppercase tracking-tight">{selectedAsset.location}</span>
+                           <div className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm">
+                              <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Location</span>
+                              <span className="text-[13.5px] font-bold text-gray-900 uppercase tracking-tight">{selectedAsset.location}</span>
                            </div>
-                           <div className="flex items-center justify-between p-8 bg-white rounded-xl border-2 border-gray-100 shadow-sm">
-                              <Label>Date</Label>
-                              <span className="text-[15px] font-bold text-gray-900 tabular-nums">{selectedAsset.date}</span>
+                           <div className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm">
+                              <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Date</span>
+                              <span className="text-[13.5px] font-bold text-gray-900 tabular-nums">{selectedAsset.date}</span>
                            </div>
                         </div>
                      </div>
 
-                     <div className="flex items-center gap-6 p-10 bg-amber-50 rounded-[16px] border-2 border-amber-100 shadow-sm">
-                        <ShieldCheckIcon className="w-10 h-10 text-amber-500 shrink-0" />
-                        <p className="text-[13px] text-amber-800 font-bold leading-relaxed uppercase tracking-wide opacity-80">
+                     <div className="flex items-center gap-3 p-4 bg-amber-50 rounded border border-amber-100 shadow-sm">
+                        <ShieldCheckIcon className="w-6 h-6 text-amber-500 shrink-0" />
+                        <p className="text-[12px] text-amber-800 font-bold uppercase tracking-wide opacity-80 leading-tight">
                            Item checked and saved in the main list.
                         </p>
                      </div>
                   </div>
 
-                  <div className="mt-auto pt-10">
+                  <div className="mt-auto pt-6 border-t border-[var(--border)]">
                      <Button
                         variant="secondary"
-                        className="w-full h-[56px] font-bold uppercase tracking-widest shadow-md rounded-2xl border-2 bg-white"
+                        className="w-full h-[46px] font-bold uppercase tracking-wider shadow-sm rounded bg-white text-[12px]"
                         onClick={() => setSelectedAssetId(null)}
                      >
                         Close Detail

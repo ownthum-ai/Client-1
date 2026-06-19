@@ -11,7 +11,8 @@ export default function Settings() {
   const [newPin, setNewPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
   const [saved, setSaved] = useState(false);
-  const { lockPin, resetSystem } = useStore();
+  const [error, setError] = useState(false);
+  const { lockPin, resetSystem, systemPin, setSystemPin } = useStore();
   const router = useRouter();
 
   const handleCloseSystem = () => {
@@ -27,6 +28,20 @@ export default function Settings() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    const activePin = systemPin || '1234';
+    if (currentPin.join('') !== activePin) {
+      setError(true);
+      setSaved(false);
+      return;
+    }
+    
+    if (newPin.join('') !== confirmPin.join('')) {
+      alert("Confirm PIN does not match new PIN!");
+      return;
+    }
+
+    setSystemPin(newPin.join(''));
+    setError(false);
     setSaved(true);
     setTimeout(() => {
       setSaved(false);
@@ -126,6 +141,11 @@ export default function Settings() {
                 {saved && (
                   <span className="text-[11px] font-bold text-green-600 flex items-center gap-1.5 uppercase tracking-wider">
                     Pin updated
+                  </span>
+                )}
+                {error && (
+                  <span className="text-[11px] font-bold text-red-600 flex items-center gap-1.5 uppercase tracking-wider">
+                    Incorrect current PIN
                   </span>
                 )}
               </div>

@@ -8,19 +8,17 @@ import { Card } from '@/components/ui/Card';
 import { KPICard } from '@/components/ui/KPICard';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
 import { motion } from 'framer-motion';
 import {
   ArrowDownTrayIcon,
   PlusIcon,
-  ChartBarIcon,
   ArrowPathIcon,
   ShieldCheckIcon,
   CurrencyRupeeIcon,
   MapIcon,
   Square3Stack3DIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  TruckIcon
 } from '@heroicons/react/24/outline';
 
 const MegaphoneIcon = (props: any) => (
@@ -30,25 +28,20 @@ const MegaphoneIcon = (props: any) => (
 );
 
 const FinanceTrendChart = dynamic(() => import('@/components/DashboardCharts').then(mod => mod.FinanceTrendChart), { ssr: false });
-const ConstructionBarChart = dynamic(() => import('@/components/DashboardCharts').then(mod => mod.ConstructionBarChart), { ssr: false });
 
 export default function Dashboard() {
   const router = useRouter();
 
   const {
     payments,
-    addQuery,
-    lands,
-    plots,
+    properties = [],
     followUps,
     brokers,
-    constructionPhases,
     materialStock,
     campaigns,
     salaries,
     queries,
     materialTxns,
-    constructionCosts,
     siteVisits,
     transmissionLogs,
     activityFeed,
@@ -61,23 +54,20 @@ export default function Dashboard() {
   const blackTotal = useMemo(() => payments.filter(p => p.mode === 'Cash').reduce((acc, curr) => acc + curr.amount, 0), [payments]);
   const displayRevenue = useMemo(() => whiteTotal + blackTotal, [whiteTotal, blackTotal]);
 
-  const soldPlotsCount = useMemo(() => plots.filter(p => p.status === 'Sold').length, [plots]);
+  const soldPropertiesCount = useMemo(() => properties.filter(p => p.status === 'Sold').length, [properties]);
   const activeLeadsCount = useMemo(() => queries.filter(q => q.status === 'New' || q.status === 'In Progress').length, [queries]);
   const followUpLeadsCount = useMemo(() => followUps.filter(f => f.status !== 'Lost' && f.status !== 'Booked').length, [followUps]);
 
   const landCost = useMemo(() => propertyHolders.reduce((acc, h) => acc + h.paidAmount, 0), [propertyHolders]);
   const materialCost = useMemo(() => materialTxns.filter(t => t.type === 'Inward').reduce((acc, t) => acc + (t.totalCost || 0), 0), [materialTxns]);
-  const constructionCostExpenses = useMemo(() => constructionCosts.reduce((acc, c) => acc + c.amount, 0), [constructionCosts]);
   const marketingCost = useMemo(() => campaigns.reduce((acc, c) => acc + (c.spent || 0), 0), [campaigns]);
   const salaryCost = useMemo(() => salaries.filter(s => s.status === 'Paid').reduce((acc, s) => acc + (s.net || 0), 0), [salaries]);
   const salaryAdvanceCost = useMemo(() => salaryAdvances.reduce((acc, a) => acc + a.amount, 0), [salaryAdvances]);
   const brokerCommissionCost = useMemo(() => brokers.reduce((acc, b) => acc + b.commissions.filter(c => c.status === 'Paid').reduce((a, c) => a + c.amount, 0), 0), [brokers]);
   const itemCost = useMemo(() => assets.reduce((acc, a) => acc + a.price, 0), [assets]);
 
-  const totalExpenses = landCost + materialCost + constructionCostExpenses + marketingCost + salaryCost + salaryAdvanceCost + brokerCommissionCost + itemCost;
+  const totalExpenses = landCost + materialCost + marketingCost + salaryCost + salaryAdvanceCost + brokerCommissionCost + itemCost;
   const netProfit = displayRevenue - totalExpenses;
-
-  const lowStockCount = useMemo(() => materialStock.filter(m => m.current < m.threshold).length, [materialStock]);
 
   const recentActivities = useMemo(() => {
     const list: any[] = [];
@@ -92,27 +82,13 @@ export default function Dashboard() {
     });
     transmissionLogs.slice(0, 1).forEach(t => list.push({ title: `Message sent to ${t.delivered} contacts`, time: t.date, sub: `${t.postTitle} · ${t.channel}`, dot: 'gold' }));
     activityFeed.slice(0, 5).forEach(item => {
-      const dotColor = item.type === 'material_alert' || item.type === 'land_overdue' ? 'red' :
-        item.type === 'material_inward' || item.type === 'land_payment' ? 'gold' :
+      const dotColor = item.type === 'material_alert' ? 'red' :
+        item.type === 'material_inward' ? 'gold' :
           item.type === 'material_outward' ? 'border' : 'gold';
       list.push({ title: item.message, time: item.timestamp, sub: '', dot: dotColor });
     });
     return list.sort((a, b) => b.time.localeCompare(a.time)).slice(0, 8);
   }, [queries, payments, siteVisits, followUps, transmissionLogs, activityFeed]);
-
-  const siteWiseConstructionData = useMemo(() => {
-    const sites: Record<string, { count: number, totalProgress: number }> = {};
-    constructionPhases.forEach(p => {
-      const site = p.siteName || 'Unassigned';
-      if (!sites[site]) sites[site] = { count: 0, totalProgress: 0 };
-      sites[site].count += 1;
-      sites[site].totalProgress += p.progress;
-    });
-    return Object.entries(sites).map(([site, data]) => ({
-      site: site.toUpperCase(),
-      progress: Math.round(data.totalProgress / data.count)
-    }));
-  }, [constructionPhases]);
 
   const financialTrend = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -151,25 +127,23 @@ export default function Dashboard() {
       <InvestmentReport
         data={{
           revenue: displayRevenue,
-          plotsSold: `${soldPlotsCount} / ${plots.length}`,
+          plotsSold: `${soldPropertiesCount} / ${properties.length}`,
           landCost: landCost,
           activeLeads: activeLeadsCount,
           profit: netProfit,
-          siteWiseData: siteWiseConstructionData,
           recentActivities: recentActivities,
           expenses: {
             land: landCost,
             material: materialCost,
-            construction: constructionCostExpenses,
             marketing: marketingCost,
             salary: salaryCost + salaryAdvanceCost,
             broker: brokerCommissionCost,
             assets: itemCost
           },
           inventory: {
-            total: plots.length,
-            sold: soldPlotsCount,
-            available: plots.length - soldPlotsCount
+            total: properties.length,
+            sold: soldPropertiesCount,
+            available: properties.length - soldPropertiesCount
           },
           leads: {
             total: queries.length,
@@ -202,7 +176,7 @@ export default function Dashboard() {
         {/* Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
           <KPICard label="Revenue" value={displayRevenue} trend={{ value: "+12%", type: "up" }} onClick={() => router.push('/payments')} isCurrency={true} />
-          <KPICard label="Plots" value={`${soldPlotsCount} / ${plots.length}`} trend={{ value: `${((soldPlotsCount / plots.length) * 100).toFixed(1)}% sold`, type: "neutral" }} onClick={() => router.push('/layout')} />
+          <KPICard label="Properties" value={`${soldPropertiesCount} / ${properties.length}`} trend={{ value: `${properties.length > 0 ? ((soldPropertiesCount / properties.length) * 100).toFixed(1) : 0}% sold`, type: "neutral" }} onClick={() => router.push('/property')} />
           <KPICard label="Land cost" value={landCost} trend={{ value: "Paid", type: "neutral" }} onClick={() => router.push('/propertyholder')} isCurrency={true} />
           <KPICard label="Active leads" value={activeLeadsCount} trend={{ value: "Live", type: "neutral" }} onClick={() => router.push('/query')} />
           <KPICard label="Follow up lead" value={followUpLeadsCount} trend={{ value: "In pipeline", type: "neutral" }} onClick={() => router.push('/followup')} />
@@ -225,16 +199,16 @@ export default function Dashboard() {
           </Card>
 
           {/* Profit summary */}
-          {/* Profit summary */}
           <Card title="Financials" subtitle="Profit & loss" actions={<Badge variant="gold" className="tracking-widest leading-none px-2 py-0.5 uppercase text-[9px] font-bold">Done</Badge>}>
             <div className="space-y-2 mt-6">
               {[
                 { label: 'Bank Balance', value: whiteTotal, mode: 'plus', path: '/payments', sub: 'In bank', icon: PlusIcon },
                 { label: 'Cash Balance', value: blackTotal, mode: 'private', path: '/payments', sub: 'In hand', icon: ShieldCheckIcon },
                 { label: 'Land Cost', value: landCost, mode: 'minus', path: '/propertyholder', sub: 'Land buying', icon: MapIcon },
-                { label: 'Material Cost', value: materialCost + constructionCostExpenses, mode: 'minus', path: '/material', sub: 'Stock used', icon: Square3Stack3DIcon },
-                { label: 'Marketing Cost', value: marketingCost, mode: 'minus', path: '/brochure', sub: 'Ads & Brochures', icon: MegaphoneIcon },
+                { label: 'Material Cost', value: materialCost, mode: 'minus', path: '/material', sub: 'Stock used', icon: Square3Stack3DIcon },
+                { label: 'Marketing Cost', value: marketingCost, mode: 'minus', path: '/weekend', sub: 'Ads & Campaigns', icon: MegaphoneIcon },
                 { label: 'Salaries', value: salaryCost + salaryAdvanceCost + brokerCommissionCost, mode: 'minus', path: '/salary', sub: 'Staff & Brokers', icon: UserGroupIcon },
+                { label: 'Assets Cost', value: itemCost, mode: 'minus', path: '/assets', sub: 'Company assets', icon: TruckIcon },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -290,20 +264,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--section-gap)]">
-          <Card title="Construction status" subtitle="Work progress across sites" actions={<Badge variant="neutral" className="tracking-widest text-[9px] font-bold uppercase">{siteWiseConstructionData.length} projects</Badge>}>
-            <div className="h-[220px] w-full mt-8">
-              {siteWiseConstructionData.length > 0 ? (
-                <ConstructionBarChart data={siteWiseConstructionData} />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-[var(--text3)] opacity-40 select-none">
-                  <ChartBarIcon className="w-12 h-12 mb-4" />
-                  <span className="text-[11px] font-bold tracking-[2px] uppercase">No construction data</span>
-                </div>
-              )}
-            </div>
-          </Card>
-
+        <div className="grid grid-cols-1 gap-[var(--section-gap)]">
           <Card title="Recent Actions" subtitle="Timeline">
             <div className="space-y-5 mt-8 text-left">
               {recentActivities.length > 0 ? recentActivities.map((item, i, arr) => (
@@ -328,7 +289,7 @@ export default function Dashboard() {
 
       {/* Print Footer */}
       <footer className="print-footer">
-        <p>© 2026 Ownthum Real Estate. All rights reserved. Generated via Secure Investment Portal.</p>
+        <p>© 2026 Ownthum Real Estate. All rights reserved. Generated via Secure Portfolio Review.</p>
       </footer>
     </>
   );

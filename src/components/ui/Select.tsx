@@ -82,8 +82,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           onClick={() => !props.disabled && setIsOpen(!isOpen)}
           className={cn(
             "flex items-center justify-between w-full appearance-none transition-none outline-none cursor-pointer font-bold",
-            v2 ? "h-[56px] rounded-2xl bg-white border-2 border-[var(--border)] px-6 text-[15px] tracking-tight shadow-sm" :
-               "h-[var(--form-h)] rounded-[var(--form-r)] border-2 border-[var(--form-border)] bg-white px-[var(--form-px)] text-[var(--form-fs)] focus:border-gray-900",
+            v2 ? "h-[40px] rounded-md bg-white border border-[var(--border)] px-4 text-[13px] tracking-tight shadow-sm" :
+               "h-[var(--form-h)] rounded-[var(--form-r)] border border-[var(--form-border)] bg-white px-[var(--form-px)] text-[var(--form-fs)] focus:border-gray-900",
             isOpen && "border-gray-900 bg-white shadow-sm",
             error && "bg-red-50 border-red-500",
             props.disabled && "cursor-not-allowed opacity-50",
@@ -104,10 +104,10 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
         {isOpen && (
           <div className={cn(
-            "absolute left-0 right-0 z-[600] mt-2 overflow-hidden bg-white rounded-xl border-2 border-gray-900 shadow-2xl",
-            v2 ? "py-2" : "py-1"
+            "absolute left-0 right-0 z-[600] mt-1 overflow-hidden bg-white rounded-md border border-gray-900 shadow-xl",
+            v2 ? "py-1" : "py-0.5"
           )}>
-            <div className="max-h-[300px] overflow-y-auto">
+            <div className="max-h-[220px] overflow-y-auto">
               {options.length > 0 ? (
                 options.map((option: any, index: number) => {
                   const isSelected = (props.value || props.defaultValue) === option.value;
@@ -116,7 +116,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                       key={index}
                       onClick={() => handleSelect(option)}
                       className={cn(
-                        "px-6 py-4 text-[15px] cursor-pointer font-bold flex items-center justify-between",
+                        "px-4 py-2.5 text-[13px] cursor-pointer font-bold flex items-center justify-between",
                         isSelected ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       )}
                     >
@@ -125,7 +125,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                   );
                 })
               ) : (
-                <div className="px-6 py-4 text-[13px] text-[var(--text3)] italic">No options available</div>
+                <div className="px-4 py-2.5 text-[12px] text-[var(--text3)] italic">No options available</div>
               )}
             </div>
           </div>

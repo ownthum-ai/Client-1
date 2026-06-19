@@ -258,104 +258,104 @@ export default function StaffSalaryPage() {
       </div>
 
       {/* Details Panel - Side drawer for better clarity */}
-      <div className={`fixed top-0 right-0 h-screen w-[560px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedSalaryId ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedSalaryId ? 'translate-x-0' : 'translate-x-full'}`}>
         {selectedSalary ? (
-          <div className="flex-1 flex flex-col p-10 overflow-y-auto text-left">
-            <div className="flex items-center justify-between mb-10">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-amber-600 border-2 border-[var(--border)] shadow-md">
-                  <UserIcon className="w-8 h-8" />
+          <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm shrink-0">
+                  <UserIcon className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-2">{selectedSalary.employeeName}</h2>
-                  <p className="text-[12px] text-gray-400 font-bold uppercase tracking-widest opacity-80">{selectedSalary.role}</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedSalary.employeeName}</h2>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80">{selectedSalary.role}</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12" onClick={() => setSelectedSalaryId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedSalaryId(null)}>✕</Button>
             </div>
 
-            <div className="space-y-12">
+            <div className="space-y-6">
               {/* Earnings Card */}
-              <div className="p-10 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <BanknotesIcon className="w-32 h-32" />
+              <div className="p-5 bg-gray-900 rounded text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                  <BanknotesIcon className="w-16 h-16" />
                 </div>
-                <div className="flex justify-between items-center mb-10 relative">
-                  <span className="text-[12px] font-bold text-white/40 tracking-[4px] uppercase">Net salary pay</span>
-                  <Badge variant="success" className="px-4 py-1 text-[11px] font-bold shadow-sm uppercase">{selectedSalary.status}</Badge>
+                <div className="flex justify-between items-center mb-4 relative pb-3 border-b border-white/10">
+                  <span className="text-[11px] font-bold text-white/40 tracking-[2px] uppercase">Net salary pay</span>
+                  <Badge variant="success" className="px-2.5 py-1 text-[10px] font-bold shadow-sm uppercase">{selectedSalary.status}</Badge>
                 </div>
                 <div className="relative">
-                  <p className="text-5xl font-bold tracking-tight text-amber-500 mb-4">{formatCurrency(selectedSalary.net)}</p>
-                  <p className="text-[14px] font-bold text-white/50 uppercase tracking-[2px]">{currentMonth} · {selectedSalary.days} Days</p>
+                  <p className="text-2xl font-bold tracking-tight text-amber-500 mb-1">{formatCurrency(selectedSalary.net)}</p>
+                  <p className="text-[13.5px] font-bold text-white/50 uppercase tracking-[1px]">{currentMonth} · {selectedSalary.days} Days</p>
                 </div>
-                <Button onClick={() => setIsPreviewModalOpen(true)} className="w-full h-16 mt-10 bg-white/10 hover:bg-white/20 border-none text-[12px] font-bold uppercase tracking-[4px] shadow-lg rounded-2xl">
+                <Button onClick={() => setIsPreviewModalOpen(true)} className="w-full h-[42px] mt-4 bg-white/10 hover:bg-white/20 border-none text-[11px] font-bold uppercase tracking-wider shadow-md rounded">
                   View digital payslip
                 </Button>
               </div>
 
               {/* Financial Breakdown */}
-              <div className="space-y-6">
-                <h3 className="text-[12px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+              <div className="space-y-3">
+                <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2 flex items-center gap-2">
                   Financial Breakdown
                 </h3>
-                <div className="space-y-4">
-                  <div className="p-8 bg-gray-50 rounded-2xl border-2 border-[var(--border)] space-y-6 shadow-inner">
+                <div className="space-y-3">
+                  <div className="p-4 bg-gray-50 rounded border border-[var(--border)] space-y-3 shadow-inner">
                     <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Gross basic pay</span>
-                      <span className="text-[18px] font-bold text-gray-900 tabular-nums">₹{selectedSalary.basic.toLocaleString()}</span>
+                      <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Gross basic pay</span>
+                      <span className="text-[14.5px] font-bold text-gray-900 tabular-nums">₹{selectedSalary.basic.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Allowances</span>
-                      <span className="text-[18px] font-bold text-green-600 tabular-nums">+₹{selectedSalary.allowance.toLocaleString()}</span>
+                      <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Allowances</span>
+                      <span className="text-[14.5px] font-bold text-green-600 tabular-nums">+₹{selectedSalary.allowance.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div className="p-8 bg-gray-50 rounded-2xl border-2 border-[var(--border)] space-y-6 shadow-inner">
+                  <div className="p-4 bg-gray-50 rounded border border-[var(--border)] space-y-3 shadow-inner">
                     <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Advance recovery</span>
-                      <span className="text-[18px] font-bold text-red-600 tabular-nums">-₹{selectedSalary.advanceDeduction.toLocaleString()}</span>
+                      <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Advance recovery</span>
+                      <span className="text-[14.5px] font-bold text-red-600 tabular-nums">-₹{selectedSalary.advanceDeduction.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-bold text-gray-500 uppercase tracking-wide">Other deductions</span>
-                      <span className="text-[18px] font-bold text-red-600 tabular-nums">-₹{selectedSalary.otherDeduction.toLocaleString()}</span>
+                      <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">Other deductions</span>
+                      <span className="text-[14.5px] font-bold text-red-600 tabular-nums">-₹{selectedSalary.otherDeduction.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* History Timeline */}
-              <div className="space-y-6">
-                <h3 className="text-[12px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+              <div className="space-y-3">
+                <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2 flex items-center gap-2">
                   Recent history
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {salaryHistory.map((h, i) => (
-                    <div key={i} className="flex items-center justify-between p-6 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm">
-                      <div className="flex flex-col">
-                        <span className="text-[15px] font-bold text-gray-900 uppercase tracking-tight">{h.month}</span>
-                        <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mt-1">Allowed</span>
+                    <div key={i} className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm">
+                      <div className="flex flex-col text-left">
+                        <span className="text-[13.5px] font-bold text-gray-900 uppercase tracking-tight">{h.month}</span>
+                        <span className="text-[10.5px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Released</span>
                       </div>
-                      <span className="text-[16px] font-bold text-amber-600 tabular-nums">{formatCurrency(h.net)}</span>
+                      <span className="text-[14.5px] font-bold text-amber-600 tabular-nums">{formatCurrency(h.net)}</span>
                     </div>
                   ))}
                   {salaryHistory.length === 0 && (
-                    <div className="p-12 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 opacity-40">
-                      <span className="text-[12px] font-bold uppercase tracking-[4px]">No history available</span>
+                    <div className="p-6 text-center bg-gray-50 rounded border border-dashed border-gray-200 opacity-40">
+                      <span className="text-[11px] font-bold uppercase tracking-[2px]">No history available</span>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="mt-auto pt-10 border-t-2 border-[var(--border)] flex gap-6">
+            <div className="mt-auto pt-6 border-t border-[var(--border)] flex gap-4">
               <Button
-                variant="secondary" className="flex-1 h-[56px] font-bold uppercase tracking-widest shadow-md rounded-xl"
+                variant="secondary" className="flex-1 h-[46px] font-bold uppercase tracking-wider shadow-sm rounded text-[12px]"
                 onClick={() => setSelectedSalaryId(null)}
               >
                 Close
               </Button>
               {selectedSalary.status !== 'Paid' && (
                 <Button
-                  className="flex-[2] h-[56px] font-bold uppercase tracking-widest shadow-xl rounded-xl"
+                  className="flex-[2] h-[46px] font-bold uppercase tracking-wider shadow-md rounded text-[12px]"
                   onClick={() => { updateSalaryStatus(selectedSalary.id, 'Paid'); showToast(`${selectedSalary.employeeName} paid.`); }}
                 >
                   Release payment

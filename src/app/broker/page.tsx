@@ -268,133 +268,133 @@ export default function BrokersPage() {
       {/* Details Modal */}
       {selectedBroker && (
         <div className="modal-overlay">
-          <div className="modal-container shadow-2xl">
-            <div className="modal-header">
-              <div className="flex items-center gap-6 text-left">
-                <div className="modal-header-icon text-amber-600">
-                  <IdentificationIcon className="w-8 h-8" />
+          <div className="modal-container max-w-lg shadow-2xl rounded-md">
+            <div className="modal-header p-6 border-b border-gray-150">
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded bg-gray-50 flex items-center justify-center text-amber-600 border border-gray-200">
+                  <IdentificationIcon className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedBroker.name}</h2>
-                  <div className="flex items-center gap-3 mt-1">
-                    <Badge variant={selectedBroker.status === 'Active' ? 'success' : 'neutral'} className="px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest leading-none shadow-sm">
+                  <h2 className="text-[18px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedBroker.name}</h2>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <Badge variant={selectedBroker.status === 'Active' ? 'success' : 'neutral'} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest leading-none shadow-sm">
                       {selectedBroker.status}
                     </Badge>
-                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-[2px] opacity-60 tabular-nums">Broker ID: {selectedBroker.id.substring(0, 8).toUpperCase()}</p>
+                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80 tabular-nums">ID: {selectedBroker.id.substring(0, 6).toUpperCase()}</p>
                   </div>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedBrokerId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedBrokerId(null)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-10 text-left">
+            <div className="modal-body space-y-6 text-left p-6">
               {/* Communication Layer */}
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-2 gap-4">
                 <Button
                   v2={true}
                   variant="secondary"
-                  className="h-[64px] rounded-[24px] border-2 text-[12px] font-bold tracking-[2px] gap-4 bg-gray-50 shadow-md uppercase hover:bg-gray-100 transition-all duration-300"
+                  className="h-[44px] rounded-md border-2 text-[12px] font-bold tracking-wider gap-2 bg-gray-50 shadow-sm uppercase hover:bg-gray-100"
                   onClick={() => initiateCall(selectedBroker.phone)}
                 >
-                  <PhoneIcon className="w-6 h-6 text-amber-600" /> Call Now
+                  <PhoneIcon className="w-4 h-4 text-amber-600" /> Call Now
                 </Button>
                 <Button
                   v2={true}
                   variant="secondary"
-                  className="h-[64px] rounded-[24px] border-2 text-[12px] font-bold tracking-[2px] gap-4 bg-green-50 text-green-700 shadow-md border-green-100 uppercase hover:bg-green-100 transition-all duration-300"
+                  className="h-[44px] rounded-md border-2 text-[12px] font-bold tracking-wider gap-2 bg-green-50 text-green-700 shadow-sm border-green-155 uppercase hover:bg-green-100"
                   onClick={() => initiateWhatsApp(selectedBroker.phone)}
                 >
-                  <ChatBubbleLeftRightIcon className="w-6 h-6" /> WhatsApp Now
+                  <ChatBubbleLeftRightIcon className="w-4 h-4" /> WhatsApp Now
                 </Button>
               </div>
 
               {/* Performance Metrics */}
-              <div className="grid grid-cols-3 gap-8">
+              <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Success Rate', value: `${selectedBroker.leadsSent > 0 ? Math.round((selectedBroker.conversions / selectedBroker.leadsSent) * 100) : 0}%`, sub: 'Result index' },
                   { label: 'Total Leads', value: selectedBroker.leadsSent, sub: 'Traffic' },
                   { label: 'Commission Rate', value: selectedBroker.commissionRate, sub: 'Broker share' },
                 ].map((stat, idx) => (
-                  <div key={idx} className="p-10 bg-gray-50 rounded-[32px] border-2 border-gray-100 text-center shadow-sm">
-                    <p className="text-[10px] font-bold text-gray-400 tracking-[2px] mb-4 opacity-70 uppercase">{stat.label}</p>
-                    <p className="text-[28px] font-bold text-gray-900 tracking-tight tabular-nums leading-none mb-4">{stat.value}</p>
-                    <p className="text-[10px] font-bold text-amber-600 tracking-[1.5px] uppercase">{stat.sub}</p>
+                  <div key={idx} className="p-3.5 bg-gray-50 rounded border border-[var(--border)] text-center shadow-inner">
+                    <p className="text-[11px] font-bold text-gray-450 tracking-wider mb-2 opacity-80 uppercase">{stat.label}</p>
+                    <p className="text-[16px] font-bold text-gray-900 tracking-tight tabular-nums leading-none mb-2">{stat.value}</p>
+                    <p className="text-[10px] font-bold text-amber-650 tracking-wide uppercase">{stat.sub}</p>
                   </div>
                 ))}
               </div>
 
               {/* Ledger Section */}
-              <div className="space-y-8">
-                <div className="flex items-center justify-between border-b-2 border-gray-100 pb-5">
-                   <h3 className="text-[11px] font-bold text-gray-400 tracking-[3px] uppercase">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                   <h3 className="text-[11px] font-bold text-gray-900 tracking-[1.5px] uppercase">
                       Payments History
                    </h3>
-                   <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Balance due:</span>
-                      <span className="text-[18px] font-bold text-amber-600 tabular-nums">{formatCurrency(selectedBroker.pendingCommission)}</span>
+                   <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Balance due:</span>
+                      <span className="text-[15px] font-bold text-amber-600 tabular-nums">{formatCurrency(selectedBroker.pendingCommission)}</span>
                    </div>
                 </div>
 
-                <div className="space-y-5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
                   {selectedBroker.commissions.length > 0 ? (
                     selectedBroker.commissions.map((c) => (
-                      <div key={c.id} className="bg-white p-8 rounded-[32px] border-2 border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div key={c.id} className="bg-white p-3.5 rounded border border-gray-150 shadow-sm hover:shadow-md">
                         <div className="flex justify-between items-center">
-                          <div className="text-left space-y-2">
-                            <span className="text-[16px] font-bold text-gray-900 tracking-tight block uppercase">{c.plotNumber} — {c.customerName}</span>
-                            <span className="text-[11px] font-bold text-gray-400 tracking-[2px] block uppercase tabular-nums opacity-60">{c.date}</span>
+                          <div className="text-left space-y-1.5">
+                            <span className="text-[13.5px] font-bold text-gray-900 tracking-tight block uppercase">{c.plotNumber} — {c.customerName}</span>
+                            <span className="text-[11px] font-bold text-gray-405 tracking-wider block uppercase tabular-nums opacity-85">{c.date}</span>
                           </div>
-                          <div className="flex flex-col items-end gap-4">
-                            <span className={`text-[20px] font-bold tracking-tight tabular-nums ${c.status === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>{formatCurrency(c.amount)}</span>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className={`text-[14.5px] font-bold tracking-tight tabular-nums ${c.status === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>{formatCurrency(c.amount)}</span>
                             {c.status === 'Due' && (
                               <Button
                                 v2={true}
-                                className="h-10 px-8 rounded-2xl text-[10px] font-bold tracking-[2px] shadow-lg uppercase"
+                                className="h-8 px-4 rounded text-[10px] font-bold tracking-wider shadow-sm uppercase"
                                 onClick={() => { markCommissionPaid(selectedBroker.id, c.id); showToast("Payment approved."); }}
                               >
                                 Approve Payment
                               </Button>
                             )}
                             {c.status === 'Paid' && (
-                              <Badge variant="success" className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest shadow-sm">settled</Badge>
+                              <Badge variant="success" className="px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-widest shadow-sm">settled</Badge>
                             )}
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-20 text-center border-2 border-dashed border-gray-100 rounded-[32px]">
-                      <ClipboardDocumentIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                      <p className="text-[11px] font-bold tracking-[2px] text-gray-400 uppercase">No historical records found</p>
+                    <div className="p-6 text-center border border-dashed border-gray-250 rounded">
+                      <ClipboardDocumentIcon className="w-6 h-6 text-gray-250 mx-auto mb-1.5" />
+                      <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase">No historical records found</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Physical Identity */}
-               <div className="grid grid-cols-2 gap-8">
-                <div className="p-10 bg-gray-50 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                   <Label className="mb-3 block">Phone Number</Label>
-                   <span className="text-[18px] font-bold text-gray-900 tabular-nums">{selectedBroker.phone}</span>
+               <div className="grid grid-cols-2 gap-4">
+                <div className="p-3.5 bg-gray-50 rounded border border-[var(--border)] shadow-inner text-left">
+                   <Label className="mb-1.5 block text-[11px]">Phone Number</Label>
+                   <span className="text-[14.5px] font-bold text-gray-900 tabular-nums block">{selectedBroker.phone}</span>
                 </div>
-                <div className="p-10 bg-gray-50 rounded-[32px] border-2 border-gray-100 shadow-sm">
-                   <Label className="mb-3 block">Working Area</Label>
-                   <span className="text-[18px] font-bold text-gray-900 uppercase tracking-tight">{selectedBroker.area}</span>
+                <div className="p-3.5 bg-gray-50 rounded border border-[var(--border)] shadow-inner text-left">
+                   <Label className="mb-1.5 block text-[11px]">Working Area</Label>
+                   <span className="text-[14.5px] font-bold text-gray-900 uppercase tracking-tight block truncate">{selectedBroker.area}</span>
                 </div>
               </div>
 
-              <div className="pt-6 flex gap-8">
+              <div className="pt-4 flex gap-4 border-t border-gray-150">
                 <Button
                   v2={true}
-                  className="flex-[2] h-[64px] rounded-[24px] shadow-xl font-bold tracking-[2px] text-[12px] uppercase gap-4"
+                  className="flex-[2] h-[44px] rounded-md shadow-md font-bold tracking-wider text-[11px] uppercase gap-2 flex items-center justify-center"
                   onClick={() => window.print()}
                 >
-                  Download report <ArrowDownTrayIcon className="w-6 h-6" />
+                  Download report <ArrowDownTrayIcon className="w-4 h-4" />
                 </Button>
                 <Button
                   v2={true}
                   variant="secondary"
-                  className="flex-1 h-[64px] rounded-[24px] border-2 font-bold tracking-[1px] text-[12px] bg-white shadow-md uppercase transition-all duration-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100"
+                  className="flex-1 h-[44px] rounded-md border-2 font-bold tracking-wider text-[11px] bg-white shadow-sm uppercase hover:bg-red-50 hover:text-red-600 hover:border-red-100"
                   onClick={() => { updateBrokerStatus(selectedBroker.id, selectedBroker.status === 'Active' ? 'Inactive' : 'Active'); setSelectedBrokerId(null); showToast("Status modified."); }}
                 >
                   {selectedBroker.status === 'Active' ? 'Deactivate' : 'Activate'}

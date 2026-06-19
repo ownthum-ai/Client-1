@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo } from 'react';
-import { useStore, Payment, Plot } from '@/store/useStore';
+import { useStore, Payment } from '@/store/useStore';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -23,7 +23,7 @@ export default function PaymentsPage() {
   const {
     payments,
     addPayment,
-    plots
+    properties = []
   } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -77,10 +77,10 @@ export default function PaymentsPage() {
   const totalBlack = payments.filter(p => p.mode === 'Cash').reduce((acc, curr) => acc + curr.amount, 0);
 
   const totalExpectedRevenue = useMemo(() => {
-    return plots
-      .filter((p: Plot) => p.status === 'Booked' || p.status === 'Sold')
-      .reduce((acc: number, curr: Plot) => acc + ((curr.size || 0) * (curr.rate || 0)), 0);
-  }, [plots]);
+    return properties
+      .filter(p => p.status === 'Booked' || p.status === 'Sold')
+      .reduce((acc: number, curr) => acc + ((curr.area || 0) * (curr.rate || 0)), 0);
+  }, [properties]);
   const totalOutstanding = Math.max(0, totalExpectedRevenue - (totalWhite + totalBlack));
 
   const receiptsCount = payments.length;
@@ -546,71 +546,71 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* Details Modal */}
-      {selectedPayment && (
-        <div className="modal-overlay">
-          <div className="modal-container shadow-2xl overflow-hidden flex flex-col h-[90vh]">
-            <div className="modal-header flex-shrink-0">
-              <div className="flex items-center gap-6 text-left">
-                <div className="modal-header-icon text-amber-600">
-                  <UserIcon className="w-8 h-8" />
+      {/* Details Drawer */}
+      <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedPaymentId ? 'translate-x-0' : 'translate-x-full'}`}>
+        {selectedPayment ? (
+          <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm shrink-0">
+                  <UserIcon className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedPayment.customerName}</h2>
-                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Payment Details · Plot {selectedPayment.plotId}</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase truncate max-w-[200px]">{selectedPayment.customerName}</h2>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80 leading-none">Plot {selectedPayment.plotId}</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedPaymentId(null)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedPaymentId(null)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-10 flex-1 flex flex-col p-10 overflow-y-auto">
-              <div className="space-y-8 p-10 bg-gray-900 rounded-[20px] text-white shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <ChartBarIcon className="w-32 h-32" />
+            <div className="space-y-6">
+              <div className="p-5 bg-gray-900 rounded text-white shadow-2xl relative overflow-hidden text-left border-none">
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                  <ChartBarIcon className="w-16 h-16" />
                 </div>
-                <div className="flex justify-between text-[11px] font-bold text-white/40 tracking-[4px] uppercase relative">
-                  <span>Payment Progress</span>
-                  <span className="text-amber-500">Done: 75%</span>
+                <div className="flex justify-between items-center mb-4 relative z-10 pb-3 border-b border-white/10">
+                  <span className="text-[11px] font-bold text-white/40 tracking-[2px] uppercase">Payment Progress</span>
+                  <span className="text-[13px] font-bold text-amber-500">Done: 75%</span>
                 </div>
-                <div className="h-4 bg-white/10 rounded-full overflow-hidden relative shadow-inner">
-                  <div className="h-full bg-amber-500 rounded-full shadow-[0_0_25px_rgba(245,158,11,0.6)]" style={{ width: '75%' }}></div>
+                <div className="h-2.5 bg-white/10 rounded-full overflow-hidden mb-4 p-px relative z-10">
+                  <div className="h-full bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)]" style={{ width: '75%' }}></div>
                 </div>
-                <div className="grid grid-cols-2 gap-12 pt-6 relative">
+                <div className="grid grid-cols-2 gap-4 relative z-10">
                   <div className="text-left">
-                    <p className="text-[10px] font-bold text-white/40 mb-3 uppercase tracking-[3px]">Total Paid</p>
-                    <p className="text-[28px] font-bold text-white leading-none">{formatCurrency(payments.filter(p => p.customerName === selectedPayment.customerName).reduce((a, b) => a + b.amount, 0))}</p>
+                    <p className="text-[11px] font-bold text-white/40 tracking-wider mb-1.5 uppercase">Total Paid</p>
+                    <p className="text-xl font-bold text-white tracking-tight tabular-nums leading-none font-price">{formatCurrency(payments.filter(p => p.customerName === selectedPayment.customerName).reduce((a, b) => a + b.amount, 0))}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-white/40 mb-3 uppercase tracking-[3px]">Current Payment</p>
-                    <p className="text-[28px] font-bold text-amber-500 leading-none">{formatCurrency(selectedPayment.amount)}</p>
+                    <p className="text-[11px] font-bold text-white/40 tracking-wider mb-1.5 uppercase">Current Pay</p>
+                    <p className="text-xl font-bold text-amber-500 tracking-tight tabular-nums leading-none font-price">{formatCurrency(selectedPayment.amount)}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-8 text-left">
-                <h3 className="text-[12px] font-bold text-gray-900 tracking-[4px] uppercase border-b-2 border-gray-50 pb-5">Payment History</h3>
+              <div className="space-y-3 text-left">
+                <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2">Payment History</h3>
 
-                <div className="grid grid-cols-1 gap-5">
+                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
                   {payments
                     .filter(p => p.customerName === selectedPayment.customerName && p.plotId === selectedPayment.plotId)
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((item, idx) => (
-                      <div key={idx} className="p-8 rounded-[16px] border-2 border-gray-50 bg-white shadow-sm hover:border-amber-100 hover:shadow-lg transition-all duration-300 group">
-                        <div className="flex justify-between items-center mb-5">
-                          <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:text-amber-600 group-hover:bg-amber-50 transition-colors shadow-inner">
-                                <BanknotesIcon className="w-6 h-6" />
+                      <div key={idx} className="p-3.5 bg-white rounded border border-[var(--border)] shadow-sm hover:border-amber-100 group">
+                        <div className="flex justify-between items-center mb-3">
+                          <div className="flex items-center gap-3">
+                             <div className="w-9 h-9 rounded bg-gray-50 flex items-center justify-center text-gray-400 group-hover:text-amber-600 transition-colors border border-[var(--border)] shadow-inner">
+                                <BanknotesIcon className="w-4 h-4" />
                              </div>
-                             <span className="text-[15px] font-bold text-gray-400 tabular-nums uppercase tracking-[1px]">{item.date}</span>
+                             <span className="text-[13px] font-bold text-gray-400 tabular-nums uppercase">{item.date}</span>
                           </div>
-                          <span className="text-[22px] font-bold text-gray-900 leading-none">{formatCurrency(item.amount)}</span>
+                          <span className="text-[15px] font-bold text-gray-900 leading-none">{formatCurrency(item.amount)}</span>
                         </div>
-                        <div className="flex justify-between items-center text-[11px] font-bold tracking-[2px] text-gray-400 uppercase opacity-60">
-                          <span className="flex items-center gap-2">
-                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                             {item.mode} channel
+                        <div className="flex justify-between items-center text-[10.5px] font-bold tracking-wider text-gray-455 uppercase opacity-85">
+                          <span className="flex items-center gap-1.5">
+                             <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                             {item.mode}
                           </span>
-                          {item.receiptNumber && <span className="text-amber-600 font-bold border-b border-amber-200">Ref: REC-{item.receiptNumber}</span>}
+                          {item.receiptNumber && <span className="text-amber-600 font-bold">Ref: REC-{item.receiptNumber}</span>}
                         </div>
                       </div>
                     ))}
@@ -618,29 +618,29 @@ export default function PaymentsPage() {
               </div>
             </div>
 
-            <div className="modal-footer bg-white border-t-2 border-gray-50 p-10 flex-shrink-0 flex gap-8">
+            <div className="mt-auto pt-6 border-t border-[var(--border)] flex gap-3">
               <Button
-                variant="primary" className="flex-[2] h-[64px] rounded-[12px] shadow-xl font-bold uppercase tracking-widest bg-gray-900 text-white hover:bg-black transition-all"
-                onClick={() => showToast('Payment list shared with contact.')}
-              >
-                Share record
-              </Button>
-              <Button
-                variant="secondary" className="flex-1 h-[64px] rounded-[12px] border-2 font-bold uppercase tracking-widest shadow-md bg-white hover:bg-gray-50 transition-all"
-                onClick={() => window.print()}
-              >
-                Hardcopy Print
-              </Button>
-              <Button
-                variant="secondary" className="h-[64px] px-10 rounded-[12px] border-2 font-bold uppercase tracking-widest shadow-md bg-white"
+                variant="secondary" className="flex-1 h-[46px] rounded border font-bold uppercase tracking-wider shadow-sm bg-white text-[12px]"
                 onClick={() => setSelectedPaymentId(null)}
               >
                 Close
               </Button>
+              <Button
+                variant="primary" className="flex-1 h-[46px] rounded shadow-md font-bold uppercase tracking-wider text-[12px] flex items-center justify-center"
+                onClick={() => showToast('Payment list shared with contact.')}
+              >
+                Share
+              </Button>
+              <Button
+                variant="secondary" className="flex-1 h-[46px] rounded border font-bold uppercase tracking-wider shadow-sm bg-white text-[12px]"
+                onClick={() => window.print()}
+              >
+                Print
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        ) : null}
+      </div>
     </>
   );
 }

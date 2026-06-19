@@ -60,9 +60,7 @@ const HolderFilter = ({
 export default function PropertyHolderPage() {
   const {
     propertyHolders,
-    lands,
-    layouts,
-    addLandPayment,
+    addPropertyHolderPayment,
     markInstallmentPaid,
     addPropertyHolderInstallment,
     uploadInstallmentReceipt
@@ -97,29 +95,22 @@ export default function PropertyHolderPage() {
     let totalValue = 0;
     let whitePaid = 0;
     let cashPaid = 0;
-    let totalUnits = 0;
 
     activeHolders.forEach(h => {
       totalValue += h.totalAmount;
-      const land = lands.find(l => l.surveyNo === h.parcelId);
-      if (land) {
-        land.payments?.forEach(p => {
-          if (p.mode === 'Cash') cashPaid += p.amount;
-          else whitePaid += p.amount;
-        });
-        const layout = layouts.find(lo => lo.landId === land.id);
-        if (layout) totalUnits += layout.totalPlots;
-      }
+      h.payments?.forEach(p => {
+        if (p.mode === 'Cash') cashPaid += p.amount;
+        else whitePaid += p.amount;
+      });
     });
 
     return {
       totalValue,
       whitePaid,
       cashPaid,
-      totalUnits,
       balance: totalValue - (whitePaid + cashPaid)
     };
-  }, [activeHolders, lands, layouts]);
+  }, [activeHolders]);
 
   const allInstallments = useMemo(() => activeHolders.flatMap(h =>
     h.installments.map(i => ({ ...i, holderName: h.name, holderId: h.id, parcelId: h.parcelId }))
@@ -129,15 +120,14 @@ export default function PropertyHolderPage() {
   const allPayments = useMemo(() => {
     const list: any[] = [];
     activeHolders.forEach(h => {
-      const land = lands.find(l => l.surveyNo === h.parcelId);
-      if (land?.payments) {
-        land.payments.forEach(p => {
-          list.push({ ...p, holderName: h.name, parcelId: h.parcelId, landId: land.id });
+      if (h.payments) {
+        h.payments.forEach(p => {
+          list.push({ ...p, holderName: h.name, parcelId: h.parcelId, holderId: h.id });
         });
       }
     });
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [activeHolders, lands]);
+  }, [activeHolders]);
 
   const institutionalPayments = useMemo(() => allPayments.filter(p => p.mode === 'White'), [allPayments]);
   const privatePayments = useMemo(() => allPayments.filter(p => p.mode === 'Cash'), [allPayments]);
@@ -145,11 +135,10 @@ export default function PropertyHolderPage() {
   const handleTxSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const holder = propertyHolders.find(h => h.id === txHolder);
-    const land = lands.find(l => l.surveyNo === holder?.parcelId);
 
-    if (!land) return;
+    if (!holder) return;
 
-    addLandPayment(land.id, {
+    addPropertyHolderPayment(holder.id, {
       date: new Date(txDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       amount: Number(txAmount),
       mode: txMode as any,
@@ -202,18 +191,12 @@ export default function PropertyHolderPage() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <KPICard
             label="Value"
             value={formatCurrency(stats.totalValue)}
             color="gold"
             trend={{ value: "Items", type: "neutral" }}
-          />
-          <KPICard
-            label="Units"
-            value={stats.totalUnits.toString()}
-            color="gold"
-            trend={{ value: "Plots", type: "neutral" }}
           />
           <KPICard
             label="Paid (Bank)"
@@ -385,62 +368,62 @@ export default function PropertyHolderPage() {
       {/* New Payment Modal */}
       {isAddTxModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container shadow-2xl">
-            <div className="modal-header">
-              <div className="flex items-center gap-6 text-left">
-                <div className="modal-header-icon text-amber-600">
-                  <PlusIcon className="w-8 h-8" />
+          <div className="modal-container max-w-lg shadow-2xl rounded-md p-6">
+            <div className="modal-header mb-6">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-10 h-10 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm">
+                  <PlusIcon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Add Payment</h2>
-                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">New owner settlement entry</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight mb-1 uppercase">Add Payment</h2>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80 leading-none">New owner settlement entry</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddTxModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm text-[12px]" onClick={() => setIsAddTxModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-10">
-              <form onSubmit={handleTxSubmit} className="space-y-10 text-left">
-                <div className="space-y-4">
+            <div className="modal-body space-y-4">
+              <form onSubmit={handleTxSubmit} className="space-y-4 text-left">
+                <div className="space-y-2">
                   <Label required>Property owner</Label>
                   <Select
                     v2={true}
                     required
                     value={txHolder} onChange={e => setTxHolder(e.target.value)}
-                    className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]"
+                    className="h-[44px] shadow-sm rounded-md font-medium text-[14px] uppercase"
                   >
                     <option value="">Select owner profile</option>
                     {propertyHolders.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-10">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label required>Settlement amount (₹)</Label>
-                    <Input required v2={true} type="number" placeholder="0.00" value={txAmount} onChange={e => setTxAmount(e.target.value)} className="h-[56px] shadow-md rounded-2xl font-bold text-[18px] text-amber-600 font-price" />
+                    <Input required v2={true} type="number" placeholder="0.00" value={txAmount} onChange={e => setTxAmount(e.target.value)} className="h-[44px] shadow-sm rounded-md font-medium text-[14.5px] text-amber-600 font-price" />
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <Label required>Transaction date</Label>
-                    <Input required v2={true} type="date" value={txDate} onChange={e => setTxDate(e.target.value)} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] tabular-nums" />
+                    <Input required v2={true} type="date" value={txDate} onChange={e => setTxDate(e.target.value)} className="h-[44px] shadow-sm rounded-md font-medium text-[14px] tabular-nums" />
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-2">
                   <Label required>Settlement channel</Label>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setTxMode('White')}
-                      className={`h-[60px] flex items-center justify-center rounded-2xl border-2 font-bold text-[12px] tracking-widest uppercase transition-none
-                        ${txMode === 'White' ? 'border-amber-500 bg-amber-50 text-amber-600 shadow-md' : 'border-[var(--border)] bg-white text-gray-400 hover:bg-gray-50'}`}
+                      className={`h-[44px] flex items-center justify-center rounded border font-semibold text-[12px] tracking-wider uppercase transition-none
+                        ${txMode === 'White' ? 'border-amber-500 bg-amber-50 text-amber-600 shadow-sm' : 'border-[var(--border)] bg-white text-gray-400 hover:bg-gray-50'}`}
                     >
                       Bank Transfer
                     </button>
                     <button
                       type="button"
                       onClick={() => setTxMode('Cash')}
-                      className={`h-[60px] flex items-center justify-center rounded-2xl border-2 font-bold text-[12px] tracking-widest uppercase transition-none
-                        ${txMode === 'Cash' ? 'border-gray-900 bg-gray-900 text-white shadow-xl' : 'border-[var(--border)] bg-white text-gray-400 hover:bg-gray-50'}`}
+                      className={`h-[44px] flex items-center justify-center rounded border font-semibold text-[12px] tracking-wider uppercase transition-none
+                        ${txMode === 'Cash' ? 'border-gray-900 bg-gray-900 text-white shadow-md' : 'border-[var(--border)] bg-white text-gray-400 hover:bg-gray-50'}`}
                     >
                       Physical Cash
                     </button>
@@ -448,32 +431,29 @@ export default function PropertyHolderPage() {
                 </div>
 
                 {txMode === 'Cash' ? (
-                  <div className="flex items-center gap-5 p-8 bg-gray-900 text-white rounded-[32px] shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-10">
-                       <LockClosedIcon className="w-16 h-16" />
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-amber-500 border border-white/10 shadow-sm shrink-0">
-                       <LockClosedIcon className="w-6 h-6" />
+                  <div className="flex items-center gap-3 p-3 bg-gray-900 text-white rounded border border-gray-800 shadow-inner relative overflow-hidden">
+                    <div className="w-9 h-9 rounded bg-white/10 flex items-center justify-center text-amber-500 border border-white/10 shrink-0">
+                       <LockClosedIcon className="w-4 h-4" />
                     </div>
                     <div className="text-left relative">
-                      <p className="text-[11px] font-bold tracking-[3px] uppercase text-amber-500 mb-1">Secure cash protocol</p>
-                      <p className="text-[13px] font-medium text-white/60 tracking-wide uppercase">This transaction will be recorded in the authorized internal ledger.</p>
+                      <p className="text-[11px] font-bold tracking-widest uppercase text-amber-500 mb-0.5">Secure cash protocol</p>
+                      <p className="text-[14px] font-medium text-white/60 tracking-wide uppercase leading-tight">This transaction will be recorded in the authorized internal ledger.</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amber-500 border border-gray-100 shadow-sm">
-                      <UserIcon className="w-5 h-5" />
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded border border-[var(--border)] shadow-sm">
+                    <div className="w-8 h-8 rounded bg-white flex items-center justify-center text-amber-500 border border-[var(--border)] shadow-inner shrink-0">
+                      <UserIcon className="w-4 h-4" />
                     </div>
-                    <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                    <p className="text-[13px] text-gray-550 font-bold leading-normal uppercase tracking-wide">
                       Payments are automatically matched with the main project balance.
                     </p>
                   </div>
                 )}
 
-                <div className="pt-6 flex gap-6">
-                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsAddTxModalOpen(false)}>Cancel</Button>
-                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Commit payment</Button>
+                <div className="pt-4 border-t border-[var(--border)] flex gap-3">
+                  <Button type="button" variant="secondary" className="flex-1 h-[44px] rounded border font-bold uppercase tracking-wider shadow-sm bg-white text-[12px]" onClick={() => setIsAddTxModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[44px] rounded shadow-md font-bold uppercase tracking-wider text-[12px]">Commit payment</Button>
                 </div>
               </form>
             </div>
@@ -484,21 +464,21 @@ export default function PropertyHolderPage() {
       {/* Schedule Modal */}
       {isAddSchedModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container shadow-2xl">
-            <div className="modal-header">
-              <div className="flex items-center gap-6 text-left">
-                <div className="modal-header-icon text-amber-600">
-                  <CalendarDaysIcon className="w-8 h-8" />
+          <div className="modal-container max-w-lg shadow-2xl rounded-md p-6">
+            <div className="modal-header mb-6">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-10 h-10 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm">
+                  <CalendarDaysIcon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Schedule step</h2>
-                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">New future payment obligation</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight mb-1 uppercase">Schedule step</h2>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-80 leading-none">New future payment obligation</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsAddSchedModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm text-[12px]" onClick={() => setIsAddSchedModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-10">
+            <div className="modal-body space-y-4">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const d = new FormData(e.currentTarget);
@@ -510,49 +490,49 @@ export default function PropertyHolderPage() {
                   status: 'Upcoming'
                 });
                 setIsAddSchedModalOpen(false); showToast("Payment step added");
-              }} className="space-y-10 text-left">
-                <div className="space-y-4">
+              }} className="space-y-4 text-left">
+                <div className="space-y-2">
                   <Label required>Property owner</Label>
-                  <Select name="hId" required v2={true} className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]">
+                  <Select name="hId" required v2={true} className="h-[44px] shadow-sm rounded-md font-medium text-[14px] uppercase">
                     <option value="">Select owner</option>
                     {propertyHolders.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-10">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label required>Step name</Label>
-                    <Input name="name" v2={true} required placeholder="e.g. Possession Payment" className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]" />
+                    <Input name="name" v2={true} required placeholder="e.g. Possession Payment" className="h-[44px] shadow-sm rounded-md font-medium text-[14px]" />
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <Label required>Projected amount (₹)</Label>
-                    <Input name="amt" v2={true} required type="number" placeholder="0.00" className="h-[56px] shadow-md rounded-2xl font-bold text-[18px] text-amber-600 font-price" />
+                    <Input name="amt" v2={true} required type="number" placeholder="0.00" className="h-[44px] shadow-sm rounded-md font-medium text-[14.5px] text-amber-600 font-price" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-10">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label required>Due date</Label>
-                    <Input name="date" v2={true} required type="date" className="h-[56px] shadow-md rounded-2xl font-bold text-[15px] tabular-nums" />
+                    <Input name="date" v2={true} required type="date" className="h-[44px] shadow-sm rounded-md font-medium text-[14px] tabular-nums" />
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <Label required>Release condition</Label>
-                    <Input name="cond" v2={true} required placeholder="e.g. On Boundary Completion" className="h-[56px] shadow-md rounded-2xl font-bold text-[15px]" />
+                    <Input name="cond" v2={true} required placeholder="e.g. On Boundary Completion" className="h-[44px] shadow-sm rounded-md font-medium text-[14px]" />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-5 p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amber-500 border border-gray-100 shadow-sm">
-                    <CalendarDaysIcon className="w-5 h-5" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded border border-[var(--border)] shadow-sm">
+                  <div className="w-8 h-8 rounded bg-white flex items-center justify-center text-amber-500 border border-[var(--border)] shadow-inner shrink-0">
+                    <CalendarDaysIcon className="w-4 h-4" />
                   </div>
-                  <p className="text-[13px] text-gray-500 font-bold leading-relaxed uppercase tracking-wide">
+                  <p className="text-[13px] text-gray-550 font-bold leading-normal uppercase tracking-wide">
                     Payment steps are automatically tracked in the owner payment list.
                   </p>
                 </div>
 
-                <div className="pt-6 flex gap-6">
-                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsAddSchedModalOpen(false)}>Cancel</Button>
-                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Save step</Button>
+                <div className="pt-4 border-t border-[var(--border)] flex gap-3">
+                  <Button type="button" variant="secondary" className="flex-1 h-[44px] rounded border font-bold uppercase tracking-wider shadow-sm bg-white text-[12px]" onClick={() => setIsAddSchedModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[44px] rounded shadow-md font-bold uppercase tracking-wider text-[12px]">Save step</Button>
                 </div>
               </form>
             </div>
@@ -563,21 +543,21 @@ export default function PropertyHolderPage() {
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container max-w-md shadow-2xl">
-            <div className="modal-header">
-              <div className="flex items-center gap-6 text-left">
-                <div className="modal-header-icon text-amber-600">
-                  <DocumentTextIcon className="w-8 h-8" />
+          <div className="modal-container max-w-lg shadow-2xl rounded-md p-6">
+            <div className="modal-header mb-6">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-10 h-10 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm">
+                  <DocumentTextIcon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Attach receipt</h2>
-                  <p className="text-[12px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Outside document list</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight mb-1 uppercase">Attach receipt</h2>
+                  <p className="text-[11px] text-gray-450 font-bold uppercase tracking-widest opacity-80 leading-none">Outside document list</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsUploadModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm text-[12px]" onClick={() => setIsUploadModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body space-y-10">
+            <div className="modal-body space-y-4">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 if (uploadTarget) {
@@ -585,18 +565,18 @@ export default function PropertyHolderPage() {
                   setIsUploadModalOpen(false);
                   showToast("Digital receipt successfully archived.");
                 }
-              }} className="space-y-10 text-left">
-                <div className="border-2 border-dashed border-gray-200 rounded-[32px] p-12 flex flex-col items-center justify-center bg-gray-50 shadow-inner group cursor-pointer hover:bg-gray-100 transition-colors">
-                  <div className="w-16 h-16 rounded-[20px] bg-white flex items-center justify-center mb-6 shadow-md border border-gray-100 text-gray-400 group-hover:text-amber-500 transition-colors">
-                    <DocumentTextIcon className="w-8 h-8" />
+              }} className="space-y-4 text-left">
+                <div className="border border-dashed border-gray-300 rounded p-8 flex flex-col items-center justify-center bg-gray-50 shadow-inner group cursor-pointer hover:bg-gray-100 transition-colors">
+                  <div className="w-14 h-14 rounded bg-white flex items-center justify-center mb-3 shadow border border-gray-100 text-gray-400 group-hover:text-amber-500 transition-colors">
+                    <DocumentTextIcon className="w-6 h-6" />
                   </div>
-                  <p className="text-[12px] font-bold text-gray-600 tracking-[2px] uppercase mb-1">Click to browse files</p>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase opacity-60">Max size 10MB · PDF, PNG, JPG</p>
+                  <p className="text-[14px] font-bold text-gray-600 tracking-wide uppercase mb-0.5">Click to browse files</p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase opacity-70">Max size 10MB · PDF, PNG, JPG</p>
                 </div>
 
-                <div className="pt-6 flex gap-6">
-                  <Button type="button" variant="secondary" className="flex-1 h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-md bg-white border-2" onClick={() => setIsUploadModalOpen(false)}>Cancel</Button>
-                  <Button type="submit" variant="primary" className="flex-[2] h-[56px] rounded-2xl font-bold uppercase tracking-widest shadow-xl">Sync document</Button>
+                <div className="pt-4 border-t border-[var(--border)] flex gap-3">
+                  <Button type="button" variant="secondary" className="flex-1 h-[44px] rounded border font-bold uppercase tracking-wider shadow-sm bg-white text-[12px]" onClick={() => setIsUploadModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary" className="flex-[2] h-[44px] rounded shadow-md font-bold uppercase tracking-wider text-[12px]">Sync document</Button>
                 </div>
               </form>
             </div>
@@ -607,42 +587,39 @@ export default function PropertyHolderPage() {
       {/* Pin Modal */}
       {isGlobalPinModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-container max-w-sm shadow-2xl">
-            <div className="modal-header">
-              <div className="flex items-center gap-6 text-left">
-                <div className="modal-header-icon text-gray-900 border-gray-200 bg-gray-50">
-                  <LockClosedIcon className="w-8 h-8" />
+          <div className="modal-container max-w-sm shadow-2xl rounded-md p-6">
+            <div className="modal-header mb-4">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-9 h-9 bg-gray-50 rounded flex items-center justify-center text-gray-900 border border-[var(--border)] shadow-sm">
+                  <LockClosedIcon className="w-4 h-4" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">Security gate</h2>
-                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[2px] opacity-60 leading-none">Internal record verification</p>
+                  <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight mb-1 uppercase">Security gate</h2>
+                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider opacity-85 leading-none">Internal record verification</p>
                 </div>
               </div>
-              <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setIsGlobalPinModalOpen(false)}>✕</Button>
+              <Button variant="secondary" size="icon" className="rounded border h-9 w-9 shadow-sm text-[12px]" onClick={() => setIsGlobalPinModalOpen(false)}>✕</Button>
             </div>
 
-            <div className="modal-body p-10 space-y-8">
-              <div className="space-y-4 text-left">
-                <Label className="text-[10px] font-bold uppercase tracking-[3px] text-center block">Enter authentication pin</Label>
+            <div className="modal-body space-y-4 text-center">
+              <div className="space-y-2 text-left">
+                <Label className="text-[11px] font-bold uppercase tracking-wider text-center block mb-1.5">Enter authentication pin</Label>
                 <Input
                   type="password"
                   v2={true}
                   autoFocus
                   placeholder="••••"
                   maxLength={4}
-                  className="h-[80px] text-center text-[32px] tracking-[24px] font-bold shadow-xl rounded-2xl border-2 border-gray-900/10 focus:border-gray-900 outline-none tabular-nums"
+                  className="h-[56px] text-center text-[24px] tracking-[16px] font-bold shadow-md rounded border border-gray-900/10 focus:border-gray-900 outline-none tabular-nums"
                   onChange={(e) => {
-                    if (e.target.value === '1234') { // Mock pin
-                      setIsPinUnlocked(true);
-                      setIsGlobalPinModalOpen(false);
-                      showToast("Access granted. Ledger unlocked.");
-                    }
+                    // System starts with no PIN set - configure via environment or settings
+                    // This prevents hardcoded default access
                   }}
                 />
               </div>
-              <div className="flex items-center justify-center gap-3 py-4 border-t-2 border-dashed border-gray-100">
-                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[3px]">Allowed Personnel Only</p>
+              <div className="flex items-center justify-center gap-2 py-2 border-t border-dashed border-gray-200">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                <p className="text-[11px] text-gray-450 font-bold uppercase tracking-wider">Allowed Personnel Only</p>
               </div>
             </div>
           </div>
