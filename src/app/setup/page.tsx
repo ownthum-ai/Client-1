@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Label } from '@/components/ui/Label';
 import { ShieldCheckIcon, KeyIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { useStore } from '@/store/useStore';
 
 export default function Setup() {
   const router = useRouter();
+  const { setSystemPin, setPinUnlocked } = useStore();
   const [step, setStep] = useState(1);
   const [pin, setPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
@@ -25,7 +27,9 @@ export default function Setup() {
 
   const handleFinish = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/login');
+    setSystemPin(pin.join(''));
+    setPinUnlocked(true);
+    router.push('/');
   };
 
   const [mounted, setMounted] = React.useState(false); React.useEffect(() => { setMounted(true); }, []); if (!mounted) return null;

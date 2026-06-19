@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 // --- Type Definitions ---
 export type LeadSource = 'Meta Ad' | 'Website' | 'Walk-in' | 'Broker' | 'Referral';
-export type LeadStatus = 'New' | 'In Progress' | 'Converted' | 'Lost';
+export type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Site Visit Scheduled' | 'Negotiation' | 'Booking' | 'Won' | 'Lost' | 'In Progress' | 'Converted';
 export type PaymentMode = 'Bank Transfer' | 'Cheque' | 'Cash';
 
 export interface Query {
@@ -77,9 +77,6 @@ export interface FollowUp {
   brokerName?: string;
 }
 
-
-
-
 export interface CommissionRecord {
   id: string;
   plotNumber: string;
@@ -112,7 +109,7 @@ export interface WeekendPost {
   status: 'Active' | 'Scheduled' | 'Archived';
   image: string;
   date: string;
-  attachedBrochureId?: string;
+  attachedCsvId?: string;
 }
 
 export interface TransmissionLog {
@@ -137,75 +134,46 @@ export interface UploadedCsv {
   date: string;
 }
 
-export const LandStatus = {
-  UNDER_NEGOTIATION: 'Under Negotiation',
-  AGREEMENT_DONE: 'Agreement Done',
-  REGISTERED: 'Registered'
-} as const;
-export type LandStatus = typeof LandStatus[keyof typeof LandStatus];
-export interface LandPurchase {
-  ratePerSqyd: number;
+export type PropertyStatus = 'Available' | 'Booked' | 'Sold' | 'Hold';
+export type PropertyType = 'Plot' | 'Villa' | 'Flat' | 'Shop';
+export interface Property {
   id: string;
-  surveyNo: string;
-  location: string;
-  area: string;
-  areaUnit: 'Bigha' | 'SqFt' | 'SqMt' | 'SqYards';
-  zoneType: 'Residential' | 'Agricultural' | 'Commercial';
-  ownerName: string;
-  ownerPhone: string;
-  purchasePrice: number;
-  paidTillDate: number;
-  status: LandStatus;
-  docs: { name: string; type: string; url: string }[];
-  linkedScheme: string;
-  payments: { id: string; date: string; amount: number; mode: 'White' | 'Cash'; balance: number }[];
-}
-
-
-export interface Layout {
-  id: string;
-  name: string;
-  landId: string;
-  totalPlots: number;
-  plotSizes: string;
-  roadWidth: string;
-  ratePerSqYd: number;
-  reraStatus: 'Approved' | 'Pending' | 'Not Applied';
-  docs: { name: string; type: string; url: string }[];
-}
-
-export type PlotStatus = 'Available' | 'Booked' | 'Sold' | 'Reserved';
-export interface Plot {
-  id: string; // e.g., 'A-01'
-  layoutId: string;
-  size: number; // sq yards
-  rate: number; // per sqyd
-  status: PlotStatus;
+  propertyNo: string;
+  projectName: string;
+  type: PropertyType;
+  block: string;
+  facing: 'East' | 'West' | 'North' | 'South' | 'Corner';
+  area: number;
+  rate: number;
+  status: PropertyStatus;
   customerName?: string;
   bookingDate?: string;
-  amountPaid?: number;
+  notes?: string;
+  floor?: string;
+  bhk?: string;
 }
 
-export type ConstructionStatus = 'Completed' | 'In Progress' | 'Behind Schedule' | 'Not Started';
-
-export interface ConstructionPhase {
+export type LabourCategory = 'RCC Contractor' | 'Plumbing Agency' | 'Electrical Labour' | 'Masonry' | 'Tiles Labour' | 'Window & Section Labour' | 'Fire Labour' | 'Lift Material + Installation' | 'Color Labour' | 'Painting' | 'POP / Gypsum' | 'Fabrication' | 'Other';
+export type LabourStatus = 'Active' | 'On Hold' | 'Completed' | 'Inactive';
+export interface LabourAgency {
   id: string;
-  name: string;
-  siteName?: string;
-  progress: number;
-  targetDate: string;
-  status: ConstructionStatus;
-  colorVar: string; // e.g. '--green'
-  reports?: { id: string; observer: string; action: string; status: string; date: string }[];
-  photos?: { id: string; url: string; date: string }[];
-}
-
-export interface ConstructionBlock {
-  id: string;
-  name: string;
-  range: string;
-  progress: number;
-  colorVar: string;
+  agencyName: string;
+  category: LabourCategory;
+  contactPerson: string;
+  phone: string;
+  assignedSite: string;
+  supervisorName: string;
+  workerCount: number;
+  rateType: 'Per SqFt' | 'Per Day' | 'Contract' | 'Per Point' | 'Per Unit';
+  rate: number;
+  totalContract: number;
+  paidAmount: number;
+  startDate: string;
+  nextPaymentDate: string;
+  status: LabourStatus;
+  qualityRating: 'Good' | 'Average' | 'Needs Attention';
+  notes?: string;
+  details?: Record<string, any>;
 }
 
 export interface MaterialStock {
@@ -260,6 +228,14 @@ export interface PropertyHolderInstallment {
   receiptUrl?: string;
 }
 
+export interface PropertyHolderPayment {
+  id: string;
+  date: string;
+  amount: number;
+  mode: 'White' | 'Cash';
+  balance: number;
+}
+
 export interface PropertyHolder {
   id: string;
   name: string;
@@ -267,8 +243,8 @@ export interface PropertyHolder {
   totalAmount: number;
   paidAmount: number;
   installments: PropertyHolderInstallment[];
+  payments: PropertyHolderPayment[];
 }
-
 
 export interface SalaryRecord {
   id: string;
@@ -293,30 +269,6 @@ export interface SalaryAdvance {
   deducted: boolean;
 }
 
-export interface Brochure {
-  id: string;
-  title: string;
-  version: string;
-  date: string;
-  type: string;
-  size: string;
-  url?: string;
-  sharedCount: number;
-  downloadCount: number;
-  lastShared: string;
-  icon: string;
-  colorGradient: string;
-}
-
-export interface BrochureShare {
-  id: string;
-  date: string;
-  customerName: string;
-  brochureTitle: string;
-  version: string;
-  channel: 'WhatsApp';
-}
-
 export interface MarketingCampaign {
   id: string;
   name: string;
@@ -329,36 +281,14 @@ export interface MarketingCampaign {
   status: 'Active' | 'Completed' | 'Paused';
 }
 
-export interface ConstructionCost {
-  id: string;
-  phaseId: string;
-  phaseName: string;
-  description: string;
-  amount: number;
-  category: 'Labour' | 'Material' | 'Equipment' | 'Other';
-  materialName?: string;
-  materialQty?: number;
-  date: string;
-}
-
-export interface InspectionAlert {
-  id: string;
-  phaseId: string;
-  phaseName: string;
-  observer: string;
-  status: string;
-  date: string;
-}
-
 export interface ActivityFeedItem {
   id: string;
   message: string;
-  type: 'weekend_post' | 'brochure' | 'booking' | 'payment' | 'followup' | 'system' | 'material_inward' | 'material_outward' | 'material_alert' | 'land_payment' | 'land_overdue' | 'land_schedule' | 'construction_alert' | 'staff_alert';
+  type: 'weekend_post' | 'booking' | 'payment' | 'followup' | 'system' | 'material_inward' | 'material_outward' | 'material_alert' | 'staff_alert';
   priority: 'low' | 'medium' | 'high' | 'critical';
   read: boolean;
   timestamp: string;
 }
-
 
 // --- Store Context ---
 interface StoreState {
@@ -370,12 +300,12 @@ interface StoreState {
   unlockPin: (pin: string) => boolean;
   lockPin: () => void;
   setGlobalModal: (m: 'siteVisit' | 'query' | 'payment' | 'material' | null) => void;
+  systemPin: string;
+  setSystemPin: (pin: string) => void;
   unreadFollowUps: number;
   notifications: number;
   unreadQueries: number;
 
-
-  // Phase 2: Mock Database
   queries: Query[];
   addQuery: (query: Omit<Query, 'id' | 'date' | 'isContacted'>) => void;
   updateQueryStatus: (id: string, status: LeadStatus) => void;
@@ -406,35 +336,19 @@ interface StoreState {
   logWeekendPost: (post: Omit<WeekendPost, 'id' | 'date'>) => void;
   sendWeekendPostToBrokers: (postTitle: string) => void;
   sendWeekendPostToCsvContacts: (postTitle: string, contacts: any[]) => void;
-  sendWeekendPostNow: (postTitle: string, contactCount: number) => void;
+  sendWeekendPostNow: (postTitle: string, contactCount: number, contactIdentifiers?: string[]) => void;
   weekendRules: WeekendRule[];
   updateWeekendRule: (id: string, enabled: boolean) => void;
 
-  lands: LandPurchase[];
-  addLand: (land: Omit<LandPurchase, 'id'>) => void;
-  updateLandStatus: (id: string, status: LandStatus) => void;
-  addLandDoc: (landId: string, doc: { name: string; type: string; url: string }) => void;
-  addLandPayment: (landId: string, payment: Omit<LandPurchase['payments'][0], 'id'>) => void;
+  properties: Property[];
+  addProperty: (property: Omit<Property, 'id'>) => void;
+  addProperties: (properties: Omit<Property, 'id'>[]) => void;
+  updatePropertyStatus: (id: string, status: PropertyStatus, customerName?: string) => void;
+  updateProperty: (id: string, propertyData: Partial<Property>) => void;
 
-
-  layouts: Layout[];
-  addLayout: (layout: Omit<Layout, 'id'>) => void;
-  plots: Plot[];
-  updatePlotStatus: (id: string, status: PlotStatus, customerName?: string, amount?: number) => void;
-  updatePlotDimensions: (id: string, size: number, rate: number) => void;
-  addLayoutDoc: (layoutId: string, doc: { name: string; type: string; url: string }) => void;
-  // Construction
-  constructionPhases: ConstructionPhase[];
-  updatePhaseProgress: (id: string, progress: number, status?: ConstructionStatus) => void;
-  addConstructionPhase: (phase: Omit<ConstructionPhase, 'id' | 'reports' | 'photos'>) => void;
-  deleteConstructionPhase: (id: string) => void;
-  addReport: (phaseId: string, report: Omit<{ id: string; observer: string; action: string; status: string; date: string }, 'id'>) => void;
-  addPhoto: (phaseId: string, photo: Omit<{ id: string; url: string; date: string }, 'id'>) => void;
-
-  constructionBlocks: ConstructionBlock[];
-  addConstructionBlock: (block: Omit<ConstructionBlock, 'id'>) => void;
-  deleteConstructionBlock: (id: string) => void;
-  updateBlockProgress: (id: string, progress: number) => void;
+  labourAgencies: LabourAgency[];
+  addLabourAgency: (agency: Omit<LabourAgency, 'id'>) => void;
+  updateLabourStatus: (id: string, status: LabourStatus) => void;
 
   materialStock: MaterialStock[];
   materialTxns: MaterialTransaction[];
@@ -454,6 +368,7 @@ interface StoreState {
   markInstallmentPaid: (holderId: string, installmentId: string, paidDate: string) => void;
   uploadInstallmentReceipt: (holderId: string, installmentId: string, url: string) => void;
   addPropertyHolderInstallment: (holderId: string, installment: Omit<PropertyHolderInstallment, 'id'>) => void;
+  addPropertyHolderPayment: (holderId: string, payment: Omit<PropertyHolderPayment, 'id'>) => void;
 
   salaries: SalaryRecord[];
   addSalary: (salary: Omit<SalaryRecord, 'id'>) => void;
@@ -463,20 +378,8 @@ interface StoreState {
   addSalaryAdvance: (advance: Omit<SalaryAdvance, 'id' | 'deducted'>) => void;
   processPayroll: (month: string) => void;
 
-  brochures: Brochure[];
-  brochureShares: BrochureShare[];
-  logBrochureShare: (share: Omit<BrochureShare, 'id' | 'date'>) => void;
-  addBrochure: (brochure: Omit<Brochure, 'id' | 'lastShared' | 'sharedCount' | 'downloadCount'>) => void;
-  attachBrochureToWeekendPost: (postId: string, brochureId: string) => void;
-  updateBrochure: (id: string, data: Partial<Brochure>) => void;
-
   campaigns: MarketingCampaign[];
   addCampaign: (campaign: Omit<MarketingCampaign, 'id'>) => void;
-
-  constructionCosts: ConstructionCost[];
-  addConstructionCost: (cost: Omit<ConstructionCost, 'id' | 'date'>) => void;
-
-  inspectionAlerts: InspectionAlert[];
 
   activityFeed: ActivityFeedItem[];
   addActivityFeedItem: (item: Omit<ActivityFeedItem, 'id' | 'timestamp' | 'read'>) => void;
@@ -493,8 +396,6 @@ const initialPayments: Payment[] = [];
 const initialPropertyHolders: PropertyHolder[] = [];
 const initialSalaries: SalaryRecord[] = [];
 const initialSalaryAdvances: SalaryAdvance[] = [];
-const initialBrochures: Brochure[] = [];
-const initialBrochureShares: BrochureShare[] = [];
 const initialCampaigns: MarketingCampaign[] = [];
 const initialSiteVisits: SiteVisit[] = [];
 const initialFollowUps: FollowUp[] = [];
@@ -502,1649 +403,1338 @@ const initialBrokers: Broker[] = [];
 const initialTransmissionLogs: TransmissionLog[] = [];
 const initialWeekendRules: WeekendRule[] = [];
 const initialWeekendPosts: WeekendPost[] = [];
-const initialLands: LandPurchase[] = [];
-const initialLayouts: Layout[] = [];
-const initialPlots: Plot[] = [];
-const initialConstructionPhases: ConstructionPhase[] = [];
-const initialConstructionBlocks: ConstructionBlock[] = [];
+const initialProperties: Property[] = [];
+const initialLabourAgencies: LabourAgency[] = [];
 const initialMaterialStock: MaterialStock[] = [];
 const initialMaterialTxns: MaterialTransaction[] = [];
 const initialAssets: Asset[] = [];
 const initialUploadedCsvs: UploadedCsv[] = [];
-const initialConstructionCosts: ConstructionCost[] = [];
-const initialInspectionAlerts: InspectionAlert[] = [];
 const initialActivityFeed: ActivityFeedItem[] = [];
 
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
-  activeModule: 'dashboard',
-  setActiveModule: (m) => set((state) => ({
-    activeModule: m,
-    ...(m === 'query' ? { unreadQueries: 0 } : {}),
-    ...(m === 'followup' ? { unreadFollowUps: 0 } : {})
-  })),
+    (set, get) => ({
+      activeModule: 'dashboard',
+      setActiveModule: (m) => set((state) => ({
+        activeModule: m,
+        ...(m === 'query' ? { unreadQueries: 0 } : {}),
+        ...(m === 'followup' ? { unreadFollowUps: 0 } : {})
+      })),
 
-  isPinUnlocked: false,
-  globalModal: null,
-  setPinUnlocked: (v) => set({ isPinUnlocked: v }),
-  setGlobalModal: (m) => set({ globalModal: m }),
-  unlockPin: (pin: string) => {
-    if (pin === '1234') {
-      set({ isPinUnlocked: true });
-      return true;
-    }
-    return false;
-  },
-  lockPin: () => set({ isPinUnlocked: false }),
+      isPinUnlocked: false,
+      systemPin: '1234',
+      globalModal: null,
+      setPinUnlocked: (v) => set({ isPinUnlocked: v }),
+      setSystemPin: (pin) => set({ systemPin: pin }),
+      setGlobalModal: (m) => set({ globalModal: m }),
+      unlockPin: (pin: string) => {
+        const currentPin = get().systemPin || '1234';
+        const isMatch = pin === currentPin;
+        if (isMatch) {
+          set({ isPinUnlocked: true });
+        }
+        return isMatch;
+      },
+      lockPin: () => set({ isPinUnlocked: false }),
 
-  unreadFollowUps: 0,
-  notifications: 0,
-  unreadQueries: 0,
-  
-  // --- Mock DB State ---
-  queries: initialQueries,
-  siteVisits: initialSiteVisits,
-  followUps: initialFollowUps,
-  brokers: initialBrokers,
-  weekendPosts: initialWeekendPosts,
-  transmissionLogs: initialTransmissionLogs,
-  weekendRules: initialWeekendRules,
-  uploadedCsvs: initialUploadedCsvs,
-  lands: initialLands,
-  layouts: initialLayouts,
-  plots: initialPlots,
-  constructionPhases: initialConstructionPhases,
-  constructionBlocks: initialConstructionBlocks,
-  materialStock: initialMaterialStock,
-  materialTxns: initialMaterialTxns,
-  assets: initialAssets,
-  payments: initialPayments,
-  propertyHolders: initialPropertyHolders,
-  salaries: initialSalaries,
-  salaryAdvances: initialSalaryAdvances,
-  brochures: initialBrochures,
-  brochureShares: initialBrochureShares,
-  campaigns: initialCampaigns,
-  constructionCosts: initialConstructionCosts,
-  inspectionAlerts: initialInspectionAlerts,
-  activityFeed: initialActivityFeed,
+      unreadFollowUps: 0,
+      notifications: 0,
+      unreadQueries: 0,
 
-   addQuery: (queryData) => set((state) => {
-    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      // --- Mock DB State ---
+      queries: initialQueries,
+      siteVisits: initialSiteVisits,
+      followUps: initialFollowUps,
+      brokers: initialBrokers,
+      weekendPosts: initialWeekendPosts,
+      transmissionLogs: initialTransmissionLogs,
+      weekendRules: initialWeekendRules,
+      uploadedCsvs: initialUploadedCsvs,
+      properties: initialProperties,
+      labourAgencies: initialLabourAgencies,
+      materialStock: initialMaterialStock,
+      materialTxns: initialMaterialTxns,
+      assets: initialAssets,
+      payments: initialPayments,
+      propertyHolders: initialPropertyHolders,
+      salaries: initialSalaries,
+      salaryAdvances: initialSalaryAdvances,
+      campaigns: initialCampaigns,
+      activityFeed: initialActivityFeed,
 
-    // Cascade 1: Auto-create follow-up for today
-    const alreadyHasFollowUp = state.followUps.some(f => f.phone === queryData.phone);
-    let updatedFollowUps = state.followUps;
+      addQuery: (queryData) => set((state) => {
+        const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-    // Check if source is Broker or specific broker name, increment broker's leadsSent
-    const isBrokerSource = (queryData.source as string) === 'Broker' || (queryData.source as string).startsWith('Broker: ');
-    const brokerName = (queryData.source as string).startsWith('Broker: ') ? (queryData.source as string).replace('Broker: ', '') : null;
+        // Cascade 1: Auto-create follow-up for today
+        const alreadyHasFollowUp = state.followUps.some(f => f.phone === queryData.phone);
+        let updatedFollowUps = state.followUps;
 
-    if (!alreadyHasFollowUp) {
-      const newFollowUp: FollowUp = {
-        id: `f-${Math.random().toString(36).substr(2, 9)}`,
-        customerName: queryData.name,
-        phone: queryData.phone,
-        interest: queryData.interest,
-        lastContact: timestamp,
-        nextDue: timestamp,
-        interactions: [],
-        status: 'Warm',
-        createdAt: timestamp,
-        source: queryData.source,
-        brokerName: brokerName || undefined
-      };
-      updatedFollowUps = [newFollowUp, ...state.followUps];
-    }
+        // Check if source is Broker or specific broker name, increment broker's leadsSent
+        const isBrokerSource = (queryData.source as string) === 'Broker' || (queryData.source as string).startsWith('Broker: ');
+        const brokerName = (queryData.source as string).startsWith('Broker: ') ? (queryData.source as string).replace('Broker: ', '') : null;
 
-    let updatedBrokers = state.brokers;
-    if (isBrokerSource) {
-      updatedBrokers = state.brokers.map(b => {
-        if (b.status === 'Active') {
-          if (brokerName) {
-            if (b.name.toLowerCase() === brokerName.toLowerCase()) {
+        if (!alreadyHasFollowUp) {
+          const newFollowUp: FollowUp = {
+            id: `f-${Math.random().toString(36).substr(2, 9)}`,
+            customerName: queryData.name,
+            phone: queryData.phone,
+            interest: queryData.interest,
+            lastContact: timestamp,
+            nextDue: timestamp,
+            interactions: [],
+            status: 'Warm',
+            createdAt: timestamp,
+            source: queryData.source,
+            brokerName: brokerName || undefined
+          };
+          updatedFollowUps = [newFollowUp, ...state.followUps];
+        }
+
+        let updatedBrokers = state.brokers;
+        if (isBrokerSource) {
+          updatedBrokers = state.brokers.map(b => {
+            if (b.status === 'Active') {
+              if (brokerName) {
+                if (b.name.toLowerCase() === brokerName.toLowerCase()) {
+                  return { ...b, leadsSent: b.leadsSent + 1 };
+                }
+                return b;
+              }
               return { ...b, leadsSent: b.leadsSent + 1 };
             }
             return b;
-          }
-          return { ...b, leadsSent: b.leadsSent + 1 };
+          });
         }
-        return b;
-      });
-    }
-
-    return {
-      queries: [
-        {
-          ...queryData,
-          id: `q${Date.now()}`,
-          date: timestamp,
-          isContacted: false
-        },
-        ...state.queries
-      ],
-      unreadQueries: state.activeModule === 'query' ? 0 : state.unreadQueries + 1,
-      followUps: updatedFollowUps,
-      brokers: updatedBrokers
-    };
-  }),
-  updateQueryStatus: (id, status) => set((state) => {
-    const query = state.queries.find(q => q.id === id);
-    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-
-    // Cascade 1: Auto-create follow-up on 'In Progress' if not exists
-    const shouldCreateFollowUp = status === 'In Progress' && query && !state.followUps.some(f => f.phone === query.phone);
-    let updatedFollowUps = state.followUps;
-    if (shouldCreateFollowUp && query) {
-      const newFollowUp: FollowUp = {
-        id: `f-${Math.random().toString(36).substr(2, 9)}`,
-        customerName: query.name,
-        phone: query.phone,
-        interest: query.interest,
-        lastContact: query.date,
-        nextDue: new Date(Date.now() + 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        interactions: [],
-        status: 'Warm',
-        createdAt: timestamp,
-      };
-      updatedFollowUps = [newFollowUp, ...state.followUps];
-    }
-
-    // Cascade 2: On 'Converted' — book plot, create payment, update follow-up to 'Booked'
-    let updatedPlots = state.plots;
-    let updatedPayments = state.payments;
-
-    if (status === 'Converted' && query) {
-      // Robust Case-Insensitive Matching: Match query.interest (e.g. "A-01") against plot.id
-      const queryInterest = query.interest.trim().toLowerCase();
-      const matchingPlot = state.plots.find(p => 
-        p.id.toLowerCase() === queryInterest || 
-        p.id.toLowerCase() === `plot ${queryInterest}` ||
-        `plot ${p.id.toLowerCase()}` === queryInterest ||
-        (p.customerName && p.customerName.toLowerCase() === query.name.toLowerCase())
-      );
-
-      if (matchingPlot && matchingPlot.status === 'Available') {
-        const plotValue = (matchingPlot.size || 0) * (matchingPlot.rate || 0);
-
-        // 1. Auto-Book the Plot
-        updatedPlots = state.plots.map(p => {
-          if (p.id === matchingPlot.id) {
-            return {
-              ...p,
-              status: 'Booked' as PlotStatus,
-              customerName: query.name,
-              bookingDate: timestamp,
-              amountPaid: 0
-            };
-          }
-          return p;
-        });
-
-        // 2. Auto-Create Payment Record (Pending)
-        const bookingPayment: Payment = {
-          id: `p${Date.now()}`,
-          customerName: query.name,
-          plotId: matchingPlot.id,
-          date: timestamp,
-          amount: 0,
-          mode: 'Bank Transfer',
-          installmentRatio: 'Booking Amount',
-          installmentName: 'Booking Amount',
-          balanceDue: plotValue,
-          status: 'Pending',
-          receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
-          bookingStatus: 'Active'
-        };
-        updatedPayments = [bookingPayment, ...state.payments];
-
-        // 3. Log to Activity Feed (using setter pattern if direct push is not allowed)
-        // Note: activityFeed is part of the state, we should return it in the object
-        const activityItem: ActivityFeedItem = {
-          id: `act-${Date.now()}`,
-          message: `Auto-Booked Plot ${matchingPlot.id} for ${query.name} (Query Conversion)`,
-          type: 'booking',
-          priority: 'high',
-          read: false,
-          timestamp: new Date().toISOString()
-        };
 
         return {
-          queries: state.queries.map(q => q.id === id ? { ...q, status } : q),
-          followUps: updatedFollowUps.map(f => {
-            if (f.phone === query.phone || f.customerName.toLowerCase() === query.name.toLowerCase()) {
-              return { ...f, status: 'Booked' as const };
+          queries: [
+            {
+              ...queryData,
+              id: `q${Date.now()}`,
+              date: timestamp,
+              isContacted: false
+            },
+            ...state.queries
+          ],
+          unreadQueries: state.activeModule === 'query' ? 0 : state.unreadQueries + 1,
+          followUps: updatedFollowUps,
+          brokers: updatedBrokers
+        };
+      }),
+
+      updateQueryStatus: (id, status) => set((state) => {
+        const query = state.queries.find(q => q.id === id);
+        if (!query) return {};
+        const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        let updatedFollowUps = state.followUps;
+        let updatedSiteVisits = state.siteVisits;
+        let updatedProperties = state.properties;
+        let updatedPayments = state.payments;
+        let updatedActivityFeed = state.activityFeed;
+
+        // FollowUp sync
+        let followUp = state.followUps.find(f => f.phone === query.phone);
+        if (!followUp && status !== 'Lost') {
+          const newFollowUp: FollowUp = {
+            id: `f-${Math.random().toString(36).substr(2, 9)}`,
+            customerName: query.name,
+            phone: query.phone,
+            interest: query.interest,
+            lastContact: timestamp,
+            nextDue: 'Tomorrow',
+            interactions: [],
+            status: status === 'Won' ? 'Booked' : 'Warm',
+            createdAt: timestamp,
+            source: query.source
+          };
+          updatedFollowUps = [newFollowUp, ...state.followUps];
+          followUp = newFollowUp;
+        } else if (followUp) {
+          updatedFollowUps = state.followUps.map(f => {
+            if (f.phone === query.phone) {
+              return {
+                ...f,
+                status: status === 'Won' ? 'Booked' : status === 'Lost' ? 'Lost' : f.status
+              };
+            }
+            return f;
+          });
+        }
+
+        // Cascade 1: Site Visit Scheduled
+        if (status === 'Site Visit Scheduled' && !state.siteVisits.some(v => v.phone === query.phone)) {
+          const newVisit: SiteVisit = {
+            id: `v-${Math.random().toString(36).substr(2, 9)}`,
+            customerName: query.name,
+            phone: query.phone,
+            visitDate: timestamp,
+            source: query.source,
+            budget: query.budget,
+            preference: query.interest,
+            interest: 'Hot',
+            followUpDue: 'Tomorrow',
+            status: 'Scheduled',
+            notes: 'Site visit scheduled via deals board pipeline.'
+          };
+          updatedSiteVisits = [newVisit, ...state.siteVisits];
+
+          const activityItem: ActivityFeedItem = {
+            id: `act-${Date.now()}`,
+            message: `Scheduled site visit for ${query.name} to view ${query.interest}`,
+            type: 'followup',
+            priority: 'medium',
+            read: false,
+            timestamp: new Date().toISOString()
+          };
+          updatedActivityFeed = [activityItem, ...state.activityFeed];
+        }
+
+        // Cascade 2: Won
+        if (status === 'Won') {
+          const queryInterest = query.interest.trim().toLowerCase();
+          const matchingProperty = state.properties.find(p =>
+            p.propertyNo.toLowerCase() === queryInterest ||
+            p.propertyNo.toLowerCase() === `property ${queryInterest}` ||
+            `property ${p.propertyNo.toLowerCase()}` === queryInterest
+          );
+
+          if (matchingProperty && matchingProperty.status === 'Available') {
+            const propertyValue = (matchingProperty.area || 0) * (matchingProperty.rate || 0);
+
+            updatedProperties = state.properties.map(p => {
+              if (p.id === matchingProperty.id) {
+                return {
+                  ...p,
+                  status: 'Booked' as PropertyStatus,
+                  customerName: query.name,
+                  bookingDate: timestamp
+                };
+              }
+              return p;
+            });
+
+            const bookingPayment: Payment = {
+              id: `p${Date.now()}`,
+              customerName: query.name,
+              plotId: matchingProperty.propertyNo,
+              date: timestamp,
+              amount: 0,
+              mode: 'Bank Transfer',
+              installmentRatio: 'Booking Amount',
+              installmentName: 'Booking Amount',
+              balanceDue: propertyValue,
+              status: 'Pending',
+              receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
+              bookingStatus: 'Active'
+            };
+            updatedPayments = [bookingPayment, ...state.payments];
+
+            const activityItem: ActivityFeedItem = {
+              id: `act-${Date.now()}`,
+              message: `Closed Deal! Booked Property ${matchingProperty.propertyNo} for ${query.name} (Amount: ₹${propertyValue.toLocaleString()})`,
+              type: 'booking',
+              priority: 'high',
+              read: false,
+              timestamp: new Date().toISOString()
+            };
+            updatedActivityFeed = [activityItem, ...state.activityFeed];
+          }
+        }
+
+        return {
+          queries: state.queries.map(q => q.id === id ? { ...q, status, isContacted: status !== 'New' } : q),
+          followUps: updatedFollowUps,
+          siteVisits: updatedSiteVisits,
+          properties: updatedProperties,
+          payments: updatedPayments,
+          activityFeed: updatedActivityFeed
+        };
+      }),
+
+      markAsContacted: (id) => set((state) => ({
+        queries: state.queries.map(q => q.id === id ? { ...q, isContacted: true } : q)
+      })),
+      deleteQuery: (id: string) => set((state) => ({
+        queries: state.queries.filter(q => q.id !== id)
+      })),
+      updateQuery: (id: string, queryData: Partial<Query>) => set((state) => ({
+        queries: state.queries.map(q => q.id === id ? { ...q, ...queryData } : q)
+      })),
+
+      addSiteVisit: (visit) => set((state) => {
+        const newVisitId = `v-${Math.random().toString(36).substr(2, 9)}`;
+        const alreadyExists = state.followUps.some(f => f.phone === visit.phone);
+        const newFollowUp: FollowUp | null = !alreadyExists ? {
+          id: `f-${Math.random().toString(36).substr(2, 9)}`,
+          customerName: visit.customerName,
+          phone: visit.phone,
+          interest: visit.preference,
+          lastContact: visit.visitDate,
+          nextDue: visit.followUpDue,
+          interactions: [],
+          status: visit.interest as InterestLevel,
+          createdAt: visit.visitDate,
+        } : null;
+
+        // Cascade: If source is Broker Ref or specific broker name, increment broker's leadsSent
+        let updatedBrokers = state.brokers;
+        if (visit.source === 'Broker Ref' || visit.source.startsWith('Broker: ')) {
+          const brokerName = visit.source.startsWith('Broker: ') ? visit.source.replace('Broker: ', '') : null;
+          updatedBrokers = state.brokers.map(b => {
+            if (b.status === 'Active') {
+              if (brokerName) {
+                if (b.name.toLowerCase() === brokerName.toLowerCase()) {
+                  return { ...b, leadsSent: b.leadsSent + 1 };
+                }
+                return b;
+              }
+              return { ...b, leadsSent: b.leadsSent + 1 };
+            }
+            return b;
+          });
+        }
+
+        return {
+          siteVisits: [{ ...visit, id: newVisitId }, ...state.siteVisits],
+          followUps: newFollowUp ? [newFollowUp, ...state.followUps] : state.followUps,
+          brokers: updatedBrokers
+        };
+      }),
+
+      updateSiteVisitStatus: (id, status) => set((state) => ({
+        siteVisits: state.siteVisits.map(v => v.id === id ? { ...v, status } : v)
+      })),
+      deleteSiteVisit: (id) => set((state) => ({
+        siteVisits: state.siteVisits.filter(v => v.id !== id)
+      })),
+      updateSiteVisit: (id, visitData) => set((state) => ({
+        siteVisits: state.siteVisits.map(v => v.id === id ? { ...v, ...visitData } : v)
+      })),
+
+      addFollowUp: (f) => set((state) => {
+        const now = new Date();
+        const realTimeCreatedAt = now.toISOString();
+        return {
+          followUps: [{ ...f, id: `f${Date.now()}`, interactions: [], createdAt: realTimeCreatedAt }, ...state.followUps],
+          unreadFollowUps: state.activeModule === 'followup' ? 0 : state.unreadFollowUps + 1
+        };
+      }),
+
+      addFollowUpInteraction: (id, interaction) => set((state) => {
+        const followUp = state.followUps.find(f => f.id === id);
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+
+        let updatedSiteVisits = state.siteVisits;
+        if (followUp) {
+          updatedSiteVisits = state.siteVisits.map(v => {
+            if (v.customerName.toLowerCase() === followUp.customerName.toLowerCase() ||
+              v.phone === followUp.phone) {
+              return { ...v, visitDate: timestamp };
+            }
+            return v;
+          });
+        }
+
+        return {
+          followUps: state.followUps.map(f => {
+            if (f.id === id) {
+              const newInteraction = {
+                ...interaction,
+                id: `i${Date.now()}`,
+                date: timestamp,
+                loggedBy: 'Admin'
+              };
+              return {
+                ...f,
+                interactions: [newInteraction, ...f.interactions],
+                lastContact: timestamp
+              };
             }
             return f;
           }),
-          plots: updatedPlots,
-          payments: updatedPayments,
-          activityFeed: [activityItem, ...state.activityFeed]
+          siteVisits: updatedSiteVisits
         };
-      }
+      }),
 
-      // Fallback: If no matching plot found, just update status
-      updatedFollowUps = updatedFollowUps.map(f => {
-        if (f.phone === query.phone || f.customerName.toLowerCase() === query.name.toLowerCase()) {
-          return { ...f, status: 'Booked' as const };
-        }
-        return f;
-      });
-    }
+      updateFollowUpStatus: (id, status) => set((state) => {
+        const followUp = state.followUps.find(f => f.id === id);
+        if (!followUp) return state;
 
-    return {
-      queries: state.queries.map(q => q.id === id ? { ...q, status } : q),
-      followUps: updatedFollowUps,
-      plots: updatedPlots,
-      payments: updatedPayments
-    };
-  }),
-  markAsContacted: (id) => set((state) => ({
-    queries: state.queries.map(q => q.id === id ? { ...q, isContacted: true } : q)
-  })),
-  deleteQuery: (id: string) => set((state) => ({
-    queries: state.queries.filter(q => q.id !== id)
-  })),
-  updateQuery: (id: string, queryData: Partial<Query>) => set((state) => ({
-    queries: state.queries.map(q => q.id === id ? { ...q, ...queryData } : q)
-  })),
+        const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  addSiteVisit: (visit) => set((state) => {
-    const newVisitId = `v-${Math.random().toString(36).substr(2, 9)}`;
-    const alreadyExists = state.followUps.some(f => f.phone === visit.phone);
-    const newFollowUp: FollowUp | null = !alreadyExists ? {
-      id: `f-${Math.random().toString(36).substr(2, 9)}`,
-      customerName: visit.customerName,
-      phone: visit.phone,
-      interest: visit.preference,
-      lastContact: visit.visitDate,
-      nextDue: visit.followUpDue,
-      interactions: [],
-      status: visit.interest as InterestLevel,
-      createdAt: visit.visitDate,
-    } : null;
+        let updatedPayments = state.payments;
+        let updatedProperties = state.properties;
 
-    // Cascade: If source is Broker Ref or specific broker name, increment broker's leadsSent
-    let updatedBrokers = state.brokers;
-    if (visit.source === 'Broker Ref' || visit.source.startsWith('Broker: ')) {
-      // If specific broker name provided (e.g., "Broker: John"), increment that broker
-      const brokerName = visit.source.startsWith('Broker: ') ? visit.source.replace('Broker: ', '') : null;
-      updatedBrokers = state.brokers.map(b => {
-        if (b.status === 'Active') {
-          if (brokerName) {
-            if (b.name.toLowerCase() === brokerName.toLowerCase()) {
-              return { ...b, leadsSent: b.leadsSent + 1 };
+        if (status === 'Booked') {
+          const hasExistingPayment = state.payments.some(
+            p => p.customerName === followUp.customerName && p.bookingStatus === 'Active'
+          );
+          if (!hasExistingPayment) {
+            const linkedProperty = state.properties.find(p =>
+              p.customerName && p.customerName.toLowerCase() === followUp.customerName.toLowerCase()
+            );
+            const newPayment: Payment = {
+              id: `p${Date.now()}`,
+              customerName: followUp.customerName,
+              plotId: linkedProperty?.propertyNo || 'TBD',
+              date: timestamp,
+              amount: 0,
+              mode: 'Bank Transfer',
+              installmentRatio: 'Booking Amount',
+              installmentName: 'Booking Amount',
+              balanceDue: linkedProperty ? (linkedProperty.area || 0) * (linkedProperty.rate || 0) : 0,
+              status: 'Pending',
+              receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
+              bookingStatus: 'Active'
+            };
+            updatedPayments = [newPayment, ...state.payments];
+          }
+
+          updatedProperties = state.properties.map(p => {
+            if (p.customerName &&
+              p.customerName.toLowerCase() === followUp.customerName.toLowerCase() &&
+              p.status !== 'Booked' && p.status !== 'Sold') {
+              return {
+                ...p,
+                status: 'Booked' as PropertyStatus,
+                bookingDate: timestamp
+              };
             }
-            return b;
-          }
-          // Generic "Broker Ref" — increment first active broker
-          return { ...b, leadsSent: b.leadsSent + 1 };
-        }
-        return b;
-      });
-    }
-
-    return {
-      siteVisits: [{ ...visit, id: newVisitId }, ...state.siteVisits],
-      followUps: newFollowUp ? [newFollowUp, ...state.followUps] : state.followUps,
-      brokers: updatedBrokers
-    };
-  }),
-
-  addFollowUp: (f) => set((state) => ({
-    followUps: [{ ...f, id: `f${Date.now()}`, interactions: [], createdAt: new Date().toISOString() }, ...state.followUps],
-    unreadFollowUps: state.activeModule === 'followup' ? 0 : state.unreadFollowUps + 1
-  })),
-  addFollowUpInteraction: (id, interaction) => set((state) => {
-    const followUp = state.followUps.find(f => f.id === id);
-    const now = new Date();
-    const timestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-
-    // Cascade: Update matching site visit's last-contacted date
-    let updatedSiteVisits = state.siteVisits;
-    if (followUp) {
-      updatedSiteVisits = state.siteVisits.map(v => {
-        if (v.customerName.toLowerCase() === followUp.customerName.toLowerCase() ||
-          v.phone === followUp.phone) {
-          return { ...v, visitDate: timestamp };
-        }
-        return v;
-      });
-    }
-
-    return {
-      followUps: state.followUps.map(f => {
-        if (f.id === id) {
-          const newInteraction = {
-            ...interaction,
-            id: `i${Date.now()}`,
-            date: timestamp,
-            loggedBy: 'Admin'
-          };
-          return {
-            ...f,
-            interactions: [newInteraction, ...f.interactions],
-            lastContact: timestamp
-          };
-        }
-        return f;
-      }),
-      siteVisits: updatedSiteVisits
-    };
-  }),
-  updateFollowUpStatus: (id, status) => set((state) => {
-    const followUp = state.followUps.find(f => f.id === id);
-    if (!followUp) return state;
-
-    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-
-    // --- CASCADE: Status → Booked ---
-    let updatedPayments = state.payments;
-    let updatedPlots = state.plots;
-
-    if (status === 'Booked') {
-      const hasExistingPayment = state.payments.some(
-        p => p.customerName === followUp.customerName && p.bookingStatus === 'Active'
-      );
-      if (!hasExistingPayment) {
-        const linkedPlot = state.plots.find(p =>
-          p.customerName && p.customerName.toLowerCase() === followUp.customerName.toLowerCase()
-        );
-        const newPayment: Payment = {
-          id: `p${Date.now()}`,
-          customerName: followUp.customerName,
-          plotId: linkedPlot?.id || 'TBD',
-          date: timestamp,
-          amount: 0,
-          mode: 'Bank Transfer',
-          installmentRatio: 'Booking Amount',
-          installmentName: 'Booking Amount',
-          balanceDue: linkedPlot ? (linkedPlot.size || 0) * (linkedPlot.rate || 0) : 0,
-          status: 'Pending',
-          receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
-          bookingStatus: 'Active'
-        };
-        updatedPayments = [newPayment, ...state.payments];
-      }
-
-      updatedPlots = state.plots.map(p => {
-        if (p.customerName &&
-          p.customerName.toLowerCase() === followUp.customerName.toLowerCase() &&
-          p.status !== 'Booked' && p.status !== 'Sold') {
-          return {
-            ...p,
-            status: 'Booked' as PlotStatus,
-            bookingDate: timestamp,
-            amountPaid: 0
-          };
-        }
-        return p;
-      });
-    }
-
-    // --- CASCADE: Status → Lost ---
-    if (status === 'Lost') {
-      updatedPayments = state.payments.map(p => {
-        if (p.customerName.toLowerCase() === followUp.customerName.toLowerCase() && p.status === 'Pending' && p.bookingStatus === 'Active') {
-          return { ...p, bookingStatus: 'Cancelled' as const };
-        }
-        return p;
-      });
-
-      updatedPlots = state.plots.map(p => {
-        if (p.customerName &&
-          p.customerName.toLowerCase() === followUp.customerName.toLowerCase() &&
-          p.status === 'Booked') {
-          return {
-            ...p,
-            status: 'Available' as PlotStatus,
-            customerName: undefined,
-            bookingDate: undefined,
-            amountPaid: undefined
-          };
-        }
-        return p;
-      });
-    }
-
-    return {
-      followUps: state.followUps.map(f => f.id === id ? { ...f, status } : f),
-      payments: updatedPayments,
-      plots: updatedPlots,
-    };
-  }),
-
-  addBroker: (b) => set((state) => ({
-    brokers: [{
-      ...b,
-      id: `b${Date.now()}`,
-      leadsSent: 0,
-      conversions: 0,
-      totalCommissionEarned: 0,
-      pendingCommission: 0,
-      status: 'Active',
-      commissions: []
-    }, ...state.brokers]
-  })),
-  updateBrokerStatus: (id, status) => set((state) => ({
-    brokers: state.brokers.map(b => b.id === id ? { ...b, status: status as 'Active' | 'Inactive' } : b)
-  })),
-  markCommissionPaid: (brokerId, commissionId) => set((state) => ({
-    brokers: state.brokers.map(b => {
-      if (b.id !== brokerId) return b;
-      const updatedCommissions = b.commissions.map(c =>
-        c.id === commissionId ? { ...c, status: 'Paid' as const } : c
-      );
-      const pending = updatedCommissions.filter(c => c.status === 'Due').reduce((acc, curr) => acc + curr.amount, 0);
-      const earned = updatedCommissions.filter(c => c.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
-      return { ...b, commissions: updatedCommissions, pendingCommission: pending, totalCommissionEarned: earned };
-    })
-  })),
-
-  deployWeekendPost: (postData) => set((state) => ({
-    weekendPosts: [{ ...postData, id: `w${Date.now()}`, date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }, ...state.weekendPosts]
-  })),
-  deleteWeekendPost: (id) => set((state) => ({
-    weekendPosts: state.weekendPosts.filter(p => p.id !== id)
-  })),
-
-  updateWeekendRule: (id, enabled) => set((state) => ({
-    weekendRules: state.weekendRules.map(r => r.id === id ? { ...r, enabled } : r)
-  })),
-
-  logWeekendPost: (post) => set((state) => {
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    return {
-      ...state,
-      weekendPosts: [{ ...post, id: `w${Date.now()}`, date: timestamp }, ...state.weekendPosts]
-    };
-  }),
-
-  // Send weekend post to CSV contacts
-  sendWeekendPostToCsvContacts: (postTitle: string, contacts: any[]) => set((state) => {
-    // Check if Customers Group is enabled
-    const customersGroupEnabled = state.weekendRules.find(r => r.id === 'r4')?.enabled ?? true;
-
-    // Filter out customers whose follow-up status is 'Lost' to avoid messaging uninterested contacts
-    const lostCustomerNames = new Set(
-      state.followUps.filter(f => f.status === 'Lost').map(f => f.customerName.toLowerCase())
-    );
-    const filteredContacts = contacts.filter((c: any) =>
-      !lostCustomerNames.has(String(c).toLowerCase())
-    );
-
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-
-    const logEntry: TransmissionLog = {
-      id: `tl${Date.now()}`,
-      postTitle: postTitle,
-      delivered: filteredContacts.length,
-      read: 0,
-      channel: 'WhatsApp' as const,
-      date: timestamp
-    };
-
-    // Cascade: Auto-log follow-up interaction for each matching customer (if Customers Group enabled)
-    let updatedFollowUps = state.followUps;
-    if (customersGroupEnabled) {
-      updatedFollowUps = state.followUps.map(f => {
-        // Skip lost customers
-        if (f.status === 'Lost') return f;
-
-        // Check if this customer is in the contact list
-        const isContact = filteredContacts.some((c: any) =>
-          String(c).toLowerCase() === f.customerName.toLowerCase() ||
-          String(c).toLowerCase() === f.phone.toLowerCase()
-        );
-        if (!isContact) return f;
-
-        const newInteraction: Interaction = {
-          id: `i${Date.now()}-${f.id}`,
-          type: 'WhatsApp',
-          date: fullTimestamp,
-          outcome: 'N/A',
-          notes: `Weekend post sent: ${postTitle}`,
-          loggedBy: 'System'
-        };
-        return {
-          ...f,
-          interactions: [newInteraction, ...f.interactions],
-          lastContact: fullTimestamp
-        };
-      });
-    }
-
-    return {
-      ...state,
-      transmissionLogs: [logEntry, ...state.transmissionLogs],
-      followUps: updatedFollowUps
-    };
-  }),
-
-  // Send weekend post to active brokers only (filters out inactive)
-  sendWeekendPostToBrokers: (postTitle) => set((state) => {
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const activeBrokers = state.brokers.filter(b => b.status === 'Active');
-
-    if (activeBrokers.length === 0) return state;
-
-    const logEntry: TransmissionLog = {
-      id: `tl${Date.now()}`,
-      postTitle: `${postTitle} [Brokers]`,
-      delivered: activeBrokers.length,
-      read: 0,
-      channel: 'WhatsApp' as const,
-      date: timestamp
-    };
-
-    // Cascade: Update last-contacted date for each active broker
-    const updatedBrokers = state.brokers.map(b => {
-      if (b.status === 'Active') {
-        return { ...b, lastContact: fullTimestamp };
-      }
-      return b;
-    });
-
-    return {
-      transmissionLogs: [logEntry, ...state.transmissionLogs],
-      brokers: updatedBrokers
-    };
-  }),
-
-  addLand: (land) => set((state) => {
-    const landId = `l-${Math.random().toString(36).substr(2, 9)}`;
-    const newLand = { ...land, id: landId };
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-
-    const newPropertyHolder: PropertyHolder = {
-      id: `ph-${Math.random().toString(36).substr(2, 9)}`,
-      name: land.ownerName,
-      parcelId: land.surveyNo,
-      totalAmount: land.purchasePrice,
-      paidAmount: 0,
-      installments: [
-        { id: `phi-${Math.random().toString(36).substr(2, 9)}`, installmentName: 'Advance', dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), amount: land.purchasePrice * 0.1, condition: 'On agreement', status: 'Upcoming' },
-        { id: `phi-${Math.random().toString(36).substr(2, 9)}`, installmentName: 'Registration Payment', dueDate: new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), amount: land.purchasePrice * 0.9, condition: 'On registration', status: 'Upcoming' }
-      ]
-    };
-
-    // Activity feed entries for schedule
-    const scheduleItems: ActivityFeedItem[] = [
-      {
-        id: `af${Date.now()}-sched1`,
-        message: `Installment schedule added: ${land.location} — Advance ₹${(land.purchasePrice * 0.1).toLocaleString('en-IN')} due ${newPropertyHolder.installments[0].dueDate}`,
-        type: 'land_schedule',
-        priority: 'low',
-        read: false,
-        timestamp: fullTimestamp
-      },
-      {
-        id: `af${Date.now()}-sched2`,
-        message: `Upcoming: ₹${(land.purchasePrice * 0.9).toLocaleString('en-IN')} to ${land.ownerName} for ${land.location} due ${newPropertyHolder.installments[1].dueDate}`,
-        type: 'land_schedule',
-        priority: 'low',
-        read: false,
-        timestamp: fullTimestamp
-      }
-    ];
-
-    return {
-      lands: [newLand, ...state.lands],
-      propertyHolders: [newPropertyHolder, ...state.propertyHolders],
-      activityFeed: [...scheduleItems, ...state.activityFeed]
-    };
-  }),
-  updateLandStatus: (id, status) => set((state) => ({
-    lands: state.lands.map(l => l.id === id ? { ...l, status } : l)
-  })),
-  addLandDoc: (landId, doc) => set((state) => ({
-    lands: state.lands.map(l => l.id === landId ? { ...l, docs: [...l.docs, doc] } : l)
-  })),
-  addLandPayment: (landId, paymentData) => set((state) => {
-    const targetLand = state.lands.find(l => l.id === landId);
-    if (!targetLand) return state;
-
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    
-    // Auto-generate ID if missing
-    const payment = { 
-      ...paymentData, 
-      id: (paymentData as any).id || `lp${Date.now()}`,
-      balance: (paymentData as any).balance || 0 // Ensure balance exists for audit
-    };
-
-    // Find corresponding PropertyHolder
-    const holder = state.propertyHolders.find(h => h.parcelId === targetLand.surveyNo);
-
-    let updatedPropertyHolders = state.propertyHolders;
-    if (holder) {
-      const nextInstallment = holder.installments.find(i => i.status !== 'Paid');
-      // Always update paidAmount on holder
-      updatedPropertyHolders = state.propertyHolders.map(h =>
-        h.id === holder.id ? {
-          ...h,
-          paidAmount: h.paidAmount + payment.amount,
-          ...(nextInstallment ? {
-            installments: h.installments.map(i =>
-              i.id === nextInstallment.id ? { ...i, status: 'Paid', paidDate: payment.date } : i
-            )
-          } : {})
-        } : h
-      );
-    }
-
-    // Activity feed entry
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}-land`,
-      message: `₹${payment.amount.toLocaleString('en-IN')} (${payment.mode === 'Cash' ? 'Cash' : 'Bank'}) paid to ${targetLand.ownerName} for ${targetLand.location}`,
-      type: 'land_payment',
-      priority: 'medium',
-      read: false,
-      timestamp: fullTimestamp
-    };
-
-    return {
-      lands: state.lands.map(l => l.id === landId ? { ...l, payments: [...(l.payments || []), payment as any], paidTillDate: (l.paidTillDate || 0) + payment.amount } : l),
-      propertyHolders: updatedPropertyHolders,
-      activityFeed: [feedItem, ...state.activityFeed]
-    };
-  }),
-
-  addLayout: (layout) => set((state) => {
-    const id = `l${state.layouts.length + 1}`;
-    const newLayout = { ...layout, id, docs: [] };
-    // Generate empty plots for this layout
-    const newPlots: Plot[] = Array.from({ length: layout.totalPlots }, (_, i) => ({
-      id: `${layout.name.charAt(0)}-${(i + 1).toString().padStart(2, '0')}`,
-      layoutId: id,
-      size: Number(layout.plotSizes.split(',')[0]) || 150,
-      rate: layout.ratePerSqYd,
-      status: 'Available' as PlotStatus
-    }));
-
-    // Cascade: Auto-create construction block for new scheme
-    const newBlock: ConstructionBlock = {
-      id: `cb${Date.now()}`,
-      name: layout.name,
-      range: `Plots 1-${layout.totalPlots}`,
-      progress: 0,
-      colorVar: '--gold'
-    };
-
-    // Cascade: Auto-create default construction phases for new scheme
-    const defaultPhases: ConstructionPhase[] = [
-      { id: `cp${Date.now()}-1`, name: `${layout.name} — Land Clearing`, progress: 0, targetDate: 'TBD', status: 'Not Started', colorVar: '--green', reports: [], photos: [] },
-      { id: `cp${Date.now()}-2`, name: `${layout.name} — Road & Drainage`, progress: 0, targetDate: 'TBD', status: 'Not Started', colorVar: '--gold', reports: [], photos: [] },
-      { id: `cp${Date.now()}-3`, name: `${layout.name} — Plot Demarcation`, progress: 0, targetDate: 'TBD', status: 'Not Started', colorVar: '--blue', reports: [], photos: [] },
-    ];
-
-    return {
-      layouts: [...state.layouts, newLayout],
-      plots: [...state.plots, ...newPlots],
-      constructionBlocks: [...state.constructionBlocks, newBlock],
-      constructionPhases: [...state.constructionPhases, ...defaultPhases]
-    };
-  }),
-  addLayoutDoc: (layoutId, doc) => set((state) => ({
-    layouts: state.layouts.map(l => l.id === layoutId ? { ...l, docs: [...(l.docs || []), doc] } : l)
-  })),
-
-  updatePlotStatus: (id, status, customerName, amount) => set((state) => {
-    const plot = state.plots.find(p => p.id === id);
-    if (!plot) return state;
-
-    const plotValue = (plot.size || 0) * (plot.rate || 0);
-    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-
-    // --- CASCADE: Book a Plot ---
-    if (status === 'Booked' && plot.status !== 'Booked') {
-      // Auto-create Payment with plot number, customer name, total plot value
-      const bookingPayment: Payment = {
-        id: `p${Date.now()}`,
-        customerName: customerName || plot.customerName || 'Walk-in Customer',
-        plotId: id,
-        date: timestamp,
-        amount: amount || 0,
-        mode: 'Bank Transfer',
-        installmentRatio: 'Booking Amount',
-        installmentName: 'Booking Amount',
-        balanceDue: plotValue,
-        status: 'Pending',
-        receiptNumber: `BK-${Date.now().toString().slice(-4)}`,
-        bookingStatus: 'Active'
-      };
-
-      // Auto-update FollowUp status to 'Booked' if customer exists
-      const customerPhone = customerName || plot.customerName || '';
-      const updatedFollowUps = state.followUps.map(f => {
-        if (f.customerName.toLowerCase() === customerPhone.toLowerCase() ||
-          f.customerName.toLowerCase() === (customerName || '').toLowerCase()) {
-          return { ...f, status: 'Booked' as const };
-        }
-        return f;
-      });
-
-      return {
-        plots: state.plots.map(p => p.id === id ? {
-          ...p,
-          status: 'Booked' as PlotStatus,
-          customerName: customerName || p.customerName,
-          bookingDate: timestamp,
-          amountPaid: amount || p.amountPaid
-        } : p),
-        payments: [bookingPayment, ...state.payments],
-        followUps: updatedFollowUps
-      };
-    }
-
-    // --- CASCADE: Mark Plot as Sold ---
-    if (status === 'Sold' && plot.status !== 'Sold') {
-      const salePayment: Payment = {
-        id: `p${Date.now()}`,
-        customerName: customerName || plot.customerName || 'Walk-in Customer',
-        plotId: id,
-        date: timestamp,
-        amount: plotValue,
-        mode: 'Bank Transfer',
-        installmentRatio: 'Full Sale',
-        installmentName: 'Full Sale',
-        balanceDue: 0,
-        status: 'Complete',
-        receiptNumber: `SL-${Date.now().toString().slice(-4)}`,
-        bookingStatus: 'Active'
-      };
-
-      // Cascade: If booking came via a broker, calculate commission
-      const updatedBrokers = state.brokers.map(broker => {
-        if (broker.status === 'Active' && broker.leadsSent > 0) {
-          const rateStr = broker.commissionRate.replace('%', '');
-          const rate = parseFloat(rateStr) / 100 || 0.015;
-          const commissionAmt = Math.round(plotValue * rate);
-          const newCommission: CommissionRecord = {
-            id: `cr${Date.now()}`,
-            plotNumber: id,
-            customerName: customerName || plot.customerName || '',
-            amount: commissionAmt,
-            status: 'Due',
-            date: timestamp
-          };
-          return {
-            ...broker,
-            conversions: broker.conversions + 1,
-            totalCommissionEarned: broker.totalCommissionEarned + commissionAmt,
-            pendingCommission: broker.pendingCommission + commissionAmt,
-            commissions: [...broker.commissions, newCommission]
-          };
-        }
-        return broker;
-      });
-
-      // Check if plot already has an existing active payment (from booking), cancel old booking payment
-      const updatedPayments = state.payments.map(p =>
-        p.plotId === id && p.bookingStatus === 'Active' && p.status === 'Pending'
-          ? { ...p, status: 'Complete' as const }
-          : p
-      );
-
-      return {
-        plots: state.plots.map(p => p.id === id ? {
-          ...p,
-          status: 'Sold' as PlotStatus,
-          customerName: customerName || p.customerName,
-          bookingDate: p.bookingDate || timestamp,
-          amountPaid: plotValue
-        } : p),
-        payments: [salePayment, ...updatedPayments],
-        brokers: updatedBrokers
-      };
-    }
-
-    // --- CASCADE: Cancel Booking (Booked → Available) ---
-    if (status === 'Available' && plot.status === 'Booked') {
-      // Flag payment record as 'Booking Cancelled'
-      const updatedPayments = state.payments.map(p =>
-        p.plotId === id && p.bookingStatus === 'Active'
-          ? { ...p, bookingStatus: 'Cancelled' as const }
-          : p
-      );
-
-      // Revert FollowUp customer status to 'Active' so they can be re-pursued
-      const plotCustomer = plot.customerName || customerName || '';
-      const updatedFollowUps = state.followUps.map(f => {
-        if (f.customerName.toLowerCase() === plotCustomer.toLowerCase() && f.status === 'Booked') {
-          return { ...f, status: 'Warm' as const };
-        }
-        return f;
-      });
-
-      return {
-        plots: state.plots.map(p => p.id === id ? {
-          ...p,
-          status: 'Available' as PlotStatus,
-          customerName: undefined,
-          bookingDate: undefined,
-          amountPaid: undefined
-        } : p),
-        payments: updatedPayments,
-        followUps: updatedFollowUps
-      };
-    }
-
-    // Default: simple status update
-    return {
-      plots: state.plots.map(p => {
-        if (p.id === id) {
-          if (p.status === 'Sold' && status !== 'Sold') {
-            console.warn('Cannot revert status of a Sold plot');
             return p;
-          }
-          return {
-            ...p,
-            status,
-            customerName: customerName || p.customerName,
-            bookingDate: status === 'Available' ? undefined : (p.bookingDate || timestamp),
-            amountPaid: amount !== undefined ? amount : p.amountPaid
-          };
+          });
         }
-        return p;
-      }),
-      payments: state.payments,
-    };
-  }),
-  updatePlotDimensions: (id: string, size: number, rate: number) => set((state) => ({
-    plots: state.plots.map(p => p.id === id ? { ...p, size, rate } : p)
-  })),
-  updateSiteVisitStatus: (id: string, status: 'Scheduled' | 'Visited' | 'No Show') => set((state) => ({
-    siteVisits: state.siteVisits.map(v => v.id === id ? { ...v, status } : v)
-  })),
-  deleteSiteVisit: (id: string) => set((state) => ({
-    siteVisits: state.siteVisits.filter(v => v.id !== id)
-  })),
-  updateSiteVisit: (id: string, visitData: Partial<SiteVisit>) => set((state) => {
-    const visit = state.siteVisits.find(v => v.id === id);
-    const oldInterest = visit?.interest;
-    const oldSource = visit?.source;
 
-    // Cascade 1: If interest level changed, update matching follow-up status
-    let updatedFollowUps = state.followUps;
-    if (visitData.interest && visitData.interest !== oldInterest && visit) {
-      updatedFollowUps = state.followUps.map(f => {
-        if (f.customerName.toLowerCase() === visit.customerName.toLowerCase() ||
-          f.phone === visit.phone) {
-          return { ...f, status: visitData.interest as InterestLevel };
+        if (status === 'Lost') {
+          updatedPayments = state.payments.map(p => {
+            if (p.customerName.toLowerCase() === followUp.customerName.toLowerCase() && p.status === 'Pending' && p.bookingStatus === 'Active') {
+              return { ...p, bookingStatus: 'Cancelled' as const };
+            }
+            return p;
+          });
+
+          updatedProperties = state.properties.map(p => {
+            if (p.customerName &&
+              p.customerName.toLowerCase() === followUp.customerName.toLowerCase() &&
+              p.status === 'Booked') {
+              return {
+                ...p,
+                status: 'Available' as PropertyStatus,
+                customerName: undefined,
+                bookingDate: undefined
+              };
+            }
+            return p;
+          });
         }
-        return f;
-      });
-    }
 
-    // Cascade 2: If source changed to Broker Ref, increment broker leadsSent
-    let updatedBrokers = state.brokers;
-    if (visitData.source === 'Broker Ref' && oldSource !== 'Broker Ref') {
-      updatedBrokers = state.brokers.map(b => {
-        if (b.status === 'Active') {
-          return { ...b, leadsSent: b.leadsSent + 1 };
-        }
-        return b;
-      });
-    }
-
-    return {
-      siteVisits: state.siteVisits.map(v => v.id === id ? { ...v, ...visitData } : v),
-      followUps: updatedFollowUps,
-      brokers: updatedBrokers
-    };
-  }),
-
-  updatePhaseProgress: (id, progress, status) => set((state) => {
-    const phase = state.constructionPhases.find(p => p.id === id);
-    const phaseName = phase?.name || '';
-
-    // Auto-set status based on progress
-    let autoStatus = status;
-    if (progress === 100 && !status) autoStatus = 'Completed';
-    else if (progress > 0 && progress < 100 && !status) autoStatus = 'In Progress';
-    else if (progress === 0 && !status) autoStatus = 'Not Started';
-
-    // Cascade: When progress → 100%, mark eligible property holder installments
-    // Installments with conditions containing "completion" or phase name become eligible
-    let updatedPropertyHolders = state.propertyHolders;
-    if (progress === 100 && phase) {
-      updatedPropertyHolders = state.propertyHolders.map(holder => ({
-        ...holder,
-        installments: holder.installments.map(inst => {
-          if (inst.status !== 'Paid' &&
-            (inst.condition.toLowerCase().includes('completion') ||
-              inst.condition.toLowerCase().includes(phaseName.split('—')[1]?.trim().toLowerCase() || '___'))) {
-            return { ...inst, status: 'Due in 10 days' as const };
-          }
-          return inst;
-        })
-      }));
-    }
-
-    return {
-      constructionPhases: state.constructionPhases.map(p => p.id === id ? { ...p, progress, ...(autoStatus ? { status: autoStatus } : {}) } : p),
-      propertyHolders: updatedPropertyHolders
-    };
-  }),
-  addConstructionPhase: (phase) => set((state) => ({
-    constructionPhases: [...state.constructionPhases, { ...phase, id: `p-${Math.random().toString(36).substr(2, 9)}`, reports: [], photos: [] }]
-  })),
-  deleteConstructionPhase: (id) => set((state) => ({
-    constructionPhases: state.constructionPhases.filter(p => p.id !== id)
-  })),
-  addReport: (phaseId, report) => set((state) => {
-    const phase = state.constructionPhases.find(p => p.id === phaseId);
-    const phaseName = phase?.name || 'Unknown Phase';
-
-    // Cascade: If report status is "In Review" or "Pending", add inspection alert for dashboard
-    let newAlerts = state.inspectionAlerts;
-    if (report.status === 'Pending' || report.status === 'In Review') {
-      const alert: InspectionAlert = {
-        id: `ia${Date.now()}`,
-        phaseId,
-        phaseName,
-        observer: report.observer,
-        status: report.status,
-        date: report.date
-      };
-      newAlerts = [alert, ...state.inspectionAlerts];
-    }
-
-    return {
-      constructionPhases: state.constructionPhases.map(p => p.id === phaseId ? {
-        ...p,
-        reports: [{ ...report, id: `r${Date.now()}` }, ...(p.reports || [])]
-      } : p),
-      inspectionAlerts: newAlerts
-    };
-  }),
-  addPhoto: (phaseId, photo) => set((state) => ({
-    constructionPhases: state.constructionPhases.map(p => p.id === phaseId ? {
-      ...p,
-      photos: [{ ...photo, id: `ph${Date.now()}` }, ...(p.photos || [])]
-    } : p)
-  })),
-
-
-  addConstructionBlock: (block) => set((state) => ({
-    constructionBlocks: [...state.constructionBlocks, { ...block, id: `b-${Math.random().toString(36).substr(2, 9)}` }]
-  })),
-  deleteConstructionBlock: (id) => set((state) => ({
-    constructionBlocks: state.constructionBlocks.filter(b => b.id !== id)
-  })),
-  updateBlockProgress: (id, progress) => set((state) => ({
-    constructionBlocks: state.constructionBlocks.map(b => b.id === id ? { ...b, progress } : b)
-  })),
-
-
-  addMaterialTxn: (txn) => set((state) => {
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const newTxn = { ...txn, id: `mt${Date.now()}`, date: txn.date || timestamp };
-
-    // Update stock levels
-    const updatedStock = state.materialStock.map(m => {
-      if (m.name === txn.materialName) {
-        const newQty = txn.type === 'Inward' ? m.current + txn.qty : Math.max(0, m.current - txn.qty);
         return {
-          ...m,
-          current: newQty,
-          colorVar: newQty < m.threshold ? '--red' : (newQty < m.threshold * 1.5 ? '--amber' : '--blue'),
-          statusText: newQty < m.threshold ? '⚠ Critical stock level' : (newQty < m.threshold * 1.5 ? '⚠ Reorder soon' : '')
+          followUps: state.followUps.map(f => f.id === id ? { ...f, status } : f),
+          payments: updatedPayments,
+          properties: updatedProperties,
         };
-      }
-      return m;
-    });
+      }),
 
-    // Build activity feed entries
-    const newFeedItems: ActivityFeedItem[] = [];
+      addBroker: (b) => set((state) => ({
+        brokers: [{
+          ...b,
+          id: `b${Date.now()}`,
+          leadsSent: 0,
+          conversions: 0,
+          totalCommissionEarned: 0,
+          pendingCommission: 0,
+          status: 'Active',
+          commissions: []
+        }, ...state.brokers]
+      })),
+      updateBrokerStatus: (id, status) => set((state) => ({
+        brokers: state.brokers.map(b => b.id === id ? { ...b, status: status as 'Active' | 'Inactive' } : b)
+      })),
+      markCommissionPaid: (brokerId, commissionId) => set((state) => ({
+        brokers: state.brokers.map(b => {
+          if (b.id !== brokerId) return b;
+          const updatedCommissions = b.commissions.map(c =>
+            c.id === commissionId ? { ...c, status: 'Paid' as const } : c
+          );
+          const pending = updatedCommissions.filter(c => c.status === 'Due').reduce((acc, curr) => acc + curr.amount, 0);
+          const earned = updatedCommissions.filter(c => c.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
+          return { ...b, commissions: updatedCommissions, pendingCommission: pending, totalCommissionEarned: earned };
+        })
+      })),
 
-    if (txn.type === 'Inward') {
-      newFeedItems.push({
-        id: `af${Date.now()}-in`,
-        message: `Material purchased: ${txn.qty} ${txn.unit} ${txn.materialName} from ${txn.vendorName || 'vendor'}`,
-        type: 'material_inward',
-        priority: 'low',
-        read: false,
-        timestamp: fullTimestamp
-      });
-    } else {
-      newFeedItems.push({
-        id: `af${Date.now()}-out`,
-        message: `Material issued: ${txn.qty} ${txn.unit} ${txn.materialName} to ${txn.projectBlock || 'site'}`,
-        type: 'material_outward',
-        priority: 'low',
-        read: false,
-        timestamp: fullTimestamp
-      });
-    }
+      deployWeekendPost: (postData) => set((state) => ({
+        weekendPosts: [{ ...postData, id: `w${Date.now()}`, date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }, ...state.weekendPosts]
+      })),
+      deleteWeekendPost: (id) => set((state) => ({
+        weekendPosts: state.weekendPosts.filter(p => p.id !== id)
+      })),
 
-    // Check for low stock alerts after this transaction
-    const affectedMaterial = updatedStock.find(m => m.name === txn.materialName);
-    if (affectedMaterial && affectedMaterial.current < affectedMaterial.threshold) {
-      newFeedItems.push({
-        id: `af${Date.now()}-alert`,
-        message: `${affectedMaterial.name} stock low — ${affectedMaterial.current} ${affectedMaterial.unit} remaining`,
-        type: 'material_alert',
-        priority: 'critical',
-        read: false,
-        timestamp: fullTimestamp
-      });
-    }
+      updateWeekendRule: (id, enabled) => set((state) => ({
+        weekendRules: state.weekendRules.map(r => r.id === id ? { ...r, enabled } : r)
+      })),
 
-    // For outward entries linked to a project block, auto-link to matching construction phase
-    let updatedPhases = state.constructionPhases;
-    if (txn.type === 'Outward' && txn.projectBlock) {
-      const matchingPhase = state.constructionPhases.find(p =>
-        p.name.toLowerCase().includes(txn.projectBlock!.toLowerCase()) ||
-        txn.projectBlock!.toLowerCase().includes(p.name.split('—')[1]?.trim().toLowerCase() || '___')
-      );
-      if (matchingPhase) {
-        // Track material consumption on the phase via a report entry
-        const materialReport = {
-          id: `r${Date.now()}`,
-          observer: txn.supervisorName || 'System',
-          action: `Material consumed: ${txn.qty} ${txn.unit} ${txn.materialName}`,
-          status: 'Cleared' as const,
+      logWeekendPost: (post) => set((state) => {
+        const now = new Date();
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        return {
+          ...state,
+          weekendPosts: [{ ...post, id: `w${Date.now()}`, date: timestamp }, ...state.weekendPosts]
+        };
+      }),
+
+      sendWeekendPostToCsvContacts: (postTitle: string, contacts: any[]) => set((state) => {
+        const customersGroupEnabled = state.weekendRules.find(r => r.id === 'r4')?.enabled ?? true;
+
+        const lostCustomerNames = new Set(
+          state.followUps.filter(f => f.status === 'Lost').map(f => f.customerName.toLowerCase())
+        );
+        const filteredContacts = contacts.filter((c: any) =>
+          !lostCustomerNames.has(String(c).toLowerCase())
+        );
+
+        const now = new Date();
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const logEntry: TransmissionLog = {
+          id: `tl${Date.now()}`,
+          postTitle: postTitle,
+          delivered: filteredContacts.length,
+          read: 0,
+          channel: 'WhatsApp' as const,
           date: timestamp
         };
-        updatedPhases = state.constructionPhases.map(p =>
-          p.id === matchingPhase.id
-            ? { ...p, reports: [materialReport, ...(p.reports || [])] }
-            : p
-        );
-      }
-    }
 
-    return {
-      materialTxns: [newTxn, ...state.materialTxns],
-      materialStock: updatedStock,
-      notifications: updatedStock.some(m => m.current < m.threshold) ? state.notifications + 1 : state.notifications,
-      activityFeed: [...newFeedItems, ...state.activityFeed],
-      constructionPhases: updatedPhases
-    };
-  }),
+        let updatedFollowUps = state.followUps;
+        if (customersGroupEnabled) {
+          updatedFollowUps = state.followUps.map(f => {
+            if (f.status === 'Lost') return f;
 
-  addMaterial: (material) => set((state) => ({
-    materialStock: [...state.materialStock, {
-      ...material,
-      id: `m${Date.now()}`,
-      current: 0,
-      statusText: 'No stock recorded'
-    }]
-  })),
+            const isContact = filteredContacts.some((c: any) =>
+              String(c).toLowerCase() === f.customerName.toLowerCase() ||
+              String(c).toLowerCase() === f.phone.toLowerCase()
+            );
+            if (!isContact) return f;
 
-  deleteMaterial: (id) => set((state) => ({
-    materialStock: state.materialStock.filter(m => m.id !== id)
-  })),
+            const newInteraction: Interaction = {
+              id: `i${Date.now()}-${f.id}`,
+              type: 'WhatsApp',
+              date: fullTimestamp,
+              outcome: 'N/A',
+              notes: `Weekend post sent: ${postTitle}`,
+              loggedBy: 'System'
+            };
+            return {
+              ...f,
+              interactions: [newInteraction, ...f.interactions],
+              lastContact: fullTimestamp
+            };
+          });
+        }
 
-  updateMaterialThreshold: (id, threshold) => set((state) => ({
-    materialStock: state.materialStock.map(m => {
-      if (m.id !== id) return m;
-      const newQty = m.current;
-      return {
-        ...m,
-        threshold,
-        colorVar: newQty < threshold ? '--red' : (newQty < threshold * 1.5 ? '--amber' : '--blue'),
-        statusText: newQty < threshold ? '⚠ Very Low Stock' : (newQty < threshold * 1.5 ? '⚠ Order Soon' : '')
-      };
-    })
-  })),
+        return {
+          ...state,
+          transmissionLogs: [logEntry, ...state.transmissionLogs],
+          followUps: updatedFollowUps
+        };
+      }),
 
+      sendWeekendPostToBrokers: (postTitle) => set((state) => {
+        const now = new Date();
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const activeBrokers = state.brokers.filter(b => b.status === 'Active');
 
-  addAsset: (asset) => set((state) => {
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const newAsset = { ...asset, id: `a${Date.now()}` };
+        if (activeBrokers.length === 0) return state;
 
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}`,
-      message: `New asset registered: ${asset.name} (${asset.category}) — ₹${asset.price.toLocaleString('en-IN')}`,
-      type: 'system',
-      priority: 'low',
-      read: false,
-      timestamp: fullTimestamp
-    };
+        const logEntry: TransmissionLog = {
+          id: `tl${Date.now()}`,
+          postTitle: `${postTitle} [Brokers]`,
+          delivered: activeBrokers.length,
+          read: 0,
+          channel: 'WhatsApp' as const,
+          date: timestamp
+        };
 
-    return {
-      assets: [newAsset, ...state.assets],
-      activityFeed: [feedItem, ...state.activityFeed]
-    };
-  }),
-  updateAssetCondition: (id, condition) => set((state) => {
-    const asset = state.assets.find(a => a.id === id);
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-
-    let newFeedItems: ActivityFeedItem[] = [];
-
-    if (asset) {
-      if (condition === 'Under Repair') {
-        newFeedItems.push({
-          id: `af${Date.now()}-repair`,
-          message: `${asset.name} under repair since ${timestamp}`,
-          type: 'system',
-          priority: 'medium',
-          read: false,
-          timestamp: fullTimestamp
+        const updatedBrokers = state.brokers.map(b => {
+          if (b.status === 'Active') {
+            return { ...b, lastContact: fullTimestamp };
+          }
+          return b;
         });
-      } else if (condition === 'Disposed') {
-        newFeedItems.push({
-          id: `af${Date.now()}-disposed`,
-          message: `${asset.name} disposed — removed from active asset pool`,
+
+        return {
+          transmissionLogs: [logEntry, ...state.transmissionLogs],
+          brokers: updatedBrokers
+        };
+      }),
+
+      addProperty: (property) => set((state) => {
+        const timestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-property`,
+          message: `Property ${property.propertyNo} added in ${property.projectName}`,
+          type: 'system',
+          priority: 'low',
+          read: false,
+          timestamp
+        };
+
+        return {
+          properties: [{ ...property, id: `pr${Date.now()}` }, ...state.properties],
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+
+      addProperties: (newProps) => set((state) => {
+        const timestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const created = newProps.map((property, i) => ({ ...property, id: `pr${Date.now()}-${i}` }));
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-bulk`,
+          message: `${created.length} ${newProps[0]?.type || 'property'} units added to ${newProps[0]?.projectName}`,
+          type: 'system',
+          priority: 'low',
+          read: false,
+          timestamp
+        };
+        return {
+          properties: [...created, ...state.properties],
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+
+      updatePropertyStatus: (id, status, customerName) => set((state) => {
+        const property = state.properties.find(p => p.id === id);
+        if (!property) return state;
+
+        const timestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const bookingDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-property-status`,
+          message: `Property ${property.propertyNo} changed to ${status}`,
+          type: status === 'Booked' || status === 'Sold' ? 'booking' : 'system',
+          priority: status === 'Sold' ? 'high' : 'medium',
+          read: false,
+          timestamp
+        };
+
+        const resolvedCustomer = (status === 'Available' || status === 'Hold') ? undefined : (customerName || property.customerName);
+        const resolvedBookingDate = (status === 'Available' || status === 'Hold') ? undefined : (status === 'Booked' || status === 'Sold' ? bookingDate : property.bookingDate);
+
+        // Synchronize with Property Holders
+        let updatedHolders = state.propertyHolders;
+        const exists = state.propertyHolders.some(h => h.parcelId === property.propertyNo);
+        if ((status === 'Booked' || status === 'Sold') && !exists) {
+          const propertyValue = property.area * property.rate;
+          const newHolder: PropertyHolder = {
+            id: `ph-${Date.now()}`,
+            name: resolvedCustomer || 'TBD',
+            parcelId: property.propertyNo,
+            totalAmount: propertyValue,
+            paidAmount: 0,
+            installments: [
+              {
+                id: `inst-${Date.now()}`,
+                installmentName: 'Booking Amount',
+                dueDate: resolvedBookingDate || bookingDate,
+                amount: Math.round(propertyValue * 0.1), // 10% booking amount as default step
+                condition: 'On Booking',
+                status: 'Upcoming'
+              }
+            ],
+            payments: []
+          };
+          updatedHolders = [newHolder, ...state.propertyHolders];
+        } else if (status === 'Available' || status === 'Hold') {
+          // If canceled, remove the associated property holder
+          updatedHolders = state.propertyHolders.filter(h => h.parcelId !== property.propertyNo);
+        } else if (resolvedCustomer) {
+          // If status is still Booked/Sold, sync customer name change
+          updatedHolders = state.propertyHolders.map(h => {
+            if (h.parcelId === property.propertyNo) {
+              return { ...h, name: resolvedCustomer };
+            }
+            return h;
+          });
+        }
+
+        return {
+          properties: state.properties.map(p => p.id === id ? {
+            ...p,
+            status,
+            customerName: resolvedCustomer,
+            bookingDate: resolvedBookingDate
+          } : p),
+          propertyHolders: updatedHolders,
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+
+      updateProperty: (id, propertyData) => set((state) => {
+        const property = state.properties.find(p => p.id === id);
+        if (!property) return state;
+
+        const updatedProperty = { ...property, ...propertyData };
+        const updatedValue = updatedProperty.area * updatedProperty.rate;
+
+        const updatedHolders = state.propertyHolders.map(h => {
+          if (h.parcelId === property.propertyNo) {
+            return {
+              ...h,
+              name: updatedProperty.customerName || h.name,
+              parcelId: updatedProperty.propertyNo,
+              totalAmount: updatedValue
+            };
+          }
+          return h;
+        });
+
+        return {
+          properties: state.properties.map(p => p.id === id ? updatedProperty : p),
+          propertyHolders: updatedHolders
+        };
+      }),
+
+      addLabourAgency: (agency) => set((state) => {
+        const timestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-labour`,
+          message: `${agency.agencyName} added for ${agency.assignedSite}`,
+          type: 'system',
+          priority: 'low',
+          read: false,
+          timestamp
+        };
+
+        return {
+          labourAgencies: [{ ...agency, id: `la${Date.now()}` }, ...state.labourAgencies],
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+
+      updateLabourStatus: (id, status) => set((state) => {
+        const agency = state.labourAgencies.find(item => item.id === id);
+        if (!agency) return state;
+
+        const timestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-labour-status`,
+          message: `${agency.agencyName} marked ${status}`,
+          type: 'system',
+          priority: status === 'On Hold' ? 'medium' : 'low',
+          read: false,
+          timestamp
+        };
+
+        return {
+          labourAgencies: state.labourAgencies.map(item => item.id === id ? { ...item, status } : item),
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+
+      addMaterialTxn: (txn) => set((state) => {
+        const now = new Date();
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const newTxn = { ...txn, id: `mt${Date.now()}`, date: txn.date || timestamp };
+
+        const updatedStock = state.materialStock.map(m => {
+          if (m.name === txn.materialName) {
+            const newQty = txn.type === 'Inward' ? m.current + txn.qty : Math.max(0, m.current - txn.qty);
+            return {
+              ...m,
+              current: newQty,
+              colorVar: newQty < m.threshold ? '--red' : (newQty < m.threshold * 1.5 ? '--amber' : '--blue'),
+              statusText: newQty < m.threshold ? '⚠ Critical stock level' : (newQty < m.threshold * 1.5 ? '⚠ Reorder soon' : '')
+            };
+          }
+          return m;
+        });
+
+        const newFeedItems: ActivityFeedItem[] = [];
+
+        if (txn.type === 'Inward') {
+          newFeedItems.push({
+            id: `af${Date.now()}-in`,
+            message: `Material purchased: ${txn.qty} ${txn.unit} ${txn.materialName} from ${txn.vendorName || 'vendor'}`,
+            type: 'material_inward',
+            priority: 'low',
+            read: false,
+            timestamp: fullTimestamp
+          });
+        } else {
+          newFeedItems.push({
+            id: `af${Date.now()}-out`,
+            message: `Material issued: ${txn.qty} ${txn.unit} ${txn.materialName} to ${txn.projectBlock || 'site'}`,
+            type: 'material_outward',
+            priority: 'low',
+            read: false,
+            timestamp: fullTimestamp
+          });
+        }
+
+        const affectedMaterial = updatedStock.find(m => m.name === txn.materialName);
+        if (affectedMaterial && affectedMaterial.current < affectedMaterial.threshold) {
+          newFeedItems.push({
+            id: `af${Date.now()}-alert`,
+            message: `${affectedMaterial.name} stock low — ${affectedMaterial.current} ${affectedMaterial.unit} remaining`,
+            type: 'material_alert',
+            priority: 'critical',
+            read: false,
+            timestamp: fullTimestamp
+          });
+        }
+
+        return {
+          materialTxns: [newTxn, ...state.materialTxns],
+          materialStock: updatedStock,
+          notifications: updatedStock.some(m => m.current < m.threshold) ? state.notifications + 1 : state.notifications,
+          activityFeed: [...newFeedItems, ...state.activityFeed]
+        };
+      }),
+
+      addMaterial: (material) => set((state) => ({
+        materialStock: [...state.materialStock, {
+          ...material,
+          id: `m${Date.now()}`,
+          current: 0,
+          statusText: 'No stock recorded'
+        }]
+      })),
+
+      deleteMaterial: (id) => set((state) => ({
+        materialStock: state.materialStock.filter(m => m.id !== id)
+      })),
+
+      updateMaterialThreshold: (id, threshold) => set((state) => ({
+        materialStock: state.materialStock.map(m => {
+          if (m.id !== id) return m;
+          const newQty = m.current;
+          return {
+            ...m,
+            threshold,
+            colorVar: newQty < threshold ? '--red' : (newQty < threshold * 1.5 ? '--amber' : '--blue'),
+            statusText: newQty < threshold ? '⚠ Very Low Stock' : (newQty < threshold * 1.5 ? '⚠ Order Soon' : '')
+          };
+        })
+      })),
+
+      addAsset: (asset) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const newAsset = { ...asset, id: `a${Date.now()}` };
+
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}`,
+          message: `New asset registered: ${asset.name} (${asset.category}) — ₹${asset.price.toLocaleString('en-IN')}`,
           type: 'system',
           priority: 'low',
           read: false,
           timestamp: fullTimestamp
-        });
-      } else if (condition === 'Active' && asset.condition !== 'Active') {
-        newFeedItems.push({
-          id: `af${Date.now()}-active`,
-          message: `${asset.name} restored to active status`,
-          type: 'system',
+        };
+
+        return {
+          assets: [newAsset, ...state.assets],
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+
+      updateAssetCondition: (id, condition) => set((state) => {
+        const asset = state.assets.find(a => a.id === id);
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        let newFeedItems: ActivityFeedItem[] = [];
+
+        if (asset) {
+          if (condition === 'Under Repair') {
+            newFeedItems.push({
+              id: `af${Date.now()}-repair`,
+              message: `${asset.name} under repair since ${timestamp}`,
+              type: 'system',
+              priority: 'medium',
+              read: false,
+              timestamp: fullTimestamp
+            });
+          } else if (condition === 'Disposed') {
+            newFeedItems.push({
+              id: `af${Date.now()}-disposed`,
+              message: `${asset.name} disposed — removed from active asset pool`,
+              type: 'system',
+              priority: 'low',
+              read: false,
+              timestamp: fullTimestamp
+            });
+          } else if (condition === 'Active' && asset.condition !== 'Active') {
+            newFeedItems.push({
+              id: `af${Date.now()}-active`,
+              message: `${asset.name} restored to active status`,
+              type: 'system',
+              priority: 'medium',
+              read: false,
+              timestamp: fullTimestamp
+            });
+          }
+        }
+
+        return {
+          assets: state.assets.map(a => a.id === id ? { ...a, condition: condition as AssetCondition } : a),
+          activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
+        };
+      }),
+
+      addPayment: (payment) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const pId = payment.plotId;
+
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-pay`,
+          message: `Payment of ₹${payment.amount.toLocaleString('en-IN')} received from ${payment.customerName} (${payment.mode === 'Cash' ? 'Cash' : 'White'})`,
+          type: 'payment',
           priority: 'medium',
           read: false,
           timestamp: fullTimestamp
-        });
-      }
-    }
+        };
 
-    return {
-      assets: state.assets.map(a => a.id === id ? { ...a, condition: condition as AssetCondition } : a),
-      activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
-    };
-  }),
-
-
-  addPayment: (payment) => set((state) => {
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const pId = payment.plotId;
-
-    // Activity feed entry
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}-pay`,
-      message: `Payment of ₹${payment.amount.toLocaleString('en-IN')} received from ${payment.customerName} (${payment.mode === 'Cash' ? 'Cash' : 'White'})`,
-      type: 'payment',
-      priority: 'medium',
-      read: false,
-      timestamp: fullTimestamp
-    };
-
-    // Update plot amountPaid
-    let updatedPlots = state.plots;
-    let plotStatusChange: { plotId: string, newStatus: string } | null = null;
-    const plot = state.plots.find(p => p.id === pId);
-    if (plot) {
-      const newAmountPaid = (plot.amountPaid || 0) + payment.amount;
-      const totalPrice = plot.size * plot.rate;
-      const isFullyPaid = newAmountPaid >= totalPrice;
-
-      updatedPlots = state.plots.map(p => {
-        if (p.id === pId) {
-          const newStatus = isFullyPaid && p.status === 'Booked' ? 'Sold' as const : p.status;
-          if (newStatus !== p.status) {
-            plotStatusChange = { plotId: p.id, newStatus };
+        let updatedProperties = state.properties;
+        let propertyStatusChange: { propertyId: string, newStatus: string } | null = null;
+        const property = state.properties.find(p => p.propertyNo === pId);
+        if (property) {
+          const isFullPayment = payment.installmentName === 'Full Sale' || payment.installmentRatio === 'Full Sale';
+          if (isFullPayment && property.status === 'Booked') {
+            updatedProperties = state.properties.map(p => {
+              if (p.propertyNo === pId) {
+                propertyStatusChange = { propertyId: p.id, newStatus: 'Sold' };
+                return { ...p, status: 'Sold' as PropertyStatus, bookingDate: p.bookingDate || timestamp };
+              }
+              return p;
+            });
           }
-          return { ...p, amountPaid: newAmountPaid, status: newStatus, ...(isFullyPaid && p.status === 'Booked' ? { bookingDate: p.bookingDate || timestamp } : {}) };
         }
-        return p;
-      });
-    }
 
-    // Additional feed items for plot status change
-    let additionalFeedItems: ActivityFeedItem[] = [];
-    let updatedBrokers = state.brokers;
+        let additionalFeedItems: ActivityFeedItem[] = [];
+        let updatedBrokers = state.brokers;
 
-    if (plotStatusChange) {
-      additionalFeedItems.push({
-        id: `af${Date.now()}-sold`,
-        message: `Plot ${plot?.id} auto-updated to Sold — full payment received from ${payment.customerName}`,
-        type: 'booking',
-        priority: 'high',
-        read: false,
-        timestamp: fullTimestamp
-      });
-
-      // Check if there's a broker associated (via follow-ups)
-      const relatedFollowUp = state.followUps.find(f =>
-        f.customerName.toLowerCase() === payment.customerName.toLowerCase() && 
-        ((f as any).source === 'Broker' || (f as any).source?.startsWith?.('Broker:')) && 
-        (f as any).brokerName
-      );
-      if (relatedFollowUp && (relatedFollowUp as any).brokerName) {
-        const broker = state.brokers.find(b => b.name === (relatedFollowUp as any).brokerName);
-
-
-        if (broker) {
-          const commission = payment.amount * 0.02; // 2% commission
-          updatedBrokers = state.brokers.map(b =>
-            b.id === broker.id ? {
-              ...b,
-              pendingCommission: b.pendingCommission + commission,
-              totalCommissionEarned: b.totalCommissionEarned + commission
-            } : b
-          );
+        if (propertyStatusChange) {
+          const propertyValue = (property?.area || 0) * (property?.rate || 0);
           additionalFeedItems.push({
-            id: `af${Date.now()}-comm`,
-            message: `Commission of ₹${commission.toLocaleString('en-IN')} triggered for broker ${broker.name}`,
+            id: `af${Date.now()}-sold`,
+            message: `Property ${property?.propertyNo} updated to Sold — payment received from ${payment.customerName}`,
+            type: 'booking',
+            priority: 'high',
+            read: false,
+            timestamp: fullTimestamp
+          });
+
+          const relatedFollowUp = state.followUps.find(f =>
+            f.customerName.toLowerCase() === payment.customerName.toLowerCase() &&
+            ((f as any).source === 'Broker' || (f as any).source?.startsWith?.('Broker:')) &&
+            (f as any).brokerName
+          );
+          if (relatedFollowUp && (relatedFollowUp as any).brokerName) {
+            const broker = state.brokers.find(b => b.name === (relatedFollowUp as any).brokerName);
+
+            if (broker) {
+              const commission = payment.amount * 0.02;
+              updatedBrokers = state.brokers.map(b =>
+                b.id === broker.id ? {
+                  ...b,
+                  pendingCommission: b.pendingCommission + commission,
+                  totalCommissionEarned: b.totalCommissionEarned + commission
+                } : b
+              );
+              additionalFeedItems.push({
+                id: `af${Date.now()}-comm`,
+                message: `Commission of ₹${commission.toLocaleString('en-IN')} triggered for broker ${broker.name}`,
+                type: 'system',
+                priority: 'medium',
+                read: false,
+                timestamp: fullTimestamp
+              });
+            }
+          }
+        }
+
+        const updatedFollowUps = state.followUps.map(f => {
+          if (f.customerName.toLowerCase() === payment.customerName.toLowerCase() ||
+            (pId && f.interest.toLowerCase() === pId.toLowerCase())) {
+            const interaction: Interaction = {
+              id: `i${Date.now()}`,
+              type: 'Receipt' as InteractionType,
+              outcome: 'N/A' as InteractionOutcome,
+              notes: `Receipt: ₹${payment.amount.toLocaleString('en-IN')} Settled. Installment ${payment.installmentName || payment.installmentRatio || 'Registry'} recorded via ${payment.mode}`,
+              date: fullTimestamp,
+              loggedBy: 'System'
+            };
+            return { ...f, interactions: [interaction, ...f.interactions], lastContact: fullTimestamp };
+          }
+          return f;
+        });
+
+        const newPaymentObj: Payment = {
+          ...payment,
+          id: (payment as any).id || `p${Date.now()}`
+        };
+
+        return {
+          payments: [newPaymentObj, ...state.payments],
+          properties: updatedProperties,
+          brokers: updatedBrokers,
+          activityFeed: [feedItem, ...additionalFeedItems, ...state.activityFeed],
+          followUps: updatedFollowUps
+        };
+      }),
+
+      markInstallmentPaid: (holderId, installmentId, paidDate) => set((state) => {
+        const holder = state.propertyHolders.find(h => h.id === holderId);
+        const installment = holder?.installments.find(i => i.id === installmentId);
+        const amount = installment?.amount || 0;
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+
+        let newFeedItems: ActivityFeedItem[] = [];
+        if (holder && installment) {
+          newFeedItems.push({
+            id: `af${Date.now()}-land`,
+            message: `₹${amount.toLocaleString('en-IN')} paid to ${holder.name} for ${holder.parcelId} (${installment.installmentName})`,
+            type: 'payment',
+            priority: 'medium',
+            read: false,
+            timestamp: fullTimestamp
+          });
+        }
+
+        const newPayment: PropertyHolderPayment = {
+          id: `phyp-inst-${Date.now()}`,
+          date: paidDate,
+          amount: amount,
+          mode: 'White',
+          balance: (holder ? holder.totalAmount - holder.paidAmount - amount : 0)
+        };
+
+        return {
+          propertyHolders: state.propertyHolders.map(h =>
+            h.id === holderId ? {
+              ...h,
+              paidAmount: h.paidAmount + amount,
+              installments: h.installments.map(i => i.id === installmentId ? { ...i, status: 'Paid' as const, paidDate: paidDate } : i),
+              payments: [newPayment, ...(h.payments || [])]
+            } : h
+          ),
+          activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
+        };
+      }),
+
+      uploadInstallmentReceipt: (holderId, installmentId, url) => set((state) => ({
+        propertyHolders: state.propertyHolders.map(h =>
+          h.id === holderId ? {
+            ...h,
+            installments: h.installments.map(i => i.id === installmentId ? { ...i, receiptUrl: url } : i)
+          } : h
+        )
+      })),
+
+      addPropertyHolderInstallment: (holderId, installment) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const holder = state.propertyHolders.find(h => h.id === holderId);
+
+        const newFeedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-sched`,
+          message: `New installment: ${installment.installmentName} ₹${installment.amount.toLocaleString('en-IN')} to ${holder?.name || 'owner'} for ${holder?.parcelId || 'land'} due ${installment.dueDate}`,
+          type: 'system',
+          priority: 'low',
+          read: false,
+          timestamp: fullTimestamp
+        };
+
+        return {
+          propertyHolders: state.propertyHolders.map(ph => {
+            if (ph.id === holderId) {
+              return {
+                ...ph,
+                installments: [...ph.installments, { ...installment, id: `phi${Date.now()}` }]
+              };
+            }
+            return ph;
+          }),
+          activityFeed: [newFeedItem, ...state.activityFeed]
+        };
+      }),
+
+      addPropertyHolderPayment: (holderId, payment) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const holder = state.propertyHolders.find(h => h.id === holderId);
+
+        const newPayment: PropertyHolderPayment = {
+          ...payment,
+          id: `phyp-${Date.now()}`
+        };
+
+        const newFeedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-phpay`,
+          message: `₹${payment.amount.toLocaleString('en-IN')} paid to ${holder?.name || 'owner'} for ${holder?.parcelId || ''}`,
+          type: 'payment',
+          priority: 'medium',
+          read: false,
+          timestamp: fullTimestamp
+        };
+
+        return {
+          propertyHolders: state.propertyHolders.map(ph => {
+            if (ph.id === holderId) {
+              return {
+                ...ph,
+                paidAmount: ph.paidAmount + payment.amount,
+                payments: [newPayment, ...(ph.payments || [])]
+              };
+            }
+            return ph;
+          }),
+          activityFeed: [newFeedItem, ...state.activityFeed]
+        };
+      }),
+
+      addSalary: (salary) => set((state) => ({
+        salaries: [{ ...salary, id: `s${Date.now()}` }, ...state.salaries]
+      })),
+
+      updateSalaryStatus: (id, status) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const salary = state.salaries.find(s => s.id === id);
+        let newFeedItems: ActivityFeedItem[] = [];
+        if (salary && status === 'Paid') {
+          newFeedItems.push({
+            id: `af${Date.now()}-sal`,
+            message: `Salary paid: ${salary.employeeName} — ₹${salary.net.toLocaleString('en-IN')} (${salary.month})`,
             type: 'system',
             priority: 'medium',
             read: false,
             timestamp: fullTimestamp
           });
         }
-      }
-    }
-
-    // Cascade: Auto-log interaction (Receipt type) in FollowUp
-    const updatedFollowUps = state.followUps.map(f => {
-      if (f.customerName.toLowerCase() === payment.customerName.toLowerCase() ||
-          (pId && f.interest.toLowerCase() === pId.toLowerCase())) {
-        const interaction: Interaction = {
-          id: `i${Date.now()}`,
-          type: 'Receipt' as InteractionType,
-          outcome: 'N/A' as InteractionOutcome,
-          notes: `Receipt: ₹${payment.amount.toLocaleString('en-IN')} Settled. Installment ${payment.installmentName || payment.installmentRatio || 'Registry'} recorded via ${payment.mode}`,
-          date: fullTimestamp,
-          loggedBy: 'System'
+        const updatedAdvances = state.salaryAdvances.map(a =>
+          a.employeeName === salary?.employeeName && !a.deducted
+            ? { ...a, deducted: true }
+            : a
+        );
+        return {
+          salaries: state.salaries.map(s => s.id === id ? { ...s, status } : s),
+          salaryAdvances: updatedAdvances,
+          activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
         };
-        return { ...f, interactions: [interaction, ...f.interactions], lastContact: fullTimestamp };
-      }
-      return f;
-    });
-
-    const newPaymentObj: Payment = {
-      ...payment,
-      id: (payment as any).id || `p${Date.now()}`
-    };
-
-    return {
-      payments: [newPaymentObj, ...state.payments],
-      plots: updatedPlots,
-      brokers: updatedBrokers,
-      activityFeed: [feedItem, ...additionalFeedItems, ...state.activityFeed],
-      followUps: updatedFollowUps
-    };
-  }),
-
-
-  markInstallmentPaid: (holderId, installmentId, paidDate) => set((state) => {
-    const holder = state.propertyHolders.find(h => h.id === holderId);
-    const installment = holder?.installments.find(i => i.id === installmentId);
-    const amount = installment?.amount || 0;
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-
-    // Find the linked land parcel
-    const linkedLand = state.lands.find(l => holder && l.surveyNo === holder.parcelId);
-
-    // Activity feed entry
-    let newFeedItems: ActivityFeedItem[] = [];
-    if (holder && installment) {
-      newFeedItems.push({
-        id: `af${Date.now()}-land`,
-        message: `₹${amount.toLocaleString('en-IN')} paid to ${holder.name} for ${linkedLand?.location || holder.parcelId} (${installment.installmentName})`,
-        type: 'land_payment',
-        priority: 'medium',
-        read: false,
-        timestamp: fullTimestamp
-      });
-    }
-
-    return {
-      propertyHolders: state.propertyHolders.map(h =>
-        h.id === holderId ? {
-          ...h,
-          paidAmount: h.paidAmount + amount,
-          installments: h.installments.map(i => i.id === installmentId ? { ...i, status: 'Paid' as const, paidDate: paidDate } : i)
-        } : h
-      ),
-      // Sync paidTillDate on linked land
-      lands: linkedLand ? state.lands.map(l =>
-        l.id === linkedLand.id ? { ...l, paidTillDate: l.paidTillDate + amount } : l
-      ) : state.lands,
-      activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
-    };
-  }),
-  uploadInstallmentReceipt: (holderId, installmentId, url) => set((state) => ({
-    propertyHolders: state.propertyHolders.map(h =>
-      h.id === holderId ? {
-        ...h,
-        installments: h.installments.map(i => i.id === installmentId ? { ...i, receiptUrl: url } : i)
-      } : h
-    )
-  })),
-  addPropertyHolderInstallment: (holderId, installment) => set((state) => {
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const holder = state.propertyHolders.find(h => h.id === holderId);
-    const linkedLand = holder ? state.lands.find(l => l.surveyNo === holder.parcelId) : undefined;
-
-    const newFeedItem: ActivityFeedItem = {
-      id: `af${Date.now()}-sched`,
-      message: `New installment: ${installment.installmentName} ₹${installment.amount.toLocaleString('en-IN')} to ${holder?.name || 'owner'} for ${linkedLand?.location || 'land'} due ${installment.dueDate}`,
-      type: 'land_schedule',
-      priority: 'low',
-      read: false,
-      timestamp: fullTimestamp
-    };
-
-    return {
-      propertyHolders: state.propertyHolders.map(ph => {
-        if (ph.id === holderId) {
-          return {
-            ...ph,
-            installments: [...ph.installments, { ...installment, id: `phi${Date.now()}` }]
-          };
-        }
-        return ph;
       }),
-      activityFeed: [newFeedItem, ...state.activityFeed]
-    };
-  }),
 
+      addSalaryAdvance: (advance) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const newAdvance: SalaryAdvance = { ...advance, id: `sa${Date.now()}`, deducted: false };
 
-  addSalary: (salary) => set((state) => ({
-    salaries: [{ ...salary, id: `s${Date.now()}` }, ...state.salaries]
-  })),
-  updateSalaryStatus: (id, status) => set((state) => {
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const salary = state.salaries.find(s => s.id === id);
-    let newFeedItems: ActivityFeedItem[] = [];
-    if (salary && status === 'Paid') {
-      newFeedItems.push({
-        id: `af${Date.now()}-sal`,
-        message: `Salary paid: ${salary.employeeName} — ₹${salary.net.toLocaleString('en-IN')} (${salary.month})`,
-        type: 'system',
-        priority: 'medium',
-        read: false,
-        timestamp: fullTimestamp
-      });
-    }
-    const updatedAdvances = state.salaryAdvances.map(a => 
-      a.employeeName === salary?.employeeName && !a.deducted 
-        ? { ...a, deducted: true } 
-        : a
-    );
-    return {
-      salaries: state.salaries.map(s => s.id === id ? { ...s, status } : s),
-      salaryAdvances: updatedAdvances,
-      activityFeed: newFeedItems.length > 0 ? [...newFeedItems, ...state.activityFeed] : state.activityFeed
-    };
-  }),
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const nextMonth = nextMonthDate.toLocaleString('default', { month: 'long' }) + ' ' + nextMonthDate.getFullYear();
 
+        const updatedSalaries = state.salaries.map(s => {
+          if (s.employeeName.toLowerCase() === advance.employeeName.toLowerCase() && s.month === nextMonth) {
+            const newAdvanceDeduction = s.advanceDeduction + advance.amount;
+            const newNet = s.basic + s.allowance - newAdvanceDeduction - s.otherDeduction;
+            return { ...s, advanceDeduction: newAdvanceDeduction, net: newNet };
+          }
+          return s;
+        });
 
-  addSalaryAdvance: (advance) => set((state) => {
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const newAdvance: SalaryAdvance = { ...advance, id: `sa${Date.now()}`, deducted: false };
+        const matchedSalary = state.salaries.find(s =>
+          s.employeeName.toLowerCase() === advance.employeeName.toLowerCase() && s.month === nextMonth
+        );
+        const finalAdvance = matchedSalary ? { ...newAdvance, deducted: true } : newAdvance;
 
-    // Auto-deduct from next month's payroll for this employee
-    const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const nextMonth = nextMonthDate.toLocaleString('default', { month: 'long' }) + ' ' + nextMonthDate.getFullYear();
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-adv`,
+          message: `Salary advance: ${advance.employeeName} — ₹${advance.amount.toLocaleString('en-IN')}${matchedSalary ? ` (auto-deducted from ${nextMonth})` : ''}`,
+          type: 'system',
+          priority: 'medium',
+          read: false,
+          timestamp: fullTimestamp
+        };
 
-    const updatedSalaries = state.salaries.map(s => {
-      if (s.employeeName.toLowerCase() === advance.employeeName.toLowerCase() && s.month === nextMonth) {
-        const newAdvanceDeduction = s.advanceDeduction + advance.amount;
-        const newNet = s.basic + s.allowance - newAdvanceDeduction - s.otherDeduction;
-        return { ...s, advanceDeduction: newAdvanceDeduction, net: newNet };
-      }
-      return s;
-    });
+        return {
+          salaryAdvances: [finalAdvance, ...state.salaryAdvances],
+          salaries: updatedSalaries,
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
 
-    // Mark advance as deducted if a matching next-month salary exists
-    const matchedSalary = state.salaries.find(s =>
-      s.employeeName.toLowerCase() === advance.employeeName.toLowerCase() && s.month === nextMonth
-    );
-    const finalAdvance = matchedSalary ? { ...newAdvance, deducted: true } : newAdvance;
+      processPayroll: (month) => set((state) => {
+        const now = new Date();
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const monthSalaries = state.salaries.filter(s => s.month === month);
+        const totalPayroll = monthSalaries.reduce((acc, s) => acc + s.net, 0);
 
-    // Activity feed entry
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}-adv`,
-      message: `Salary advance: ${advance.employeeName} — ₹${advance.amount.toLocaleString('en-IN')}${matchedSalary ? ` (auto-deducted from ${nextMonth})` : ''}`,
-      type: 'system',
-      priority: 'medium',
-      read: false,
-      timestamp: fullTimestamp
-    };
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}-payroll`,
+          message: `Payroll of ₹${totalPayroll.toLocaleString('en-IN')} processed for ${month}`,
+          type: 'system',
+          priority: 'high',
+          read: false,
+          timestamp: fullTimestamp
+        };
 
-    return {
-      salaryAdvances: [finalAdvance, ...state.salaryAdvances],
-      salaries: updatedSalaries,
-      activityFeed: [feedItem, ...state.activityFeed]
-    };
-  }),
-  processPayroll: (month) => set((state) => {
-    const now = new Date();
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    const monthSalaries = state.salaries.filter(s => s.month === month);
-    const totalPayroll = monthSalaries.reduce((acc, s) => acc + s.net, 0);
+        return {
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
 
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}-payroll`,
-      message: `Payroll of ₹${totalPayroll.toLocaleString('en-IN')} processed for ${month}`,
-      type: 'system',
-      priority: 'high',
-      read: false,
-      timestamp: fullTimestamp
-    };
+      addCampaign: (campaign) => set((state) => ({
+        campaigns: [{ ...campaign, id: `c${Date.now()}` }, ...state.campaigns]
+      })),
 
-    return {
-      activityFeed: [feedItem, ...state.activityFeed]
-    };
-  }),
+      addActivityFeedItem: (item) => set((state) => {
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        return {
+          activityFeed: [{ ...item, id: `af${Date.now()}`, timestamp, read: false }, ...state.activityFeed],
+          notifications: item.priority === 'critical' ? state.notifications + 1 : state.notifications
+        };
+      }),
+      markAllNotificationsRead: () => set((state) => ({
+        activityFeed: state.activityFeed.map(item => ({ ...item, read: true }))
+      })),
+      clearActivityFeed: () => set({ activityFeed: [] }),
 
+      sendWeekendPostNow: (postTitle: string, contactCount: number, contactIdentifiers?: string[]) => set((state) => {
+        const now = new Date();
+        const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
 
-  logBrochureShare: (share) => set((state) => {
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        const logEntry: TransmissionLog = {
+          id: `tl${Date.now()}`,
+          postTitle,
+          delivered: contactCount,
+          read: 0,
+          channel: 'WhatsApp',
+          date: timestamp
+        };
 
-    const newShare: BrochureShare = { ...share, id: `bs${Date.now()}`, date: timestamp };
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}`,
+          message: `Weekend post sent to ${contactCount} contacts`,
+          type: 'weekend_post',
+          priority: 'low',
+          read: false,
+          timestamp: fullTimestamp
+        };
 
-    // Cascade 1: Auto-log follow-up interaction if customer exists in follow-ups
-    const matchingFollowUp = state.followUps.find(f =>
-      f.customerName.toLowerCase() === share.customerName.toLowerCase()
-    );
-    let updatedFollowUps = state.followUps;
-    if (matchingFollowUp) {
-      const newInteraction: Interaction = {
-        id: `i${Date.now()}`,
-        type: 'WhatsApp',
-        date: fullTimestamp,
-        outcome: 'N/A',
-        notes: `${share.brochureTitle} (V${share.version}) sent via WhatsApp`,
-        loggedBy: 'System'
-      };
-      updatedFollowUps = state.followUps.map(f =>
-        f.id === matchingFollowUp.id
-          ? { ...f, interactions: [newInteraction, ...f.interactions], lastContact: fullTimestamp }
-          : f
-      );
-    }
+        let updatedFollowUps = state.followUps;
+        if (contactIdentifiers && contactIdentifiers.length > 0) {
+          updatedFollowUps = state.followUps.map(f => {
+            if (f.status === 'Lost') return f;
+            const isContact = contactIdentifiers.some((c: any) =>
+              String(c).toLowerCase() === f.customerName.toLowerCase() ||
+              String(c).toLowerCase() === f.phone.toLowerCase()
+            );
+            if (!isContact) return f;
 
-    // Cascade 2: Update site visit last-contact date if customer exists
-    const matchingVisit = state.siteVisits.find(v =>
-      v.customerName.toLowerCase() === share.customerName.toLowerCase()
-    );
-    let updatedSiteVisits = state.siteVisits;
-    if (matchingVisit) {
-      updatedSiteVisits = state.siteVisits.map(v =>
-        v.id === matchingVisit.id ? { ...v, visitDate: fullTimestamp } : v
-      );
-    }
-
-    return {
-      brochureShares: [newShare, ...state.brochureShares],
-      followUps: updatedFollowUps,
-      siteVisits: updatedSiteVisits
-    };
-  }),
-  addBrochure: (brochure) => set((state) => {
-    const id = `br${Date.now()}`;
-    const newBr: Brochure = { ...brochure, id, lastShared: 'Never', sharedCount: 0, downloadCount: 0 };
-    
-    // Cascade: Auto-create weekend post for new brochure
-    const newPost: WeekendPost = {
-      id: `wp${Date.now()}`,
-      title: `New Listing: ${brochure.title}`,
-      type: 'Static',
-      status: 'Scheduled',
-      image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=800',
-      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      attachedBrochureId: id
-    };
-
-    return {
-      brochures: [newBr, ...state.brochures],
-      weekendPosts: [newPost, ...state.weekendPosts]
-    };
-  }),
-  updateBrochure: (id, data) => set((state) => ({
-    brochures: state.brochures.map(b => b.id === id ? { ...b, ...data } : b)
-  })),
-  attachBrochureToWeekendPost: (postId, brochureId) => set((state) => ({
-    weekendPosts: state.weekendPosts.map(p => p.id === postId ? { ...p, attachedBrochureId: brochureId } : p)
-  })),
-
-
-  addCampaign: (campaign) => set((state) => ({
-    campaigns: [{ ...campaign, id: `c${Date.now()}` }, ...state.campaigns]
-  })),
-
-
-  addConstructionCost: (cost) => set((state) => {
-    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const newCost: ConstructionCost = { ...cost, id: `cc${Date.now()}`, date: timestamp };
-
-    // Cascade: If cost is linked to material, auto-create outward entry
-    let newTxns = state.materialTxns;
-    let updatedStock = state.materialStock;
-    if (cost.category === 'Material' && cost.materialName && cost.materialQty) {
-      const material = state.materialStock.find(m => m.name === cost.materialName);
-      const outwardTxn: MaterialTransaction = {
-        id: `mt${Date.now()}`,
-        materialName: cost.materialName,
-        type: 'Outward',
-        qty: cost.materialQty,
-        unit: material?.unit || 'units',
-        date: timestamp,
-        projectBlock: cost.phaseName,
-        supervisorName: 'Auto-dispatched'
-      };
-      newTxns = [outwardTxn, ...state.materialTxns];
-
-      // Update stock levels
-      updatedStock = state.materialStock.map(m => {
-        if (m.name === cost.materialName) {
-          const newQty = m.current - (cost.materialQty || 0);
-          return {
-            ...m,
-            current: Math.max(0, newQty),
-            colorVar: newQty < m.threshold ? '--red' : (newQty < m.threshold * 1.5 ? '--amber' : '--blue'),
-            statusText: newQty < m.threshold ? '⚠ Very Low Stock' : (newQty < m.threshold * 1.5 ? '⚠ Order Soon' : '')
-          };
+            const newInteraction: Interaction = {
+              id: `i${Date.now()}-${f.id}`,
+              type: 'WhatsApp',
+              date: fullTimestamp,
+              outcome: 'N/A',
+              notes: `Weekend post sent: ${postTitle}`,
+              loggedBy: 'System'
+            };
+            return {
+              ...f,
+              interactions: [newInteraction, ...f.interactions],
+              lastContact: fullTimestamp
+            };
+          });
         }
-        return m;
-      });
+
+        return {
+          transmissionLogs: [logEntry, ...state.transmissionLogs],
+          activityFeed: [feedItem, ...state.activityFeed],
+          followUps: updatedFollowUps
+        };
+      }),
+
+      addUploadedCsv: (csv) => set((state) => {
+        const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fullTimestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const newCsv: UploadedCsv = {
+          ...csv,
+          id: `csv-${Date.now()}`,
+          date: timestamp
+        };
+
+        const feedItem: ActivityFeedItem = {
+          id: `af${Date.now()}`,
+          message: `CSV file uploaded: ${csv.name} (${csv.data.length} records)`,
+          type: 'system',
+          priority: 'low',
+          read: false,
+          timestamp: fullTimestamp
+        };
+
+        return {
+          uploadedCsvs: [newCsv, ...state.uploadedCsvs],
+          activityFeed: [feedItem, ...state.activityFeed]
+        };
+      }),
+      deleteUploadedCsv: (id) => set((state) => ({
+        uploadedCsvs: state.uploadedCsvs.filter(csv => csv.id !== id)
+      })),
+      resetSystem: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('ownthume-storage');
+          window.location.reload();
+        }
+      },
+    }),
+    {
+      name: 'ownthume-storage',
+      version: 4,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 4) {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('ownthume-storage');
+          }
+          return {
+            activeModule: 'dashboard',
+            isPinUnlocked: false,
+            systemPin: '1234',
+            globalModal: null,
+            unreadFollowUps: 0,
+            notifications: 0,
+            unreadQueries: 0,
+            queries: [],
+            siteVisits: [],
+            followUps: [],
+            brokers: [],
+            weekendPosts: [],
+            transmissionLogs: [],
+            weekendRules: [],
+            uploadedCsvs: [],
+            properties: [],
+            labourAgencies: [],
+            materialStock: [],
+            materialTxns: [],
+            assets: [],
+            payments: [],
+            propertyHolders: [],
+            salaries: [],
+            salaryAdvances: [],
+            campaigns: [],
+            activityFeed: []
+          } as any;
+        }
+        return persistedState;
+      }
     }
-
-    return {
-      constructionCosts: [newCost, ...state.constructionCosts],
-      materialTxns: newTxns,
-      materialStock: updatedStock
-    };
-  }),
-
-
-  addActivityFeedItem: (item) => set((state) => {
-    const now = new Date();
-    const timestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    return {
-      activityFeed: [{ ...item, id: `af${Date.now()}`, timestamp, read: false }, ...state.activityFeed],
-      notifications: item.priority === 'critical' ? state.notifications + 1 : state.notifications
-    };
-  }),
-  markAllNotificationsRead: () => set((state) => ({
-    activityFeed: state.activityFeed.map(item => ({ ...item, read: true }))
-  })),
-  clearActivityFeed: () => set({ activityFeed: [] }),
-
-  sendWeekendPostNow: (postTitle: string, contactCount: number) => set((state) => {
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fullTimestamp = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-
-    // 1. Create transmission log
-    const logEntry: TransmissionLog = {
-      id: `tl${Date.now()}`,
-      postTitle,
-      delivered: contactCount,
-      read: 0,
-      channel: 'WhatsApp',
-      date: timestamp
-    };
-
-    // 2. Add activity feed entry
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}`,
-      message: `Weekend post sent to ${contactCount} contacts`,
-      type: 'weekend_post',
-      priority: 'low',
-      read: false,
-      timestamp: fullTimestamp
-    };
-
-    return {
-      transmissionLogs: [logEntry, ...state.transmissionLogs],
-      activityFeed: [feedItem, ...state.activityFeed]
-    };
-  }),
-  addUploadedCsv: (csv) => set((state) => {
-    const timestamp = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fullTimestamp = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-    
-    const newCsv: UploadedCsv = {
-      ...csv,
-      id: `csv-${Date.now()}`,
-      date: timestamp
-    };
-
-    const feedItem: ActivityFeedItem = {
-      id: `af${Date.now()}`,
-      message: `CSV file uploaded: ${csv.name} (${csv.data.length} records)`,
-      type: 'system',
-      priority: 'low',
-      read: false,
-      timestamp: fullTimestamp
-    };
-
-    return {
-      uploadedCsvs: [newCsv, ...state.uploadedCsvs],
-      activityFeed: [feedItem, ...state.activityFeed]
-    };
-  }),
-  deleteUploadedCsv: (id) => set((state) => ({
-    uploadedCsvs: state.uploadedCsvs.filter(csv => csv.id !== id)
-  })),
-  resetSystem: () => {
-    localStorage.removeItem('ownthume-storage');
-    window.location.reload();
-  },
-}),
-{ name: 'ownthume-storage' }
-));
+  )
+);

@@ -9,6 +9,8 @@ import { AppShellSkeleton } from './skeletons/AppShellSkeleton';
 import { DashboardSkeleton } from './skeletons/DashboardSkeleton';
 import { TableSkeleton } from './skeletons/TableSkeleton';
 
+
+
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isPinUnlocked } = useStore();
@@ -94,6 +96,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           </div>
         </main>
       </div>
+
     </div>
   );
 }

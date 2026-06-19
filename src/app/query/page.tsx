@@ -27,7 +27,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function NewQueries() {
-   const { queries, updateQueryStatus, addQuery, deleteQuery, updateQuery, brokers } = useStore();
+   const { queries, updateQueryStatus, addQuery, deleteQuery, updateQuery, brokers, followUps } = useStore();
    const [selectedQueryId, setSelectedQueryId] = useState<string | null>(null);
    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
    const [selectedQueryIdForEdit, setSelectedQueryIdForEdit] = useState<string | null>(null);
@@ -82,6 +82,13 @@ export default function NewQueries() {
                   </div>
                </div>
                <div className="flex items-center gap-4">
+                  <Button
+                     onClick={() => setIsAddModalOpen(true)}
+                     className="h-[44px] px-6 gap-2 rounded-xl shadow-md font-bold text-[12px] uppercase"
+                  >
+                     <PlusIcon className="w-4 h-4" />
+                     Add Enquiry
+                  </Button>
                </div>
             </div>
 
@@ -191,7 +198,15 @@ export default function NewQueries() {
                                     <Button
                                        variant="ghost"
                                        size="icon"
-                                       className="h-10 w-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-100"
+                                       className="h-10 w-10 border-2 hover:bg-gray-100 hover:text-gray-900 border-gray-100"
+                                       onClick={() => setSelectedQueryIdForEdit(query.id)}
+                                    >
+                                       <PencilIcon className="w-4 h-4 text-gray-500" />
+                                    </Button>
+                                    <Button
+                                       variant="ghost"
+                                       size="icon"
+                                       className="h-10 w-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-100 border-gray-100"
                                        onClick={() => {
                                           if (confirm("Delete this lead?")) {
                                              deleteQuery(query.id);
@@ -216,90 +231,126 @@ export default function NewQueries() {
          </div>
 
          {/* Detail Panel */}
-         <div className={`fixed top-0 right-0 h-screen w-[520px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedQueryId ? 'translate-x-0' : 'translate-x-full'}`}>
+         <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ${selectedQueryId ? 'translate-x-0' : 'translate-x-full'}`}>
             {selectedQuery ? (
-               <div className="flex-1 flex flex-col p-10 overflow-y-auto text-left">
-                  <div className="flex items-center justify-between mb-10">
-                     <div className="flex items-center gap-6">
-                        <div className="modal-header-icon text-amber-600">
-                           <IdentificationIcon className="w-8 h-8" />
+               <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+                  <div className="flex items-center justify-between mb-6">
+                     <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 bg-gray-50 rounded flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-sm font-bold shrink-0">
+                           <IdentificationIcon className="w-6 h-6" />
                         </div>
                         <div className="text-left">
-                           <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-2">{selectedQuery.name}</h2>
-                           <div className="flex items-center gap-3 mt-1">
-                              <Badge variant="success" className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest">Verified</Badge>
-                              <p className="text-[11px] text-amber-600 font-bold uppercase tracking-widest opacity-80">{selectedQuery.source}</p>
+                           <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedQuery.name}</h2>
+                           <div className="flex items-center gap-2 mt-0.5">
+                              <Badge variant="success" className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">Verified</Badge>
+                              <p className="text-[11px] text-amber-600 font-bold uppercase tracking-wider opacity-85">{selectedQuery.source}</p>
                            </div>
                         </div>
                      </div>
-                     <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm" onClick={() => setSelectedQueryId(null)}>✕</Button>
+                     <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center" onClick={() => setSelectedQueryId(null)}>✕</Button>
                   </div>
 
-                  <div className="space-y-10">
+                  <div className="space-y-6">
                      {/* Lead Details */}
-                     <div className="p-8 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                           <BoltIcon className="w-24 h-24" />
+                     <div className="p-5 bg-gray-900 rounded text-white shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                           <BoltIcon className="w-16 h-16" />
                         </div>
-                        <div className="flex justify-between items-center mb-8 relative">
-                           <span className="text-[11px] font-bold text-white/40 tracking-[3px] uppercase">Requirement</span>
-                           <Badge variant={selectedQuery.status === 'Converted' ? 'success' : 'info'} className="px-3 py-1 text-[10px] font-bold uppercase shadow-sm">
+                        <div className="flex justify-between items-center mb-4 relative z-10">
+                           <span className="text-[11px] font-bold text-white/45 tracking-[1.5px] uppercase">Requirement</span>
+                           <Badge variant={selectedQuery.status === 'Converted' ? 'success' : 'info'} className="px-2.5 py-1 text-[10px] font-bold uppercase shadow-sm">
                               {selectedQuery.status}
                            </Badge>
                         </div>
-                        <div className="relative">
-                           <p className="text-3xl font-bold tracking-tight text-amber-500 mb-2 uppercase">{selectedQuery.interest}</p>
-                           <p className="text-[14px] font-bold text-white/60 uppercase tracking-[2px]">Budget: {selectedQuery.budget}</p>
+                        <div className="relative z-10">
+                           <p className="text-xl font-bold tracking-tight text-amber-500 mb-1 uppercase leading-tight">{selectedQuery.interest}</p>
+                           <p className="text-[13.5px] font-bold text-white/60 uppercase tracking-[1px]">Budget: {selectedQuery.budget}</p>
                         </div>
                      </div>
 
                      {/* Contact Info */}
-                     <div className="space-y-6">
-                        <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+                     <div className="space-y-3">
+                        <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2 flex items-center gap-2">
                            Contact information
                         </h3>
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-3">
                            {[
-                              { label: 'Phone No.', value: selectedQuery.phone, icon: <DevicePhoneMobileIcon className="w-5 h-5" /> },
-                              { label: 'Source', value: selectedQuery.source, icon: <CalendarDaysIcon className="w-5 h-5" /> },
-                              { label: 'Date', value: selectedQuery.date, icon: <CalendarDaysIcon className="w-5 h-5" /> },
+                              { label: 'Phone No.', value: selectedQuery.phone, icon: <DevicePhoneMobileIcon className="w-4 h-4" /> },
+                              { label: 'Source', value: selectedQuery.source, icon: <CalendarDaysIcon className="w-4 h-4" /> },
+                              { label: 'Date', value: selectedQuery.date, icon: <CalendarDaysIcon className="w-4 h-4" /> },
                            ].map((item, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm hover:bg-gray-50 transition-none">
-                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-amber-600 border-2 border-white shadow-sm">
+                              <div key={idx} className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm hover:bg-gray-50 transition-none">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded bg-gray-50 flex items-center justify-center text-amber-600 border border-[var(--border)] shadow-inner shrink-0">
                                        {item.icon}
                                     </div>
-                                    <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
+                                    <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wide">{item.label}</span>
                                  </div>
-                                 <span className="text-[15px] font-bold text-gray-900 tracking-tight uppercase">{item.value}</span>
+                                 <span className="text-[14.5px] font-bold text-gray-900 tracking-tight uppercase">{item.value}</span>
                               </div>
                            ))}
                         </div>
                      </div>
 
                      {/* Notes */}
-                     <div className="space-y-4">
-                        <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase flex items-center gap-3">
-                           Notes
+                     <div className="space-y-3">
+                        <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase flex items-center gap-2">
+                           Notes / Message
                         </h3>
-                        <div className="p-8 bg-amber-50 border-2 border-amber-200 rounded-2xl shadow-sm text-[15px] text-amber-900 leading-relaxed font-medium italic border-l-[8px] !border-l-amber-500 uppercase">
-                           &quot;Customer is interested in premium plots. Requires site visit scheduling for next weekend.&quot;
+                        <div className="p-5 bg-amber-50 border border-amber-100 rounded shadow-sm text-[14px] text-amber-900 leading-relaxed font-semibold italic border-l-4 !border-l-amber-500 uppercase">
+                           &quot;{selectedQuery.message || 'No additional message or notes provided for this enquiry.'}&quot;
                         </div>
                      </div>
+
+                     {/* Timeline */}
+                     {(() => {
+                        const matchingFollowUp = followUps.find(f => f.phone === selectedQuery.phone || f.customerName.toLowerCase() === selectedQuery.name.toLowerCase());
+                        if (!matchingFollowUp || !matchingFollowUp.interactions || matchingFollowUp.interactions.length === 0) return null;
+                        return (
+                           <div className="space-y-3">
+                              <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2 flex items-center gap-2">
+                                 Lead Timeline
+                              </h3>
+                              <div className="space-y-3 mt-3">
+                                 {matchingFollowUp.interactions.map((interaction) => (
+                                    <div key={interaction.id} className="p-4 bg-gray-50 rounded border border-gray-100 flex items-start gap-3 shadow-sm text-left">
+                                       <div className="w-7 h-7 rounded bg-amber-100 flex items-center justify-center text-[11px] font-bold text-amber-700 shrink-0">
+                                          {interaction.type.charAt(0)}
+                                       </div>
+                                       <div className="text-left flex-1">
+                                          <div className="flex justify-between items-baseline mb-1">
+                                             <span className="text-[12.5px] font-bold text-gray-900">{interaction.type} ({interaction.outcome})</span>
+                                             <span className="text-[10.5px] text-gray-400 font-bold">{interaction.date}</span>
+                                          </div>
+                                          <p className="text-[13px] text-gray-600 font-medium">{interaction.notes}</p>
+                                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mt-1">Logged by: {interaction.loggedBy}</span>
+                                       </div>
+                                    </div>
+                                 ))}
+                               </div>
+                           </div>
+                        );
+                     })()}
                   </div>
 
-                  <div className="mt-auto pt-10 border-t-2 border-[var(--border)] flex gap-6">
+                  <div className="mt-auto pt-6 border-t border-[var(--border)] flex gap-4">
                      <Button
-                        variant="secondary" className="flex-1 h-[56px] font-bold uppercase tracking-widest shadow-md rounded-xl"
+                        variant="secondary" className="h-[46px] px-4 font-bold uppercase tracking-wider shadow-sm rounded text-[12px] bg-white border flex items-center justify-center"
                         onClick={() => setSelectedQueryId(null)}
                      >
-                        Close
+                        ✕
                      </Button>
                      <Button
-                        variant="primary" className="flex-[2] h-[56px] font-bold uppercase tracking-widest shadow-xl rounded-xl gap-3"
+                        variant="secondary" className="flex-1 h-[46px] font-bold uppercase tracking-wider shadow-sm rounded text-[12px] bg-white border"
+                        onClick={() => setSelectedQueryIdForEdit(selectedQuery.id)}
+                     >
+                        Edit
+                     </Button>
+                     <Button
+                        variant="primary" className="flex-[2] h-[46px] font-bold uppercase tracking-wider shadow-md rounded gap-2 text-[12px] flex items-center justify-center"
                         onClick={() => { updateQueryStatus(selectedQuery.id, 'In Progress'); setSelectedQueryId(null); }}
                      >
-                        Process lead <PaperAirplaneIcon className="w-6 h-6" />
+                        Process lead <PaperAirplaneIcon className="w-4 h-4" />
                      </Button>
                   </div>
                </div>
@@ -389,8 +440,226 @@ export default function NewQueries() {
             </div>
          )}
 
-         {/* Filter Modal removed */}
+         {/* Add Enquiry Modal */}
+         {isAddModalOpen && (
+            <div className="modal-overlay">
+               <div className="modal-container max-w-xl shadow-2xl rounded-[32px]">
+                  <div className="modal-header p-5">
+                     <div className="flex items-center gap-4 text-left">
+                        <div className="modal-header-icon text-amber-600 w-10 h-10 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-100">
+                           <PlusIcon className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                           <h2 className="text-[18px] font-bold text-gray-900 tracking-tight leading-none mb-1 uppercase">
+                              Add New Enquiry
+                           </h2>
+                           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[1px] opacity-60 leading-none">Create a new customer profile</p>
+                        </div>
+                     </div>
+                     <Button variant="secondary" size="icon" className="rounded-lg border-2 h-10 w-10 shadow-sm" onClick={() => setIsAddModalOpen(false)}>✕</Button>
+                  </div>
 
+                  <form className="modal-body space-y-6 text-left p-6" onSubmit={(e) => {
+                     e.preventDefault();
+                     const formData = new FormData(e.currentTarget);
+                     addQuery({
+                        name: formData.get('name') as string,
+                        phone: formData.get('phone') as string,
+                        email: formData.get('email') as string || undefined,
+                        source: formData.get('source') as any,
+                        interest: formData.get('interest') as string,
+                        budget: formData.get('budget') as string,
+                        message: formData.get('message') as string || undefined,
+                        status: formData.get('status') as any || 'New'
+                     });
+                     setIsAddModalOpen(false);
+                  }}>
+                     <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                           <Label required>Customer Name</Label>
+                           <Input name="name" required placeholder="e.g. Arjun Mehta" className="h-[48px] rounded-xl" />
+                        </div>
+                        <div className="space-y-3">
+                           <Label required>Phone Number</Label>
+                           <Input name="phone" required placeholder="e.g. 9876543210" className="h-[48px] rounded-xl" />
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                           <Label>Email Address</Label>
+                           <Input type="email" name="email" placeholder="e.g. arjun@example.com" className="h-[48px] rounded-xl" />
+                        </div>
+                        <div className="space-y-3">
+                           <Label required>Lead Source</Label>
+                           <Select name="source" required className="h-[48px] rounded-xl">
+                              <option value="Website">Website</option>
+                              <option value="Meta Ad">Meta Ad</option>
+                              <option value="Walk-in">Walk-in</option>
+                              <option value="Broker">Broker</option>
+                              <option value="Referral">Referral</option>
+                           </Select>
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                           <Label required>Property Interest</Label>
+                           <Input name="interest" required placeholder="e.g. 3 BHK Apartment" className="h-[48px] rounded-xl" />
+                        </div>
+                        <div className="space-y-3">
+                           <Label required>Budget Segment</Label>
+                           <Input name="budget" required placeholder="e.g. ₹1.5 cr" className="h-[48px] rounded-xl" />
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                           <Label required>Initial Lifecycle Status</Label>
+                           <Select name="status" required className="h-[48px] rounded-xl">
+                              <option value="New">New</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Converted">Converted</option>
+                              <option value="Lost">Lost</option>
+                           </Select>
+                        </div>
+                     </div>
+
+                     <div className="space-y-3">
+                        <Label>Additional Message / Notes</Label>
+                        <textarea
+                           name="message"
+                           rows={3}
+                           placeholder="Type customer requirements or specific interest..."
+                           className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-amber-500 outline-none font-medium text-[13.5px] shadow-inner transition-all"
+                        />
+                     </div>
+
+                     <div className="pt-2 flex gap-4">
+                        <Button type="submit" className="flex-[2] h-[52px] rounded-xl shadow-lg font-bold text-[11px] uppercase">
+                           Create lead profile
+                        </Button>
+                        <Button type="button" variant="secondary" onClick={() => setIsAddModalOpen(false)} className="flex-1 h-[52px] rounded-xl border-2 font-bold text-[11px] bg-white shadow-md uppercase hover:bg-gray-50">
+                           Cancel
+                        </Button>
+                     </div>
+                  </form>
+               </div>
+            </div>
+         )}
+
+         {/* Edit Enquiry Modal */}
+         {selectedQueryIdForEdit && (() => {
+            const queryToEdit = queries.find(q => q.id === selectedQueryIdForEdit);
+            if (!queryToEdit) return null;
+            return (
+               <div className="modal-overlay">
+                  <div className="modal-container max-w-xl shadow-2xl rounded-[32px]">
+                     <div className="modal-header p-5">
+                        <div className="flex items-center gap-4 text-left">
+                           <div className="modal-header-icon text-amber-600 w-10 h-10 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-100">
+                              <PencilIcon className="w-5 h-5" />
+                           </div>
+                           <div className="text-left">
+                              <h2 className="text-[18px] font-bold text-gray-900 tracking-tight leading-none mb-1 uppercase">
+                                 Edit Enquiry Profile
+                              </h2>
+                              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[1px] opacity-60 leading-none">Update customer information</p>
+                           </div>
+                        </div>
+                        <Button variant="secondary" size="icon" className="rounded-lg border-2 h-10 w-10 shadow-sm" onClick={() => setSelectedQueryIdForEdit(null)}>✕</Button>
+                     </div>
+
+                     <form className="modal-body space-y-6 text-left p-6" onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        updateQuery(queryToEdit.id, {
+                           name: formData.get('name') as string,
+                           phone: formData.get('phone') as string,
+                           email: formData.get('email') as string || undefined,
+                           source: formData.get('source') as any,
+                           interest: formData.get('interest') as string,
+                           budget: formData.get('budget') as string,
+                           message: formData.get('message') as string || undefined,
+                           status: formData.get('status') as any
+                        });
+                        setSelectedQueryIdForEdit(null);
+                     }}>
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <Label required>Customer Name</Label>
+                              <Input name="name" required defaultValue={queryToEdit.name} className="h-[48px] rounded-xl" />
+                           </div>
+                           <div className="space-y-3">
+                              <Label required>Phone Number</Label>
+                              <Input name="phone" required defaultValue={queryToEdit.phone} className="h-[48px] rounded-xl" />
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <Label>Email Address</Label>
+                              <Input type="email" name="email" defaultValue={queryToEdit.email || ''} placeholder="e.g. arjun@example.com" className="h-[48px] rounded-xl" />
+                           </div>
+                           <div className="space-y-3">
+                              <Label required>Lead Source</Label>
+                              <Select name="source" required defaultValue={queryToEdit.source} className="h-[48px] rounded-xl">
+                                 <option value="Website">Website</option>
+                                 <option value="Meta Ad">Meta Ad</option>
+                                 <option value="Walk-in">Walk-in</option>
+                                 <option value="Broker">Broker</option>
+                                 <option value="Referral">Referral</option>
+                              </Select>
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <Label required>Property Interest</Label>
+                              <Input name="interest" required defaultValue={queryToEdit.interest} className="h-[48px] rounded-xl" />
+                           </div>
+                           <div className="space-y-3">
+                              <Label required>Budget Segment</Label>
+                              <Input name="budget" required defaultValue={queryToEdit.budget} className="h-[48px] rounded-xl" />
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <Label required>Lifecycle Status</Label>
+                              <Select name="status" required defaultValue={queryToEdit.status} className="h-[48px] rounded-xl">
+                                 <option value="New">New</option>
+                                 <option value="In Progress">In Progress</option>
+                                 <option value="Converted">Converted</option>
+                                 <option value="Lost">Lost</option>
+                              </Select>
+                           </div>
+                        </div>
+
+                        <div className="space-y-3">
+                           <Label>Additional Message / Notes</Label>
+                           <textarea
+                              name="message"
+                              rows={3}
+                              defaultValue={queryToEdit.message || ''}
+                              placeholder="Type customer requirements or specific interest..."
+                              className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-amber-500 outline-none font-medium text-[13.5px] shadow-inner transition-all"
+                           />
+                        </div>
+
+                        <div className="pt-2 flex gap-4">
+                           <Button type="submit" className="flex-[2] h-[52px] rounded-xl shadow-lg font-bold text-[11px] uppercase">
+                              Save changes
+                           </Button>
+                           <Button type="button" variant="secondary" onClick={() => setSelectedQueryIdForEdit(null)} className="flex-1 h-[52px] rounded-xl border-2 font-bold text-[11px] bg-white shadow-md uppercase hover:bg-gray-50">
+                              Cancel
+                           </Button>
+                        </div>
+                     </form>
+                  </div>
+               </div>
+            );
+         })()}
       </>
    );
 }

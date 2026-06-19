@@ -208,38 +208,38 @@ export default function WebsiteLeads() {
          </div>
 
          {/* Detail Panel */}
-         <div className={`fixed top-0 right-0 h-screen w-[560px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out ${selectedQueryId ? 'translate-x-0' : 'translate-x-full'}`}>
+         <div className={`fixed top-0 right-0 h-screen w-[460px] bg-white shadow-2xl z-[250] border-l-2 border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out ${selectedQueryId ? 'translate-x-0' : 'translate-x-full'}`}>
             {selectedQuery ? (
-               <div className="flex-1 flex flex-col p-10 overflow-y-auto text-left">
-                  <div className="flex items-center justify-between mb-10">
-                     <div className="flex items-center gap-6">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 border-2 border-amber-100 shadow-sm">
-                           <IdentificationIcon className="w-8 h-8" />
+               <div className="flex-1 flex flex-col p-6 overflow-y-auto text-left">
+                  <div className="flex items-center justify-between mb-6">
+                     <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100 shadow-sm shrink-0">
+                           <IdentificationIcon className="w-6 h-6" />
                         </div>
                         <div className="text-left">
-                           <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-none mb-2">{selectedQuery.name}</h2>
-                           <div className="flex items-center gap-3 mt-1">
-                              <Badge variant="success" className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-sm">Verified Web Lead</Badge>
-                              <p className="text-[11px] text-amber-600 font-bold uppercase tracking-widest opacity-80 tabular-nums">ID: {selectedQuery.id}</p>
+                           <h2 className="text-[20px] font-bold text-gray-900 tracking-tight leading-none mb-1.5 uppercase">{selectedQuery.name}</h2>
+                           <div className="flex items-center gap-2 mt-0.5">
+                              <Badge variant="success" className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm">Verified Web Lead</Badge>
+                              <p className="text-[11px] text-amber-600 font-bold uppercase tracking-wider opacity-80 tabular-nums">ID: {selectedQuery.id.slice(-6)}</p>
                            </div>
                         </div>
                      </div>
-                     <Button variant="secondary" size="icon" className="rounded-xl border-2 h-12 w-12 shadow-sm hover:bg-gray-100 transition-all" onClick={() => setSelectedQueryId(null)}>✕</Button>
+                     <Button variant="secondary" size="icon" className="rounded border h-10 w-10 shadow-sm flex items-center justify-center hover:bg-gray-100 transition-all" onClick={() => setSelectedQueryId(null)}>✕</Button>
                   </div>
 
-                  <div className="space-y-10">
+                  <div className="space-y-6">
                      {/* Web Content / Message */}
-                     <div className="space-y-4">
-                        <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase flex items-center gap-3">
+                     <div className="space-y-3">
+                        <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase flex items-center gap-1.5">
                            Portal Content
                         </h3>
-                        <div className="p-8 bg-gray-900 rounded-[32px] text-white shadow-2xl relative overflow-hidden group">
-                           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                              <ChatBubbleLeftRightIcon className="w-32 h-32" />
+                        <div className="p-5 bg-gray-900 rounded text-white shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                              <ChatBubbleLeftRightIcon className="w-16 h-16" />
                            </div>
                            <div className="relative">
-                              <p className="text-[12px] font-bold text-amber-400/60 uppercase tracking-[3px] mb-4">Submission Message:</p>
-                              <p className="text-[18px] font-medium leading-relaxed italic text-white/90">
+                              <p className="text-[11px] font-bold text-amber-400/60 uppercase tracking-[2px] mb-2.5">Submission Message:</p>
+                              <p className="text-[14px] font-medium leading-relaxed italic text-white/90">
                                  &quot;{selectedQuery.message || "No content provided by the customer."}&quot;
                               </p>
                            </div>
@@ -247,36 +247,36 @@ export default function WebsiteLeads() {
                      </div>
 
                      {/* Lead Info Grid */}
-                     <div className="grid grid-cols-2 gap-6">
-                        <div className="p-6 bg-amber-50 rounded-2xl border-2 border-amber-100">
-                           <p className="text-[10px] font-bold text-amber-800/50 uppercase tracking-[2px] mb-2">Requirement</p>
-                           <p className="text-[18px] font-bold text-amber-900 uppercase tracking-tight">{selectedQuery.interest}</p>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-amber-50 rounded border border-amber-100 text-left">
+                           <p className="text-[11px] font-bold text-amber-800/50 uppercase tracking-[1.5px] mb-1.5">Requirement</p>
+                           <p className="text-[15px] font-bold text-amber-900 uppercase tracking-tight">{selectedQuery.interest}</p>
                         </div>
-                        <div className="p-6 bg-amber-50 rounded-2xl border-2 border-amber-100">
-                           <p className="text-[10px] font-bold text-amber-800/50 uppercase tracking-[2px] mb-2">Budget Cap</p>
-                           <p className="text-[18px] font-bold text-amber-900 tabular-nums">{selectedQuery.budget}</p>
+                        <div className="p-4 bg-amber-50 rounded border border-amber-100 text-left">
+                           <p className="text-[11px] font-bold text-amber-800/50 uppercase tracking-[1.5px] mb-1.5">Budget Cap</p>
+                           <p className="text-[15px] font-bold text-amber-900 tabular-nums">{selectedQuery.budget}</p>
                         </div>
                      </div>
 
                      {/* Contact Details */}
-                     <div className="space-y-6">
-                        <h3 className="text-[11px] font-bold text-gray-900 tracking-[3px] uppercase border-b-2 border-[var(--border)] pb-4 flex items-center gap-3">
+                     <div className="space-y-3">
+                        <h3 className="text-[12.5px] font-bold text-gray-900 tracking-[1.5px] uppercase border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
                            Contact metadata
                         </h3>
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-3">
                            {[
-                              { label: 'Phone Line', value: selectedQuery.phone, icon: <DevicePhoneMobileIcon className="w-5 h-5" /> },
-                              { label: 'Email ID', value: selectedQuery.email || 'N/A', icon: <EnvelopeIcon className="w-5 h-5" /> },
-                              { label: 'Capture Date', value: selectedQuery.date, icon: <CalendarDaysIcon className="w-5 h-5" /> },
+                              { label: 'Phone Line', value: selectedQuery.phone, icon: <DevicePhoneMobileIcon className="w-4 h-4" /> },
+                              { label: 'Email ID', value: selectedQuery.email || 'N/A', icon: <EnvelopeIcon className="w-4 h-4" /> },
+                              { label: 'Capture Date', value: selectedQuery.date, icon: <CalendarDaysIcon className="w-4 h-4" /> },
                            ].map((item, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border-2 border-[var(--border)] shadow-sm hover:bg-gray-50 transition-colors">
-                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-amber-600 border-2 border-white shadow-sm">
+                              <div key={idx} className="flex items-center justify-between p-3.5 bg-white rounded border border-[var(--border)] shadow-sm hover:bg-gray-50 transition-colors">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded bg-gray-50 flex items-center justify-center text-amber-600 border border-white shadow-sm shrink-0">
                                        {item.icon}
                                     </div>
-                                    <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
+                                    <span className="text-[12.5px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
                                  </div>
-                                 <span className="text-[15px] font-bold text-gray-900 tracking-tight">{item.value}</span>
+                                 <span className="text-[13.5px] font-bold text-gray-900 tracking-tight">{item.value}</span>
                               </div>
                            ))}
                         </div>
@@ -284,18 +284,18 @@ export default function WebsiteLeads() {
 
                   </div>
 
-                  <div className="mt-auto pt-10 border-t-2 border-[var(--border)] flex gap-6">
+                  <div className="mt-auto pt-6 border-t border-[var(--border)] flex gap-4">
                      <Button
-                        variant="secondary" className="flex-1 h-[60px] font-bold uppercase tracking-widest shadow-md rounded-xl border-2"
+                        variant="secondary" className="flex-1 h-[46px] font-bold uppercase tracking-wider shadow-sm rounded border text-[12px]"
                         onClick={() => setSelectedQueryId(null)}
                      >
                         Archive View
                      </Button>
                      <Button
-                        variant="primary" className="flex-[2] h-[60px] font-bold uppercase tracking-widest shadow-xl rounded-xl gap-3"
+                        variant="primary" className="flex-[2] h-[46px] font-bold uppercase tracking-wider shadow-md rounded gap-2 flex items-center justify-center text-[12px]"
                         onClick={() => { updateQueryStatus(selectedQuery.id, 'In Progress'); setSelectedQueryId(null); }}
                      >
-                        Process Entry <PaperAirplaneIcon className="w-6 h-6" />
+                        Process Entry <PaperAirplaneIcon className="w-4 h-4" />
                      </Button>
                   </div>
                </div>

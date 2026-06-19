@@ -19,7 +19,7 @@ export default function Topbar() {
 
   const labels: Record<string, string> = {
     dashboard: 'Dashboard', land: 'Land Purchase', layout: 'Planning Layout', 
-    construction: 'Structure Layout', brochure: 'Brochure', meta: 'Meta Marketing',
+    construction: 'Structure Layout', meta: 'Meta Marketing',
     weekend: 'Weekend Posts', website: 'Website', sitevisit: 'Site Visits', 
     followup: 'Follow-Up', query: 'New Queries', broker: 'Brokers', 
     payments: 'Payments', propertyholder: 'Property Holder', salary: 'Staff Salary', 

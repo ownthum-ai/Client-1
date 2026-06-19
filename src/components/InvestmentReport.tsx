@@ -8,12 +8,10 @@ interface InvestmentReportProps {
     landCost: number;
     activeLeads: number;
     profit: number;
-    siteWiseData: any[];
     recentActivities: any[];
     expenses: {
       land: number;
       material: number;
-      construction: number;
       marketing: number;
       salary: number;
       broker: number;
@@ -110,7 +108,6 @@ export const InvestmentReport = ({ data }: InvestmentReportProps) => {
               {[
                 { label: 'Land Asset Acquisition', value: data.expenses.land },
                 { label: 'Raw Material Procurement', value: data.expenses.material },
-                { label: 'Project Execution (Civil)', value: data.expenses.construction },
                 { label: 'Marketing & Outreach', value: data.expenses.marketing },
                 { label: 'Human Resource (Salaries)', value: data.expenses.salary },
                 { label: 'Channel Partner Commissions', value: data.expenses.broker },
@@ -134,67 +131,16 @@ export const InvestmentReport = ({ data }: InvestmentReportProps) => {
         <div className="p-8 bg-gray-900 rounded-sm text-white text-center mt-auto">
           <p className="text-[11px] font-bold text-white/40 uppercase tracking-[4px] mb-2">Audit Verdict</p>
           <p className="text-[16px] font-serif text-white tracking-wide uppercase italic leading-relaxed">
-            &ldquo;The portfolio maintains a positive liquidity ratio with capital heavily allocated towards land asset appreciation and civil infrastructure maturity.&rdquo;
+            &ldquo;The portfolio maintains a positive liquidity ratio with capital heavily allocated towards land asset appreciation and sales operations.&rdquo;
           </p>
         </div>
       </div>
 
-      {/* PAGE 3: PROJECT EXECUTION & MATURITY */}
+      {/* PAGE 3: SALES DYNAMICS & SYSTEM LOG */}
       <div className="report-page p-20">
         <header className="flex justify-between items-start mb-24 border-b border-gray-100 pb-10">
           <div>
-            <h2 className="text-4xl font-serif text-[#002B49] mb-2 uppercase tracking-tight">02. Execution Matrix</h2>
-            <p className="text-[11px] font-bold text-[#AD841F] uppercase tracking-[4px]">Project Maturity & Site Progress</p>
-          </div>
-        </header>
-
-        <div className="space-y-12 mb-20 text-left">
-          <p className="text-[14px] leading-relaxed text-gray-500 uppercase font-medium max-w-2xl">
-            Real-time tracking of civil development across key project sites. Completion percentages are based on structural and logistical milestones.
-          </p>
-          
-          <div className="grid grid-cols-1 gap-10">
-            {data.siteWiseData.map((site, i) => (
-              <div key={i} className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Site Designation</p>
-                    <p className="text-[18px] font-bold text-[#002B49] uppercase tracking-tight">{site.site}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Structural Maturity</p>
-                    <p className="text-[18px] font-serif text-[#AD841F] tabular-nums">{site.progress}%</p>
-                  </div>
-                </div>
-                <div className="w-full h-[6px] bg-gray-50 rounded-full overflow-hidden border border-gray-100">
-                  <div className="h-full bg-[#002B49]" style={{ width: `${site.progress}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-10 mt-auto">
-          <div className="p-10 border border-gray-100 text-left">
-            <h4 className="text-[11px] font-bold text-[#002B49] uppercase tracking-[2px] mb-4">Construction Health</h4>
-            <p className="text-[13px] text-gray-500 leading-relaxed uppercase font-medium">
-              Average project maturity stands at {Math.round(data.siteWiseData.reduce((a,b)=>a+b.progress,0)/data.siteWiseData.length)}% across all sites. No critical structural delays reported in the current fiscal period.
-            </p>
-          </div>
-          <div className="p-10 bg-gray-50 text-left">
-            <h4 className="text-[11px] font-bold text-[#AD841F] uppercase tracking-[2px] mb-4 border-b border-[#AD841F]/20 pb-2">Material Allocation</h4>
-            <p className="text-[13px] text-gray-600 leading-relaxed uppercase font-medium italic">
-              Inventory inward/outward flow is optimized for 90-day lead times on essential raw materials.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* PAGE 4: SALES DYNAMICS & SYSTEM LOG */}
-      <div className="report-page p-20">
-        <header className="flex justify-between items-start mb-24 border-b border-gray-100 pb-10">
-          <div>
-            <h2 className="text-4xl font-serif text-[#002B49] mb-2 uppercase tracking-tight">03. Market Dynamics</h2>
+            <h2 className="text-4xl font-serif text-[#002B49] mb-2 uppercase tracking-tight">02. Market Dynamics</h2>
             <p className="text-[11px] font-bold text-[#AD841F] uppercase tracking-[4px]">Lead Conversion & Inventory Liquidity</p>
           </div>
         </header>
