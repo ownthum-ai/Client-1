@@ -120,7 +120,14 @@ export default function Dashboard() {
 
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
+  if (!mounted) return (
+    <div className="flex items-center justify-center w-full h-screen bg-[var(--color-page-bg)]">
+      <div className="flex flex-col items-center gap-4 opacity-40">
+        <div className="w-8 h-8 border-2 border-[var(--gold)] border-t-transparent rounded-full animate-spin" />
+        <span className="text-[10px] font-bold tracking-[3px] uppercase text-[var(--text3)]">Loading</span>
+      </div>
+    </div>
+  );
 
   return (
     <>
